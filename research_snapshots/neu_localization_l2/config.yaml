@@ -1,0 +1,42 @@
+# Offline research policy. Every result has active_accept=false.
+schema_version: 1
+descriptor:
+  rings: 20
+  sectors: 60
+  radius_m: 8.0
+  height_offset_m: 2.0
+  max_yaw_hypotheses: 2
+  yaw_peak_separation_rad: 0.5
+  yaw_tie_margin: 0.02
+retrieval:
+  top_k: 3
+  descriptor_tie_margin: 0.02
+  max_keyframes: 8
+  max_descriptor_distance: 0.35
+coarse:
+  method: sc_only
+  alternatives: [sc_only, fpfh_ransac]
+  leaf_m: 0.25
+  normal_radius_m: 0.7
+  feature_radius_m: 1.2
+  max_iterations: 10000
+  max_correspondence_distance_m: 0.45
+  min_inlier_fraction: 0.25
+  rng_seed: 7
+quality:
+  use_historical_T_as_research_qualifier: true
+  # Uses unchanged historical .30 / .001 / 1e5; not new-car deployed gates.
+  basin_xy_separation_m: 2.0
+  basin_yaw_separation_rad: 0.5
+prior:
+  expected_start_pose: {x: 12.0, y: 0.0, yaw: null}
+  xy_search_radius: 3.0
+  yaw_search_range: null
+  candidate_region_ids: []
+  expand_to_global_when_no_eligible: true
+input:
+  required_normalization: gravity_aligned_base_at_query_epoch
+  allow_synthetic: true
+  max_source_age_sec: 0.5
+output:
+  active_accept: false

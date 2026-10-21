@@ -1,0 +1,415 @@
+# 旧车 FAST-LIO 高速自转根因候选与实车验收（2026-09-03）
+
+## 1. 结论和边界
+
+2026-09-01 的 R03 已证明：最终一次持续高速自转不是单纯 AMCL 丢失，而是
+`/odometry/lio` 在积压后发生约 10 m 的错误平移。已有全局修正门正确撤下了
+`map -> odom`，但它只能防止错误位姿进入导航，不能阻止 FAST-LIO 先失效。
+
+本分支从更靠近根因的位置做两项改动：
+
+1. 双 MID360 模式下，FAST-LIO 默认直接接收驱动生成的原生 `CustomMsg`，保留
+   `timebase + uint32 offset_time`；PointCloud2 改为从原生消息派生，仅供障碍感知。
+2. 旧车 `lio_adapter` 拒绝超龄、未来、静默后突然跳远的后端输出，避免积压输出重新
+   发布为 canonical `odom -> base_link`，并提供可录包的运行诊断。
+
+第一项是“防止时序精度/转换链导致高动态失效”的根因候选，第二项是“即使后端仍失效也
+不把错误结果交给导航”的安全边界。代码构建和自动化测试通过，但是否能让旧车持续高速
+自转一分钟仍不丢定位，必须完成本文实车验收后才能下结论。
+
+新车配置没有启用旧车的 LIO 输入门；本次参数和实车结论不得直接当作新车标定结果。
+
+### 1.1 2026-09-03 20 Hz 实车结论
+
+实车包：
+
+```text
+artifacts/bags/20260903_high_spin_native20_bundle_01/
+```
+
+录制时长约 `202.56 s`，包含 4,006 帧 raw odom、4,025 帧 canonical odom 和完整
+LIO/AMCL/TF/就绪状态。动作由 odom 航向变化离线对齐，而不是依赖人工报时：
+
+- 第一档约 `3.1 rad/s`，持续 `12.55 s`；自转窗口内 LIO 和全局定位均未失效。
+- 第二档约 `5.5 rad/s`，持续 `9.05 s`；LIO 全程有效，但第 `115.305 s` 的单帧
+  AMCL 候选造成 `0.446 m / 0.737 rad` 修正创新，超过 `0.35 m / 0.35 rad` 门限。
+- 下一帧 AMCL 候选约 `0.154 s` 后已经回到门限内，旧逻辑却已锁存并撤下
+  `map -> odom`。实际 TF 中断 `5.45 s`，停车后约 `2.4 s` 完成自主重定位。
+- raw odom 延迟中位数 `16.5 ms`、P99 `106.8 ms`、最大 `300.1 ms`；FAST-LIO
+  计算时间中位数 `7.45 ms`、P99 `37.77 ms`、最大 `151.15 ms`。两次 LIO
+  短时健康门事件发生在动作窗口之外，并与同时录包/诊断负载重合，仍需下一轮复验。
+
+因此 20 Hz 已明显消除 50 Hz 持续算力积压，但“5.5 rad/s 时画面消失”本次直接原因是
+修正门对单帧 AMCL 异常过度敏感，而不是 LIO 在自转窗口内断流。
+
+对应修复为连续异常确认：通用默认仍是 `1` 帧异常即锁存；旧车配置设为 `3`。前两帧
+异常只被丢弃，可信修正和 canonical TF 保持不变；连续第三帧才进入既有 fail-closed 与
+自主恢复流程。这样不会靠放宽 `0.35 m / 0.35 rad` 接受错误位姿。
+
+加载三帧确认后的复验包：
+
+```text
+artifacts/bags/20260903_high_spin_native20_confirmation_01/
+artifacts/bags/20260903_high_spin_native20_maxspeed_home_01/
+```
+
+第一包中约 `5.5 rad/s` 自转持续 `34.10 s`，出现多组一至两帧 AMCL 异常，最大约
+`0.625 m / 1.415 rad`；它们均被隔离，两个 validity topic 和 `map -> odom` 全程连续，
+实车复核没有持续地图错位。说明三帧确认解决了孤立/短簇异常。
+
+第二包中最高档约 `7.0 rad/s`、持续 `11.55 s`。LIO 全程有效，raw odom 延迟最大
+`137.1 ms`；但 AMCL 从动作开始约 `1.4 s` 后连续三帧产生 `0.87--1.25 rad` 航向创新，
+修正门按设计锁存。`map -> odom` 中断 `12.15 s`，停车后才自主恢复，因此随后能够 home
+不等于“自转结束立即 home”通过。
+
+离线按时间匹配的 LIO 角速度回放显示：若在 `>= 3.0 rad/s` 时冻结全局修正，所有最高档
+异常候选都会被隔离；降速后的候选立即重新落回原可信修正 `0.35 m / 0.35 rad` 范围。
+因此新增旧车专用高速修正冻结：高速期间不接收 AMCL 候选，但持续发布最后可信
+`map -> odom`；LIO 健康门仍可独立撤下错误 odom。通用/新车 profile 默认关闭该行为。
+
+### 1.2 2026-09-03 高速修正冻结实车结果
+
+加载高速修正冻结后的实车包：
+
+```text
+artifacts/bags/20260903_high_spin_native20_hold_01/
+```
+
+该包时长 `130.29 s`，其中主高速段由 canonical odom 自动识别为
+`21.025--73.777 s`，`>= 3.0 rad/s` 连续 `52.751 s`，实测最大角速度
+`7.273 rad/s`。结果如下：
+
+- `/localization/lio_runtime_valid` 的 1,304 个样本全部为 true；
+- `/localization/global_localization_valid` 的 1,865 个样本全部为 true；
+- 高速段持续进入 `high_angular_rate_hold`，`map -> odom` 没有被撤下；
+- 全包 `map -> odom` 最大发布间隔 `61.8 ms`，主高速段最大间隔 `59.7 ms`；
+- raw odom 消息年龄 P50/P99/最大分别为 `14.6/38.6/86.7 ms`，未见积压；
+- `lio_adapter/input_health` 的 1,303 个诊断样本全部为 `healthy`；
+- 停车附近恢复全局修正时，`map -> odom` 最大单步为 `0.159 m / 0.205 rad`，
+  没有超过 `0.35 m / 0.35 rad` 安全门；最终高速片段结束后约 `0.7 s` 回到
+  `healthy`；
+- 点云到 LaserScan 的严格 SE(3) 去畸变在 990 个诊断样本中始终 active，历史
+  `interpolation/coverage` 计数没有在本包期间增加，`last_failure` 始终为空。
+
+操作员观察到高速期间 RViz 点云像多个不同角度的场景叠加，但停车后立即重新重合。
+本轮 RViz profile 同时显示原始/过滤 PointCloud2，且各自 `Decay Time=0.5 s`；在
+`7.273 rad/s` 下，0.5 秒内车体可转约 208°，再叠加原始 Livox 包内的单帧运动畸变，
+会产生明显旋转残影。结合 validity、TF、LIO 延迟和停车后对齐证据，该现象本轮判定为
+瞬态显示/原始感知点云现象，而不是持久定位漂移。需要肉眼检查单帧配准时，应把对应
+PointCloud2 display 的 `Decay Time` 临时设为 `0`，并避免同时开启 raw 与 filtered 显示。
+
+这轮已经通过“接近一分钟最高速自转中定位链不断开”。仍需单独完成最高速结束后立即
+下发安全 home 目标的闭环测试；不能用本次停车后经过离线分析再导航代替该时序门。
+
+## 2. 证据链
+
+### 2.1 已确认的现象
+
+R03 录包和 ROS 日志位于：
+
+```text
+artifacts/bags/20260901_r03_spin_recovery_02/
+artifacts/logs/20260901_r03_spin_recovery_02_ros/
+```
+
+离线时间对齐得到以下事实：
+
+- 成功试次角速度约 `5.75 rad/s`；失败片段约 `6.44 rad/s`，说明它是负载/运动强度
+  相关边界，而不是每次自转必现。
+- 原始 PointCloud2 仍接近 50 Hz，每帧约 1400--3800 点，不能简单归因于雷达完全断流。
+- `/odometry/lio` 的录制时刻减消息时间戳最高达到约 `3.495 s`，说明后端正在处理旧数据。
+- 同期 FAST-LIO 大量输出 `No point` 和 `Too few downsampled points`，之后 odom 从原地
+  跳到约 `(-0.73, 10.86, -0.14)`。
+- 全局修正层随后拒绝 4--10 m 创新并保持 fail-closed；这解释了 RViz 中 RobotModel、
+  点云和 costmap 在 `map` 固定坐标系下一起消失。
+
+### 2.2 新发现的耦合
+
+旧车单雷达入口此前使用 Livox 驱动原生 `CustomMsg`。启用右雷达/双雷达障碍融合后，入口
+会切换到单个双设备驱动；旧实现先输出 PointCloud2，再根据其中的 `FLOAT64` 绝对纳秒值
+重建 `CustomMsg` 给 FAST-LIO。
+
+因此“增加右雷达做障碍物感知”曾间接改变左雷达 LIO 的消息表示和转换负载。右雷达没有
+进入 FAST-LIO，但系统边界仍产生了隐式耦合。这也能解释早期单雷达版本可能可以高速自转，
+而后来的完整导航入口重新出现问题。
+
+这条耦合已被代码检查确认；它是否就是唯一根因仍需 A/B。不能仅凭转换链不同就宣称问题
+已经解决。
+
+## 3. 本次实现
+
+### 3.1 双雷达原生时序路径
+
+`dual_mid360_driver.launch.py` 新增参数：
+
+```text
+lio_input_mode:=native_custom         # 新默认
+lio_input_mode:=reconstructed_custom  # 旧路径，仅供 A/B
+driver_publish_freq:=50.0             # 默认值，可做 50/20 Hz A/B
+```
+
+`native_custom` 使用驱动 `xfer_format=1`，每个设备输出原生消息到
+`/livox/{left,right}/lidar_native`。桥接器仅改 canonical frame id，并原样转发
+`timebase`、`point_num`、`lidar_id` 和每点 `offset_time` 到
+`/livox/{left,right}/lidar`；同时生成 `/livox/{left,right}/pointcloud`。
+
+单雷达 fallback 保持原有 `xfer_format=4`，没有被本分支改写。
+
+### 3.2 旧车 LIO 输入健康门
+
+旧车参数启用：
+
+```text
+最大消息年龄                 0.20 s
+允许未来偏移                 0.05 s
+后端静默锁存阈值             0.20 s
+恢复所需连续新鲜样本         5
+恢复样本距最后可信平移上限   0.75 m
+修正创新锁存所需连续异常     3 帧（通用默认仍为 1）
+高速修正冻结门限             3.0 rad/s（仅旧车启用）
+```
+
+新增 topic：
+
+```text
+/localization/lio_runtime_valid
+/localization/lio_runtime_status
+```
+
+状态中包含消息年龄、静默时间、拒绝计数、恢复计数、FAST-LIO 计算时间和下采样点数。
+锁存时停止发布 canonical odom/TF；不会修改底层 FAST-LIO 状态，也不会伪造恢复位姿。
+
+全局修正门另外把单帧异常与持续异常分开：旧车第一、二帧异常发布
+`innovation_rejection_pending`，保留最后可信 `map -> odom`；下一帧恢复正常则直接回到
+`healthy`。只有连续三帧异常才撤下全局 TF。该参数位于旧车 profile，不改变新车配置。
+
+当与 global pose 时间匹配的 canonical odom 角速度达到 `3.0 rad/s` 时，旧车发布
+`high_angular_rate_hold`，忽略该帧 AMCL 修正并保留可信 TF。角速度降回门限以下后，下一帧
+正常候选即可恢复更新。该策略不绕过 `/localization/lio_runtime_valid`：LIO 自身超龄、静默
+或跳变时仍然 fail-closed。
+
+### 3.3 后端 A/B 入口
+
+完整旧车入口现在可传：
+
+```text
+lio_update_method:=bundle    # 当前已用基线和默认值
+lio_update_method:=async     # 仅 A/B
+lio_update_method:=adaptive  # 仅 A/B
+```
+
+上游说明认为 async 更适合 aggressive motion，但当前旧车只在 bundle 上完成了完整零起点
+工程验证。因此先验证原生时序；只有原生时序在 50/20 Hz 都失败后，才进行 async/adaptive
+静止启动和低速测试，不能直接用未验证后端做最高速试验。
+
+## 4. 构建和无车检查
+
+在仓库根目录执行：
+
+```bash
+colcon build --packages-select \
+  rm_mid360_driver_bridge rm_localization_adapters rm_lio_bringup \
+  rm_navigation_bringup rm_navigation_launch rm_nav_config \
+  --symlink-install --cmake-args -DBUILD_TESTING=ON
+
+colcon test --packages-select \
+  rm_mid360_driver_bridge rm_localization_adapters \
+  rm_navigation_bringup rm_navigation_launch rm_nav_config \
+  --event-handlers console_cohesion+
+```
+
+2026-09-03 本分支以上构建通过；五个选定包的测试 XML 没有 failure/error。工作区全局
+`colcon test-result` 仍会统计 `livox_ros_driver2_humble` 第三方源码的历史 lint 失败，必须
+按包区分，不能把它误判为本分支回归。
+
+## 5. 实车启动与录包
+
+当前地图为 `20260828T070722Z`，先使用普通完整导航入口，排除狗洞/坡道 profile 干扰：
+
+```bash
+ros2 launch rm_navigation_launch old_car_full_navigation.launch.py \
+  map_bundle_yaml:=/data/rm27_maps/old_car_field/20260828T070722Z/old_car_field.bundle.yaml \
+  driver_publish_freq:=50.0 \
+  lio_input_mode:=native_custom \
+  lio_update_method:=bundle
+```
+
+启动后、发布初始位姿前先确认消息类型和连接：
+
+```bash
+ros2 topic type /livox/left/lidar_native
+ros2 topic type /livox/left/lidar
+ros2 topic type /livox/left/pointcloud
+ros2 topic hz /livox/left/lidar
+ros2 topic hz /odometry/fast_lio_raw
+ros2 topic echo --once /localization/lio_runtime_status
+```
+
+三个类型应分别为 `livox_ros_driver2/msg/CustomMsg`、同类型和
+`sensor_msgs/msg/PointCloud2`。50 Hz 设置下，雷达和 raw odom 稳态应接近 50 Hz；若没有
+`lidar_native` 或 canonical `lidar`，禁止开始运动。
+
+每个 A/B 试次单独录包：
+
+```bash
+ros2 bag record -o /data/rm27_bags/high_spin_native50_bundle \
+  /livox/left/lidar_native \
+  /livox/left/lidar \
+  /livox/left/pointcloud \
+  /livox/lio_imu \
+  /odometry/fast_lio_raw \
+  /odometry/lio \
+  /lio/diagnostics/calc_time \
+  /lio/diagnostics/point_number \
+  /lio/diagnostics/localizability_x \
+  /lio/diagnostics/localizability_y \
+  /lio/diagnostics/localizability_z \
+  /localization/lio_runtime_valid \
+  /localization/lio_runtime_status \
+  /localization/scan \
+  /localization/scan_deskew/status \
+  /localization/amcl_pose_raw \
+  /localization/global_pose \
+  /localization/global_localization_valid \
+  /localization/correction_recovery_state \
+  /tf /tf_static
+```
+
+包名必须体现 `native50_bundle`、`native20_bundle` 或
+`reconstructed50_bundle`，不要覆盖旧包。正常按 Ctrl-C 结束并确认存在 `metadata.yaml`。
+
+## 6. 分档实车程序
+
+全程要求空旷场地、遥控器可立即接管、mission disabled。每档之间停车并确认地图对齐。
+
+### H01：静止和普通导航
+
+1. 静止 30 秒；
+2. 发布一次正确初始位姿；
+3. 做一段低速直线和低速转向；
+4. 确认 `lio_runtime_valid=true`、全局定位 healthy、costmap 连续。
+
+### H02：原生 50 Hz 分档自转
+
+按同一方向依次执行，任一档失败立即停止，不跳到下一档：
+
+1. 约 3 rad/s，10 秒；
+2. 约 5 rad/s，10 秒；
+3. 约 6.4 rad/s，10 秒；
+4. 目标比赛最高角速度，30 秒；
+5. 目标比赛最高角速度，60 秒。
+
+每档停止后观察 10 秒，再给一个安全的 home 目标。目标要求不是“停车后靠人工重发位姿
+恢复”，而是整个自转期间 LIO 不产生积压/跳变、停车后可直接执行 home。
+
+### H03：频率 A/B
+
+仅当 H02 在 50 Hz 仍出现后端积压时，保持其他参数不变，改为：
+
+```text
+driver_publish_freq:=20.0
+```
+
+重新执行 H01、H02。不能在同一个 launch 内动态改变频率后继续比较。
+
+2026-09-03 已完成 3.1/5.5/7.0 rad/s 取证，并分别定位到单帧和连续 AMCL 异常。加载
+高速修正冻结后的复验，至少需要重新执行：
+
+1. 静止 20 秒，确认两个 validity topic 均为 true；
+2. 约 7.0 rad/s 自转 15 秒，确认状态进入 `high_angular_rate_hold`，但 validity 与 TF 连续；
+3. 比赛最高角速度自转 30 秒，结束后不额外停车等待，直接下发安全 home 目标；
+4. 离线确认没有连续三帧异常、TF 间断或 raw odom 非物理平移。
+
+### H04：旧转换链对照
+
+只有需要证明本次耦合时才使用：
+
+```text
+lio_input_mode:=reconstructed_custom
+driver_publish_freq:=50.0
+lio_update_method:=bundle
+```
+
+先做 3 rad/s 和 5 rad/s。若已出现明显延迟、运行门锁存或地图错位，即可结束对照，不必
+故意复现 10 m 跳变。
+
+### H05：后端方法 A/B
+
+仅当 native 50 Hz 和 20 Hz 都不能通过时开展。先分别用 `async`、`adaptive` 做静止
+30 秒、低速直线、低速自转，并检查启动坐标和 TF 连续性。任何启动偏移、异常 TF 或 odom
+跳变都判 FAIL，不能进入高速档。
+
+## 7. PASS/FAIL 门
+
+完整通过需要同时满足：
+
+- 原生消息、raw odom 和 canonical odom 无持续断流；
+- `/odometry/fast_lio_raw` 消息年龄不超过 `0.20 s`，没有秒级增长趋势；
+- `lio_runtime_valid` 在 60 秒最高速自转中保持 true；
+- 单帧修正异常可以被拒绝，但 `global_localization_valid` 和 `map -> odom` 不得因此中断；
+- raw/canonical LIO 平移没有与实车运动不符的跳变；
+- 全局修正门不因 LIO 错误触发，RobotModel、点云和 costmap 不因 canonical TF 撤下而消失；
+- 停止自转后不等待人工重发初始位姿即可执行 home；
+- 停车后地图、点云和实车位置人工核对仍对齐。
+
+以下任一情况为 FAIL：
+
+- 消息年龄超过 0.20 秒并持续增长；
+- `raw_odometry_silence`、`stale_raw_odometry` 或
+  `post_backlog_translation_mismatch` 锁存；
+- raw odom 原地平移超过 0.75 m，或出现历史约 10 m 同类跳变；
+- 仅靠 5--10 秒停车或人工 `/initialpose` 才能继续 home；
+- 定位状态显示 healthy，但人工检查地图实际不对齐。
+
+安全门触发时，车辆必须先停止。它会防止错误位置继续导航，但不会在车辆仍持续高速自转
+时凭空恢复可靠的全局位姿。
+
+## 8. 决策规则
+
+- `native50 + bundle` 通过 60 秒最高速：保留默认，进入 5 次重复验收。
+- 50 Hz 失败、20 Hz 通过：暂定旧车 20 Hz，并比较普通导航精度和低速稳定性后再合入。
+- native 通过、reconstructed 失败：可确认双雷达消息转换链是主要根因。
+- 两种输入模式都积压，且 `calc_time` 明显超过周期：根因在后端计算负载/算法更新方式，
+  转入 async/adaptive A/B，不再继续调整 AMCL 门。
+- raw odom 健康但只有全局定位失效：回到 AMCL/地图修正层分析，与本轮 FAST-LIO 根因
+  分开处理。
+
+## 9. H02 首轮实车结果：native 50 Hz + bundle
+
+2026-09-03 使用地图 `20260828T070722Z` 完成第一轮。现象为画面再次消失，曾较快恢复，
+但停车后的持续观测显示 LIO 健康门仍会重复开闭，因此结果为 **FAIL**，不能按“已经恢复”
+验收。
+
+现场证据：
+
+```text
+输入模式                         native_custom
+驱动频率                         50 Hz
+后端                             bundle
+首次运行中观测的消息年龄         0.322 s
+同期 FAST-LIO calc_time          152.648 ms
+同期下采样点数                   523
+后续停车时消息年龄               0.222 s
+后续停车时 calc_time             44.770 ms
+后端/雷达短窗平均输出            约 45--46 Hz
+短窗最大消息间隔                 约 0.34--0.36 s
+```
+
+50 Hz 每帧预算只有 20 ms，而本轮计算时间达到 152.648 ms；即使停车后降至 44.770 ms，
+仍高于一帧预算。`lio_adapter` 分别记录到 `stale_raw_odometry`，拒绝计数由 29 增至 45，
+并发生 2 次 silence latch。由此可以确认本轮直接触发原因是 FAST-LIO bundle 计算积压，
+不是 Livox 完全断流，也不是 AMCL 单独丢失。
+
+本轮还暴露出安全状态没有完全贯通：`lio_runtime_valid=false` 时，旧版
+`global_localization_valid` 和 `/system/readiness` 仍可能短暂报告 true。后续补丁已使旧车
+`map -> odom` 输出和 readiness 同时依赖 `/localization/lio_runtime_valid`；底层锁存时将明确
+报告 `lio_health` 缺失。相关构建及测试通过，下一轮重启后生效。
+
+本轮关键日志已封存在宿主机：
+
+```text
+artifacts/logs/20260903_native50_bundle_01/
+```
+
+下一步按 H03 执行 `native_custom + bundle + 20 Hz`。若 20 Hz 仍积压，不放宽 0.20 s
+安全门，转入 async 后端的静止/低速/高速分档 A/B。

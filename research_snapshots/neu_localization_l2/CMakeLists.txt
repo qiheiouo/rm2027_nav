@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.16)
+project(neu_l2_offline_coarse)
+set(CMAKE_CXX_STANDARD 17)
+find_package(PCL REQUIRED COMPONENTS common io filters features registration search)
+find_package(Eigen3 REQUIRED)
+add_executable(coarse_probe coarse_probe.cpp)
+target_include_directories(coarse_probe PRIVATE ${PCL_INCLUDE_DIRS})
+target_link_libraries(coarse_probe ${PCL_LIBRARIES} Eigen3::Eigen)

@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<package format="3"><name>rm_full_base_shadow_validation</name><version>0.1.0</version>
+<description>Isolated full-base shadow simulation research, no public TF or control outputs.</description>
+<maintainer email="maintainer@example.com">RM Navigation</maintainer><license>Apache-2.0</license>
+<buildtool_depend>ament_cmake</buildtool_depend><depend>gz_sim_vendor</depend><depend>gz_plugin_vendor</depend>
+<exec_depend>rm_new_car_simulation</exec_depend><exec_depend>rm_localization_adapters</exec_depend>
+<exec_depend>rm_competition_interfaces</exec_depend><exec_depend>rclpy</exec_depend><exec_depend>ros_gz_bridge</exec_depend>
+<exec_depend>python3-numpy</exec_depend><exec_depend>python3-scipy</exec_depend>
+<export><build_type>ament_cmake</build_type></export></package>
