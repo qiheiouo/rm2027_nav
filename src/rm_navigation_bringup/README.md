@@ -1,0 +1,61 @@
+# rm_navigation_bringup
+
+Versioned bringup for independently testable navigation phases.
+
+The package composes:
+
+- robot description
+- `map_odom_stub`
+- `lio_adapter`
+- Nav2 minimal launch
+- `chassis_interface_stub`
+
+Phase 2A adds disabled-by-default FAST-LIO and MID360 boundaries. Phase 2C adds
+mutually exclusive `stub` and `external_pose` global-localization modes. The
+test launch uses fake inputs only and does not start small_gicp, serial,
+referee, competition BT, or real hardware.
+
+Phase 2J adds a disabled-by-default `amcl_2d` backend selection and a synthetic
+no-hardware test launch. AMCL does not publish TF; the Phase 2C bridge remains
+the sole `map -> odom` owner.
+
+The parallel `gicp_3d` profile resolves a PCD from a validated map bundle and
+also publishes only a gated global pose. It is mutually exclusive with AMCL.
+
+## Top-Level Runtime Profiles
+
+- `navigation.launch.py`: canonical real-stack composition. MID360, FAST-LIO,
+  and Nav2 are explicit opt-ins; the chassis stub remains the default until
+  real serial transport exists. `use_map_server:=true` resolves an approved
+  `rm_map_tools` bundle and starts `nav2_map_server`.
+- `map_deployment.launch.py`: validates a bundle and starts only the Nav2 map
+  server lifecycle. It does not own localization TF or start hardware.
+- `simulation.launch.py`: selects the basic, static-course, dynamic-course,
+  point-cloud, new-car dog-hole, or ramp-perception Gazebo scenario without
+  starting hardware.
+  The `dog_hole` scenario passes through geometry, automatic-start, and gimbal
+  motion arguments and defaults to the chassis-heading LIO fusion path. Basic,
+  course, and dog-hole MPPI simulations accept
+  `heading_policy:=baseline|path_aligned` for a reversible chassis-heading A/B.
+  `scenario:=ramp_perception` generates representative 11/15-degree returns
+  in a continuously rotating LiDAR frame, spawns matching visible Gazebo ramp
+  fixtures, and compares raw versus shadow-only expected-plane filtering. Its
+  filtered topic is deliberately not connected to Nav2. Use
+  `scenario:=dog_hole` for the separate physical tunnel scene.
+- `bag_replay.launch.py`: replays either raw sensors or backend-private raw
+  odometry while preserving canonical TF ownership.
+- `mapping.launch.py`: an explicit opt-in managed mapping backend. It starts
+  OctoMap projection and `rm_map_tools` export only; it never starts a driver,
+  LIO, Nav2, serial, referee, or mission tree by itself.
+- `old_car_2026_validation.launch.py`: experiment-only profile for using the
+  available 2026 chassis as a pre-2027 hardware test platform. It defaults to
+  no real driver, no FAST-LIO backend, no Nav2, and no serial transport.
+
+These are separate modes, not one launch that starts every package. Mapping,
+navigation, simulation, and bag replay must never own the same TF or hardware
+resources at the same time.
+
+The old-car profile must not import the old `serial_task` node or restore old
+topic glue such as `/Pose_pub`, `/my_set_goal`, or `/nav_result`.
+
+新车软件入口`new_car_software.launch.py`默认零节点inventory；config/new_car_candidate_manifest.yaml是能力清单而非硬件参数。其余测试模式须显式enable_test，固定无设备。Humble与Jazzy S2分开使用，无硬件运行模式。见[合同](../../docs/contracts/new_car_software_20261012.md)、[复现](../../tests/new_car_integration/README.md)。

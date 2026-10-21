@@ -1,0 +1,82 @@
+# rm_lio_bringup
+
+Phase 2A integration boundary for external LIO backends.
+
+The first backend is the GPL-2.0 `fast_lio_multi` submodule pinned in
+`src/fast_lio_multi`. This package owns only launch, parameter, topic, and TF
+isolation. It does not copy or modify the backend algorithm.
+
+## Safety Boundary
+
+- `use_backend` defaults to `false`.
+- Backend `/Odometry` is remapped to `/odometry/fast_lio_raw`.
+- Backend `/tf` and `/tf_static` are remapped to quarantine topics.
+- `lio_adapter` remains the only canonical `odom -> base_link` publisher.
+- Backend frame `body` is accepted only as a code-inspected alias for its IMU
+  state frame, `lio_imu_link`; it is never aliased directly to `base_link`.
+- No MID360 driver, serial, referee, Nav2, or competition BT is started here.
+
+The inspected backend does not currently fill odometry `twist`. Phase 2B adds
+an adapter-side finite-difference estimate after canonical base-pose
+conversion. Its filtering and fixed covariance are no-hardware defaults and
+still require real trajectory validation. Upstream pose covariance remains
+unaccepted.
+
+FAST-LIO input uses a bounded exact-timestamp TF queue. This avoids losing
+odometry when the equally fast gimbal TF publisher arrives a few milliseconds
+after the sensor message, without weakening the contract to latest-TF lookup.
+
+## Configurations
+
+- `fast_lio_multi_single_mid360.yaml`: Phase 2A default, using the left MID360
+  topic and selected internal IMU. Launch argument `selected_side:=right`
+  overrides the input topic for the right-side fallback.
+- `fast_lio_multi_dual_mid360.yaml`: dual-input placeholder. It must not be
+  used on the real robot until both lidar-to-IMU extrinsics and timing have
+  been measured.
+- `lio_adapter_fast_lio_multi.yaml`: controlled conversion from backend
+  `odom -> body` semantics to canonical `odom -> base_link` through the
+  timestamped `base_link -> lio_imu_link` TF.
+- `fast_lio_multi_old_car_2026.yaml`: experiment-only single-MID360 backend
+  profile for validating the 2027 architecture on the available 2026 chassis.
+  It uses the measured 2026 MID360 internal IMU -> L1 lidar offset
+  `[-0.011, -0.02329, 0.04412]` with identity rotation.
+- `lio_adapter_old_car_2026.yaml`: matching adapter profile using the old-car
+  measured `base_link -> lio_imu_link` transform through TF. It sets
+  `raw_odom_parent_frame_mode: sensor_initial` because FAST-LIO raw odometry
+  uses the initial sensor frame as its parent. It is not 2027 calibration.
+- `lio_adapter_chassis_heading_fusion.yaml`: disabled-by-calibration template
+  for the single gimbal-mounted MID360 candidate that combines sensor position
+  with lower-controller chassis heading. It deliberately refuses to start
+  until home alignment and new-car extrinsics are confirmed.
+
+Any remaining zero extrinsics in these files are deliberate no-hardware or
+unused-side placeholders, not 2027 calibration results.
+
+## Build-Only Launch
+
+```bash
+ros2 launch rm_lio_bringup fast_lio_multi_phase2a.launch.py
+```
+
+This only prints the boundary contract. To start the backend later on Linux:
+
+```bash
+ros2 launch rm_lio_bringup fast_lio_multi_phase2a.launch.py \
+  use_backend:=true sensor_mode:=single update_method:=bundle
+```
+
+Starting the backend without valid point cloud, IMU, timing, and extrinsic
+inputs is not a localization validation.
+
+### Local dual input closure, opt-in only
+
+`new_car_dual_mid360_stable_epoch_pending.yaml` retains null measured extrinsics
+and disables published-frame rebasing for the first-source adapter config
+`lio_adapter_dual_source_reference.yaml`. The 0.1-second IMU budget is a software
+fixture choice; determine the hardware budget from real acquisition data.
+Neither file is a default navigation profile. Existing experimental launch
+remains disabled, backend TF publication remains off, and no additional TF
+owner or motion output is added. Restart backend and adapter together after
+an epoch fault. See `docs/new_car_stage_freeze_20261013.md` for scope/results
+and `tests/final_dual_closure/README.md` for reproducible tests.
