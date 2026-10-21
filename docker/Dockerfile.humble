@@ -53,7 +53,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ignition-fortress \
   && rm -rf /var/lib/apt/lists/*
 
-RUN git clone --depth 1 --branch "${LIVOX_SDK2_REF}" "${LIVOX_SDK2_REPO}" /tmp/Livox-SDK2 \
+RUN git init /tmp/Livox-SDK2 \
+  && git -C /tmp/Livox-SDK2 remote add origin "${LIVOX_SDK2_REPO}" \
+  && git -C /tmp/Livox-SDK2 fetch --depth 1 origin "${LIVOX_SDK2_REF}" \
+  && git -C /tmp/Livox-SDK2 checkout --detach FETCH_HEAD \
+  && test "$(git -C /tmp/Livox-SDK2 rev-parse HEAD)" = "${LIVOX_SDK2_REF}" \
   && cmake -S /tmp/Livox-SDK2 -B /tmp/Livox-SDK2/build \
   && cmake --build /tmp/Livox-SDK2/build --parallel "$(nproc)" \
   && cmake --install /tmp/Livox-SDK2/build \

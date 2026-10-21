@@ -57,6 +57,8 @@ Livox-SDK2 pin 的确认链：冻结镜像构建历史记录 `LIVOX_SDK2_REF=mas
 
 Dockerfile 直接固定基础镜像 digest、Livox-SDK2 SHA、OpenVDB vendor 与 STVL；其余版本用于核验冻结镜像，不应被误称为 Dockerfile 已逐包锁定。若 apt 仓库不再提供相同版本，应先建立获准的包快照方案，不能自动升级后沿用“同一冻结环境”的表述。
 
+Dockerfile 使用 `git fetch --depth 1 origin <固定 SHA>`、detached checkout 和 HEAD 等值检查，不把提交 SHA 误作 `git clone --branch` 参数；该固定 SHA 获取方式已在全新临时仓库从官方 GitHub 验证通过。
+
 ## 13 包构建与 110 tests 合同
 
 目标包按冻结验证顺序为：
