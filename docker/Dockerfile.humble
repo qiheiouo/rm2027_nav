@@ -1,11 +1,11 @@
-FROM ros:humble-ros-base-jammy
+FROM ros:humble-ros-base-jammy@sha256:5417e56962ff6e15d4cf9b2f78a71a78f3901f47cd78696b575b7eecdb54eb78
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG USERNAME=rmnav
 ARG USER_UID=1000
 ARG USER_GID=1000
 ARG LIVOX_SDK2_REPO=https://github.com/Livox-SDK/Livox-SDK2.git
-ARG LIVOX_SDK2_REF=master
+ARG LIVOX_SDK2_REF=f5d9375f84efe2b15bc0a052d3e18482ed13adf4
 
 SHELL ["/bin/bash", "-c"]
 

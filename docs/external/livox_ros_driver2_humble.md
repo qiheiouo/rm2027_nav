@@ -4,7 +4,8 @@ This record documents the external MID360 ROS driver added for Phase 1 hardware 
 
 ## Source
 
-- URL: `https://gitee.com/SMBU-POLARBEAR/livox_ros_driver2_humble.git`
+- Maintained URL: `https://github.com/qiheiouo/livox_ros_driver2_humble.git`
+- Original intake URL: `https://gitee.com/SMBU-POLARBEAR/livox_ros_driver2_humble.git`
 - Local path: `src/livox_ros_driver2_humble`
 - Integration type: Git submodule
 - Branch at intake: `master`
@@ -14,6 +15,7 @@ This record documents the external MID360 ROS driver added for Phase 1 hardware 
 - AUD-020 local repair branch: `codex/aud020-bounded-shutdown-20261020`
 - AUD-050 local repair pin: `ffb5c721c3356817a84f1c6eeaf2f66c680be24e`
 - AUD-050 local repair branch: `codex/aud050-ring-queue-20261020`
+- Published maintenance branch: `rm2027/aud020-aud050-20261020`
 - ROS package name: `livox_ros_driver2`
 - License: MIT
 - Internal submodules: none observed; the driver repository has no `.gitmodules`.
@@ -40,6 +42,7 @@ mkdir -p ~/third_party
 cd ~/third_party
 git clone https://github.com/Livox-SDK/Livox-SDK2.git
 cd Livox-SDK2
+git checkout --detach f5d9375f84efe2b15bc0a052d3e18482ed13adf4
 mkdir -p build
 cd build
 cmake ..
@@ -77,8 +80,10 @@ Lifecycle fixtures cover failed start, no input, stopped input, active synthetic
 queue traffic, repeated construction/destruction, and the normal ROS point/IMU
 publication path without busy waiting.
 
-The change is local and is not pushed. Recover it from this worktree or an
-explicitly exported bundle. Roll back by restoring the gitlink
+The preserved commit chain is published to the project-controlled GitHub
+maintenance branch `rm2027/aud020-aud050-20261020`. A fresh HTTPS clone was
+verified to resolve the exact final pin without the old main repository or its
+archived refs. Roll back by restoring the gitlink
 `2a2029a6e62a2196b280be6ec00bb2418065b8e0`. Offline tests cannot prove the
 vendor SDK's successful hardware initialization/deinitialization lifecycle;
 that remains a hardware acceptance boundary rather than a reason to widen this

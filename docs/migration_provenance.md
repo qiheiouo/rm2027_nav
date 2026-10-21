@@ -2,8 +2,8 @@
 
 ## 状态与边界
 
-- 候选状态：**Local Migration Candidate / Go（仅限本地静态候选）**。
-- 阶段：本地、可丢弃、静态验证；不是正式开发入口，也不是 Integration 或 Deployment Go。
+- 候选状态：**Dependency Migration Candidate（持久化本地候选）**。
+- 阶段：Integration 依赖独立化；不是正式开发入口，也不是 Deployment Go。
 - 原仓库：`https://gitee.com/qiheiovo/rm2027_navigation.git`。
 - 本地只读来源：`/home/qihei/rm2027_navigation`。
 - 正式冻结来源：`3a2c03e9dd3b6b487c8fc7d0bb0863d5cb02fa95`。
@@ -23,15 +23,15 @@
 
 ## 正式快照与子模块
 
-`.gitmodules` 保持 `3a2c03e9` 原文，主仓保留两个 mode `160000` gitlink，没有把子模块内容摊平成普通文件：
+主仓保留两个 mode `160000` gitlink，没有把子模块内容摊平成普通文件；本阶段只把 Livox URL 从旧 Gitee 来源改为项目控制的 GitHub 维护仓库：
 
 | 依赖 | 固定 SHA | 恢复边界 |
 |---|---|---|
 | FAST-LIO | `9aa8c79ef064eafe0fae1308888248be7efa1d2e` | 主仓 gitlink；当前 URL 为团队 GitHub fork；旧审计已只读确认远端归档 ref 可达 |
-| Livox Driver | `ffb5c721c3356817a84f1c6eeaf2f66c680be24e` | 主仓 gitlink；当前 `.gitmodules` URL 的公开上游不含此对象，当前仅能依赖旧仓本地缓存或旧 Gitee 主仓归档 ref；独立恢复仍阻塞 |
-| ikd-Tree | `0438b0daa6ccfaaad9f65f45a3addc318b19ae7a` | FAST-LIO 内嵌 gitlink；上游 `lio` ref 可达 |
+| Livox Driver | `ffb5c721c3356817a84f1c6eeaf2f66c680be24e` | 主仓 gitlink；`https://github.com/qiheiouo/livox_ros_driver2_humble.git` 的 `rm2027/aud020-aud050-20261020` 精确指向该提交，保留 `2a2029a6 -> 9bdedb48 -> ffb5c721` 父链 |
+| ikd-Tree | `0438b0daa6ccfaaad9f65f45a3addc318b19ae7a` | FAST-LIO 内嵌 gitlink；固定 FAST-LIO 提交声明 `https://github.com/engcang/ikd-Tree`，其 `lio` ref 可达 |
 
-本轮没有初始化或复制子模块工作树，也没有把“本地缓存可恢复”算作“独立远端恢复通过”。Docker 中 Livox SDK2 仍使用浮动 `master`，下一阶段必须改成固定提交或不可变发布版本。
+依赖迁移与验收合同见 [dependency_and_acceptance_contract_20261021.md](dependency_and_acceptance_contract_20261021.md)。Docker 基础镜像已固定到冻结构建使用的 digest，Livox-SDK2 已从浮动 `master` 固定到经镜像时戳、官方提交图和已安装头文件指纹共同确认的 `f5d9375f84efe2b15bc0a052d3e18482ed13adf4`（v1.3.1）。
 
 ## 跨分支资产来源
 
@@ -89,12 +89,10 @@
 
 ## 下一阶段前的阻塞
 
-1. 建立团队控制的 Livox fork，使 `ffb5c721…` 可在无旧仓缓存/归档 ref 的环境中恢复，并只读验证远端 clone。
-2. 解决根许可证、一方 package 的 `TODO`/`Proprietary` 声明，以及研究快照 `NOASSERTION` 的保留/发布边界。
-3. 将 Docker 中 Livox SDK2 的浮动 `master` 固定为可恢复版本。
-4. 固化 Humble 13 个目标包清单和产生 110 tests 的精确命令；当前只保存结果报告，不能据此宣称本候选已复现 110 项。
-5. 明确运行时外部资源：真实 `/data/rm27_maps`、车型标定、footprint、底盘模式和物理停止数据不在此 Git 快照内。
-6. 完成干净环境、无旧仓 alternates 的递归恢复后，再执行构建、110 项回归、AUD-003、新车八步工具与关键无硬件 smoke。
+1. 解决根许可证、一方 package 的 `TODO`/`Proprietary` 声明，以及研究快照 `NOASSERTION` 的保留/发布边界。
+2. 正式主仓公开前确认第三方 fork 的修改声明、发布范围和长期维护责任；本阶段仅建立依赖维护分支。
+3. 明确运行时外部资源：真实 `/data/rm27_maps`、车型标定、footprint、底盘模式和物理停止数据不在此 Git 快照内。
+4. 按 [dependency_and_acceptance_contract_20261021.md](dependency_and_acceptance_contract_20261021.md) 在固定环境重跑构建、110 项回归、AUD-003、新车八步工具与关键无硬件 smoke；本阶段不宣称回归已重跑。
 
 ## 已完成的静态验证
 
