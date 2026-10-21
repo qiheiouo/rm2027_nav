@@ -107,11 +107,23 @@ colcon test-result --test-result-base build/humble_build
 
 冻结基线结果是 `110 tests, 0 errors, 0 failures`。后续只有在新仓独立递归恢复后，用上述镜像身份、子模块 pin 和命令重跑通过，才能把这一结果归因于新仓。
 
+## 独立递归恢复记录
+
+依赖迁移提交 `98af38e25ba79537fad75f701f2f0c18e241a9a4` 已从持久化候选以 `git clone --no-local` 恢复到全新临时目录，并使用禁止 file protocol、禁止 submodule alternates 的递归初始化。实际网络来源及结果为：
+
+- FAST-LIO：GitHub fork，checkout `9aa8c79ef064eafe0fae1308888248be7efa1d2e`；
+- Livox：GitHub 维护仓，checkout `ffb5c721c3356817a84f1c6eeaf2f66c680be24e`；
+- ikd-Tree：`https://github.com/engcang/ikd-Tree`，checkout `0438b0daa6ccfaaad9f65f45a3addc318b19ae7a`；
+- 主仓和三个子模块均 clean，四个仓库 `git fsck --full` 通过；
+- 主仓 `.git` 及其递归子模块对象库没有 `objects/info/alternates`；
+- 没有访问旧 Gitee 主仓归档 ref，也没有用旧仓或既有子模块对象缓存代替网络恢复。
+
+该记录证明 Git 对象和固定依赖可恢复；不等同于编译、110 项测试、仿真或硬件验收。
+
 ## 后续验收门
 
-1. 全新目录递归恢复，三个子模块精确匹配且无 alternates、无旧仓缓存依赖，主仓与子模块 clean。
-2. 使用固定镜像重跑 FAST-LIO 确定性脚本、13 包 build 与 110 tests。
-3. 重跑 AUD-003 九场景、新车八步验收工具和关键无硬件 smoke。
-4. 发布前解决根仓许可证、一方 package 的 `TODO`/`Proprietary` 声明、研究快照 `NOASSERTION`、第三方修改声明与长期维护责任。
+1. 使用固定镜像重跑 FAST-LIO 确定性脚本、13 包 build 与 110 tests。
+2. 重跑 AUD-003 九场景、新车八步验收工具和关键无硬件 smoke。
+3. 发布前解决根仓许可证、一方 package 的 `TODO`/`Proprietary` 声明、研究快照 `NOASSERTION`、第三方修改声明与长期维护责任。
 
 本阶段只关闭依赖恢复与验收合同记录，不创建正式 RM2027 GitHub 主仓、不宣称完整软件回归或 Deployment Go。

@@ -102,4 +102,5 @@
 - 已知 FAST-LIO 文档链接通过迁入其固定报告得到处置。
 - 跨分支冻结报告的未解析历史链接已完整列入 `docs/migration_unresolved_links.tsv`，没有通过搬入 raw evidence 来掩盖缺口。
 - 新仓未配置 remote、alternates、旧 refs 或旧对象替代库。
-- 本阶段未初始化子模块、未构建、未运行 ROS/Gazebo、未执行硬件运动，也不作 Deployment Go 声明。
+- 持久化候选本身没有把子模块工作树纳入提交；另在全新临时目录完成了 GitHub 递归恢复，三个固定 SHA、clean 状态、全仓 `fsck` 和无 alternates 均通过，详见依赖与验收合同。
+- 本阶段未构建、未运行 110 项回归或 ROS/Gazebo、未执行硬件运动，也不作 Deployment Go 声明。
