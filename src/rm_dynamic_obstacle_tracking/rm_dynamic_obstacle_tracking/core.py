@@ -51,6 +51,8 @@ class TrackerUpdate:
     created: int
     deleted: int
     time_reset: bool
+    # Opt-in evidence in input detection order, from the assignment actually used.
+    detection_track_ids: tuple[int, ...] = ()
 
 
 def planar_rotation_matrix(
@@ -277,21 +279,28 @@ def cluster_points(
     max_extent: float,
 ) -> list[Detection]:
     """Legacy visible-centroid detections, with unchanged traversal/aggregation."""
-    detections = []
-    for component in cluster_point_indices(points, tolerance, min_points, max_extent):
-        xs = [points[index].x for index in component]
-        ys = [points[index].y for index in component]
-        size_x = max(xs) - min(xs)
-        size_y = max(ys) - min(ys)
-        detections.append(
-            Detection(
-                centroid=Point2D(sum(xs) / len(xs), sum(ys) / len(ys)),
-                size_x=max(size_x, tolerance),
-                size_y=max(size_y, tolerance),
-                point_count=len(component),
-            )
-        )
-    return detections
+    return [_cluster_detection(points, component, tolerance) for component in
+            cluster_point_indices(points, tolerance, min_points, max_extent)]
+
+
+def cluster_detections_with_members(
+    points: Sequence[Point2D], tolerance: float, min_points: int, max_extent: float,
+) -> list[tuple[Detection, tuple[int, ...]]]:
+    """Same detection arithmetic, with original candidate indices retained."""
+    return [(_cluster_detection(points, component, tolerance), component)
+            for component in cluster_point_indices(points, tolerance, min_points, max_extent)]
+
+
+def _cluster_detection(points, component, tolerance):
+    xs = [points[index].x for index in component]
+    ys = [points[index].y for index in component]
+    size_x = max(xs) - min(xs)
+    size_y = max(ys) - min(ys)
+    return Detection(
+        centroid=Point2D(sum(xs) / len(xs), sum(ys) / len(ys)),
+        size_x=max(size_x, tolerance), size_y=max(size_y, tolerance),
+        point_count=len(component),
+    )
 
 
 def filter_detections_near_static(
@@ -532,7 +541,11 @@ class MultiObjectTracker:
         self._last_stamp: float | None = None
 
     def update(self, detections: Sequence[Detection], stamp: float,
-               source_stamp_ns: int | None = None) -> TrackerUpdate:
+               source_stamp_ns: int | None = None, *,
+               capture_assignments: bool = False) -> TrackerUpdate:
+        if type(capture_assignments) is not bool:
+            raise ValueError("capture_assignments must be boolean")
+        detection_track_ids = [0] * len(detections) if capture_assignments else None
         if not math.isfinite(stamp):
             raise ValueError("tracker timestamp must be finite")
         if source_stamp_ns is not None and (
@@ -602,6 +615,8 @@ class MultiObjectTracker:
             if track_index in assignments:
                 detection_index = assignments[track_index]
                 detection = detections[detection_index]
+                if detection_track_ids is not None:
+                    detection_track_ids[detection_index] = track.track_id
                 track.x_filter.update(detection.centroid.x, self.measurement_noise)
                 track.y_filter.update(detection.centroid.y, self.measurement_noise)
                 track.size_x = 0.7 * track.size_x + 0.3 * detection.size_x
@@ -664,11 +679,14 @@ class MultiObjectTracker:
             ):
                 track.state = TrackState.CONFIRMED
             self._tracks.append(track)
+            if detection_track_ids is not None:
+                detection_track_ids[detection_index] = track.track_id
             self._next_id += 1
             created += 1
 
         snapshots = tuple(self._snapshot(track, stamp, source_stamp_ns) for track in self._tracks)
-        return TrackerUpdate(snapshots, created, deleted, time_reset)
+        return TrackerUpdate(snapshots, created, deleted, time_reset,
+            tuple(detection_track_ids) if detection_track_ids is not None else ())
 
     def _snapshot(self, track: _Track, stamp: float,
                   source_stamp_ns: int | None = None) -> TrackSnapshot:

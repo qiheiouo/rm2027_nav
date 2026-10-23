@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import math
 import time
+import hashlib
+from dataclasses import asdict
 
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
 from geometry_msgs.msg import Point
@@ -34,10 +36,12 @@ from .core import (
     TrackSnapshot,
     TrackState,
     cluster_points,
+    cluster_detections_with_members,
     dynamic_candidates,
     filter_detections_near_static,
     planar_rotation_matrix,
 )
+from .surface_member_evidence import SurfaceMemberEvidence, encoded_range
 
 
 def _quaternion_to_yaw(x: float, y: float, z: float, w: float) -> float:
@@ -96,6 +100,10 @@ class DynamicObstacleTrackerNode(Node):
             self.declare_parameter("occupied_threshold", 65).value
         )
         self._validate_parameters()
+
+        evidence_directory = self.declare_parameter("surface_evidence_directory", "").value
+        if type(evidence_directory) is not str:
+            raise ValueError("surface_evidence_directory must be a string")
 
         self._prediction_dt = float(
             self.declare_parameter("prediction.dt", 0.1).value
@@ -161,6 +169,10 @@ class DynamicObstacleTrackerNode(Node):
             ),
             public_anchor_mode=self._anchor_mode,
         )
+        self._surface_member_evidence = (
+            SurfaceMemberEvidence(evidence_directory) if evidence_directory else None
+        )
+        self._surface_map_identity = None
         self._map: OccupancyMap | None = None
         self._tf_buffer = Buffer(cache_time=Duration(seconds=15.0))
         self._tf_listener = TransformListener(self._tf_buffer, self)
@@ -236,11 +248,34 @@ class DynamicObstacleTrackerNode(Node):
                 message.data,
                 self._occupied_threshold,
             )
+            if self._surface_member_evidence is not None:
+                self._surface_map_identity = {
+                    "frame": message.header.frame_id,
+                    "stamp_ns": Time.from_msg(message.header.stamp).nanoseconds,
+                    "size": [message.info.width, message.info.height],
+                    "resolution": message.info.resolution,
+                    "origin_xy": [message.info.origin.position.x, message.info.origin.position.y],
+                    "origin_z": message.info.origin.position.z,
+                    "origin_quaternion": [orientation.x, orientation.y, orientation.z, orientation.w],
+                    "signed_int8_data_sha256": hashlib.sha256(bytes(v & 255 for v in message.data)).hexdigest(),
+                }
+                evidence = self._surface_member_evidence
+                if evidence.complete and not evidence.write({
+                        "status": "map", "identity": self._surface_map_identity,
+                        "data": list(message.data),
+                        "capture_stamp_ns": self.get_clock().now().nanoseconds}):
+                    self.get_logger().error("surface map evidence incomplete: " + evidence.failed_reason)
         except ValueError as error:
             self.get_logger().error(f"reject invalid occupancy map: {error}")
 
     def _on_scan(self, message: LaserScan) -> None:
         started = time.perf_counter()
+        evidence = self._surface_member_evidence
+        capture = evidence is not None and evidence.complete
+        callback_stamp_ns = self.get_clock().now().nanoseconds if capture else None
+        if capture and len(message.ranges) > evidence.MAX_SCAN_BEAMS:
+            evidence.fail("complete scan beam budget exceeded")
+            capture = False
         if self._map is None:
             self._publish_diagnostics(message, "waiting_for_map", 0, 0, 0, started)
             return
@@ -285,8 +320,9 @@ class DynamicObstacleTrackerNode(Node):
             )
             return
         endpoints: list[Point2D] = []
+        source_indices = [] if capture else None
         angle = message.angle_min
-        for scan_range in message.ranges:
+        for beam_index, scan_range in enumerate(message.ranges):
             if (
                 math.isfinite(scan_range)
                 and message.range_min <= scan_range <= message.range_max
@@ -303,6 +339,8 @@ class DynamicObstacleTrackerNode(Node):
                         + rotation_yy * scan_y,
                     )
                 )
+                if source_indices is not None:
+                    source_indices.append(beam_index)
             angle += message.angle_increment
 
         candidates = dynamic_candidates(
@@ -311,25 +349,89 @@ class DynamicObstacleTrackerNode(Node):
             self._static_distance_threshold,
             self._require_known_free,
         )
-        detections = cluster_points(
-            candidates,
-            self._cluster_tolerance,
-            self._cluster_min_points,
-            self._cluster_max_extent,
-        )
+        members = None
+        if capture:
+            members = cluster_detections_with_members(
+                candidates, self._cluster_tolerance, self._cluster_min_points,
+                self._cluster_max_extent,
+            )
+            detections = [d for d, _ in members]
+        else:
+            detections = cluster_points(
+                candidates, self._cluster_tolerance, self._cluster_min_points,
+                self._cluster_max_extent,
+            )
         detections = filter_detections_near_static(
             detections,
             self._map,
             self._detection_static_distance_threshold,
         )
+        if capture:
+            retained = {id(d) for d in detections}
+            members = [(d, indices) for d, indices in members if id(d) in retained]
         update = self._tracker.update(detections, stamp.nanoseconds / 1.0e9,
-            source_stamp_ns=stamp.nanoseconds if self._anchor_mode == "last_observation_cv" else None)
+            source_stamp_ns=stamp.nanoseconds if self._anchor_mode == "last_observation_cv" else None,
+            capture_assignments=capture)
         visible_tracks = [
             track
             for track in update.tracks
             if self._show_tentative or track.state != TrackState.TENTATIVE
         ]
-        self._publish_predictions(message, list(update.tracks))
+        public = self._publish_predictions(message, list(update.tracks))
+        if capture:
+            beam_by_point = {id(p): i for p, i in zip(endpoints, source_indices)}
+            record = {
+                "status": "accepted", "source_stamp_ns": stamp.nanoseconds,
+                "callback_stamp_ns": callback_stamp_ns,
+                "capture_stamp_ns": self.get_clock().now().nanoseconds,
+                "scan_frame": message.header.frame_id, "map_identity": self._surface_map_identity,
+                "extraction_parameters": {"occupied_threshold": self._occupied_threshold,
+                    "static_distance_threshold": self._static_distance_threshold,
+                    "require_known_free": self._require_known_free,
+                    "cluster_tolerance": self._cluster_tolerance,
+                    "cluster_min_points": self._cluster_min_points,
+                    "cluster_max_extent": self._cluster_max_extent,
+                    "detection_static_distance_threshold": self._detection_static_distance_threshold},
+                "tracker_parameters": {name: getattr(self._tracker, name) for name in (
+                    "association_gate", "process_noise", "measurement_noise", "initial_variance",
+                    "min_hits_to_confirm", "min_displacement_to_confirm", "use_global_assignment",
+                    "tentative_max_misses", "max_coast_time_sec", "prediction_steps", "prediction_dt",
+                    "velocity_decay_tau", "max_prediction_speed", "max_update_dt", "public_anchor_mode")},
+                "prediction_max_tracks": self._prediction_max_tracks,
+                "scan": {"angle_min": message.angle_min, "angle_increment": message.angle_increment,
+                         "range_min": message.range_min, "range_max": message.range_max,
+                         "time_increment": message.time_increment, "scan_time": message.scan_time,
+                         "ranges": [encoded_range(v) for v in message.ranges]},
+                "source_tf": {"requested_stamp_ns": stamp.nanoseconds,
+                              "returned_stamp_ns": Time.from_msg(transform.header.stamp).nanoseconds,
+                              "frame": transform.header.frame_id, "child_frame": transform.child_frame_id,
+                              "translation": [translation.x, translation.y, translation.z],
+                              "quaternion": [rotation.x, rotation.y, rotation.z, rotation.w],
+                              "used_xy_rotation": [rotation_xx, rotation_xy, rotation_yx, rotation_yy]},
+                "projected_endpoints": [[i, p.x, p.y] for i, p in zip(source_indices, endpoints)],
+                "candidate_source_indices": [beam_by_point[id(p)] for p in candidates],
+                "detections": [{"detection_index": i, "value": asdict(d),
+                                "candidate_indices": list(indices),
+                                "source_indices": [beam_by_point[id(candidates[j])] for j in indices],
+                                "track_id": update.detection_track_ids[i]}
+                               for i, (d, indices) in enumerate(members)],
+                "tracker_update": asdict(update),
+                "public_prediction": {"schema": public.schema, "authority": public.authority,
+                    "source_stamp_ns": Time.from_msg(public.header.stamp).nanoseconds,
+                    "processing_stamp_ns": Time.from_msg(public.processing_stamp).nanoseconds,
+                    "frame": public.header.frame_id, "complete": public.complete,
+                    "total_track_count": public.total_track_count,
+                    "prediction_dt": public.prediction_dt, "prediction_steps": public.prediction_steps,
+                    "tracks": [{"id": t.track_id, "state": t.state,
+                                "xy": [t.position.x, t.position.y], "vxy": [t.velocity.x, t.velocity.y],
+                                "size_xy": [t.size.x, t.size.y],
+                                "position_z": t.position.z, "velocity_z": t.velocity.z, "size_z": t.size.z,
+                                "last_observation_stamp_ns": Time.from_msg(t.last_observation_stamp).nanoseconds,
+                                "observation_count": t.observation_count, "miss_count": t.miss_count,
+                                "prediction_xyz": [[p.x, p.y, p.z] for p in t.prediction]} for t in public.tracks]},
+            }
+            if not evidence.write(record):
+                self.get_logger().error("surface member evidence incomplete: " + evidence.failed_reason)
         self._publish_markers(message, visible_tracks)
         self._publish_diagnostics(
             message,
@@ -345,7 +447,7 @@ class DynamicObstacleTrackerNode(Node):
 
     def _publish_predictions(
         self, message: LaserScan, tracks: list[TrackSnapshot]
-    ) -> None:
+    ) -> DynamicObstaclePredictionArray:
         output = DynamicObstaclePredictionArray()
         output.header.frame_id = self._map_frame
         output.header.stamp = message.header.stamp
@@ -406,6 +508,7 @@ class DynamicObstacleTrackerNode(Node):
             ]
             output.tracks.append(prediction)
         self._predictions_pub.publish(output)
+        return output
 
     def _publish_markers(
         self, message: LaserScan, tracks: list[TrackSnapshot]
@@ -513,6 +616,13 @@ class DynamicObstacleTrackerNode(Node):
         deleted: int = 0,
     ) -> None:
         tracks = tracks or []
+        evidence = self._surface_member_evidence
+        if evidence is not None and evidence.complete and not state.startswith("ok"):
+            if not evidence.write({"status": "rejected", "reason": state,
+                    "source_stamp_ns": Time.from_msg(message.header.stamp).nanoseconds,
+                    "scan_frame": message.header.frame_id,
+                    "capture_stamp_ns": self.get_clock().now().nanoseconds}):
+                self.get_logger().error("surface member evidence incomplete: " + evidence.failed_reason)
         status = DiagnosticStatus()
         status.name = "dynamic_obstacle_tracking_shadow"
         status.hardware_id = "software_shadow"
@@ -537,6 +647,10 @@ class DynamicObstacleTrackerNode(Node):
             "deleted": deleted,
             "latency_ms": f"{(time.perf_counter() - started) * 1000.0:.3f}",
         }
+        if evidence is not None:
+            values["surface_evidence_complete"] = evidence.complete
+            values["surface_evidence_records"] = evidence.records
+            values["surface_evidence_failure"] = evidence.failed_reason
         status.values = [
             KeyValue(key=str(key), value=str(value))
             for key, value in values.items()
@@ -582,6 +696,12 @@ class DynamicObstacleTrackerNode(Node):
             ]
             results.append(status)
         return results
+
+    def destroy_node(self):
+        evidence = self._surface_member_evidence
+        if evidence is not None:
+            evidence.close()
+        return super().destroy_node()
 
 
 def main(args: list[str] | None = None) -> None:
