@@ -18,7 +18,7 @@ This record documents the external MID360 ROS driver added for Phase 1 hardware 
 - Published maintenance branch: `rm2027/aud020-aud050-20261020`
 - Acquisition instrumentation branch: `codex/localization-acquisition-provenance`
 - Acquisition instrumentation pin: `24e989f43afd918f333ea20d526ed7ecc6615bb5`
-- Instrumentation publication: local commit only; not pushed by this task.
+- Instrumentation publication: published on the team fork's branch above; candidate only, not merged into main.
 - ROS package name: `livox_ros_driver2`
 - License: MIT
 - Internal submodules: none observed; the driver repository has no `.gitmodules`.
@@ -118,8 +118,9 @@ packet records per cloud; no raw payload copy or extra sensor/TF/control owner
 is introduced. See the [acquisition contract](../operations/localization_raw_acquisition.md)
 and the fork README/message definitions. Restore gitlink
 `ffb5c721c3356817a84f1c6eeaf2f66c680be24e` to remove this instrumentation.
-The new local fork commit must be published before another machine can fetch
-the updated gitlink from GitHub; the isolated checkout retains it here.
+The acquisition pin is published on the team fork's instrumentation branch,
+so the updated gitlink can be fetched independently of this workstation.
+Task 1 remains frozen pending real new-car hardware/data; see the acquisition contract.
 
 With Livox-SDK2 installed:
 

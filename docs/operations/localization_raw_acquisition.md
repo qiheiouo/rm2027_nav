@@ -5,6 +5,58 @@
 heading 物理语义、source-clock/synchronization error evidence、目标设备录制连续性。
 本入口不启动硬件、不授权运动，不要求 FAST-LIO、Z、Nav2 或完整整车 runtime。
 
+## Task 1 冻结状态（2026-10-23）
+
+**No real new-car hardware currently exists.** 当前无真实新车底盘、正式安装的 MID360、
+真实 gimbal、可用 MCU/chassis、真实 serial/runtime，无法执行硬件前提检查。
+
+```yaml
+Task: Task 1 Localization Backend
+State: FROZEN_WAIT_HARDWARE_DATA
+Software baseline:
+  main: d37f8d6e5ebe53533b7fc62aca8bb84392bee31b
+Acquisition instrumentation:
+  status: INSTRUMENTATION_GO
+  rm_commit: 78cc03e9db0574d519f457e1939015b25aa41c32
+  livox_commit: 24e989f43afd918f333ea20d526ed7ecc6615bb5
+Acquisition readiness audit:
+  status: MINOR_INSTRUMENTATION_REQUIRED
+Real data admission:
+  status: DATA_BLOCKED
+Hardware readiness:
+  status: HARDWARE_BLOCKED
+Z candidate:
+  status: FROZEN_WAIT_HARDWARE_DATA
+```
+
+上述 readiness audit 是上一轮静态审计结论；instrumentation 已软件验收，尚未取得实车
+证据。冻结分支仅保存候选成果，不合入 production main。没有 hardware sanity、目标设备
+recording、actual clock evidence 和 actual mechanical contract，不能升为 READY_TO_COLLECT。
+
+真实新车硬件具备后的第一项任务固定为 **Hardware Acquisition Preconditions Check**：
+确认 actual mechanical DOF、independent gimbal mechanical angle、chassis heading
+semantics、real extrinsics、home/startup、Livox source clock、MCU source clock、
+cross-source timing evidence、provenance hardware sanity 和 target-device recording
+continuity。任何前提不通过即停止，不得直接采正式数据。
+
+之后严格按以下顺序，不能跳级：
+
+```text
+Hardware Acquisition Preconditions Check
+→ READY_TO_COLLECT
+→ Session A — Prior Raw Acquisition
+→ Session A integrity check
+→ Session B — Independent Query Raw Acquisition
+→ Data Admission
+→ Task 1 Real Localization Baseline Replay
+```
+
+冻结期间不以 simulation、synthetic data 或旧车硬件替代。除非用户明确改变研究优先级，
+不自动推进 ZLIO、loop closure、G-PROBE、UWB、body calibration、localization fail-closed
+port、Task 2–5、更多 synthetic Z/Gazebo 定位验证、新 backend/factor graph 或历史 AUD
+清理。DATA_BLOCKED 是合法结论，不需要制造其他软件工作填补等待期。下文采集操作只保留
+为未来解冻入口，当前不执行。
+
 ## 启用和 session 绑定
 
 两个 producer 默认 `enable_timestamp_provenance=false`。实采前显式启用，并将相同的
