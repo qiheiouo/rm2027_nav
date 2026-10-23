@@ -95,6 +95,11 @@ if(BUILD_TESTING)
   ament_add_gtest(test_competition_v2_reference test/test_competition_v2_reference.cpp)
   target_link_libraries(test_competition_v2_reference rm_competition_v2_reference)
   ament_add_pytest_test(
+    test_timestamp_provenance
+    test/test_timestamp_provenance.py
+    TIMEOUT 25
+  )
+  ament_add_pytest_test(
     test_competition_v2_runtime
     test/test_competition_v2_runtime.py
     TIMEOUT 30

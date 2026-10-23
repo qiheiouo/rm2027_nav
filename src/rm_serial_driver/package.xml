@@ -29,4 +29,5 @@
   <export>
     <build_type>ament_cmake</build_type>
   </export>
+  <test_depend>rosgraph_msgs</test_depend>
 </package>

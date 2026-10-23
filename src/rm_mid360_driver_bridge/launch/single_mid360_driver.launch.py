@@ -2,6 +2,7 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, LogInfo, OpaqueFunction
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
+from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
 
 
@@ -61,11 +62,16 @@ def _launch_setup(context, *args, **kwargs):
             "lvx_file_path": "",
             "user_config_path": config_path,
             "cmdline_input_bd_code": "livox0000000001",
+            "enable_timestamp_provenance": _bool_arg(context, "enable_timestamp_provenance"),
+            "provenance_session_id": ParameterValue(LaunchConfiguration("provenance_session_id"), value_type=str),
+            "provenance_device_identity": ParameterValue(LaunchConfiguration("provenance_device_identity"), value_type=str),
+            "provenance_sensor_role": side,
         }],
         remappings=[
             ("/livox/lidar", f"/livox/{side}/lidar"),
             ("/livox/lidar/pointcloud", f"/livox/{side}/pointcloud"),
             ("/livox/imu", imu_topic),
+            ("/livox/timestamp_provenance", f"/livox/{side}/timestamp_provenance"),
         ],
     ))
     return actions
@@ -81,5 +87,8 @@ def generate_launch_description():
         DeclareLaunchArgument("xfer_format", default_value="4"),
         DeclareLaunchArgument("publish_freq", default_value="50.0"),
         DeclareLaunchArgument("output_type", default_value="0"),
+        DeclareLaunchArgument("enable_timestamp_provenance", default_value="false"),
+        DeclareLaunchArgument("provenance_session_id", default_value=""),
+        DeclareLaunchArgument("provenance_device_identity", default_value=""),
         OpaqueFunction(function=_launch_setup),
     ])

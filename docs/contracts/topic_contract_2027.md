@@ -245,6 +245,17 @@ producer liveness but cannot extend the accepted source deadline. See the
 Legacy Bool snapshots and refreshed TF timestamps confer no validity lease.
 No new motion, serial or TF owner is introduced by this interface.
 
+## Opt-in localization acquisition diagnostics
+
+`/livox/left/timestamp_provenance` uses
+`livox_ros_driver2/msg/TimestampProvenance`; the single-MID360 bridge remaps the
+driver's `/livox/timestamp_provenance` to the selected side. The V2 transport owns
+`/serial/v2/timestamp_provenance` (`rm_competition_interfaces/msg/V2TimestampProvenance`).
+Both are default-disabled, bounded best_effort/volatile diagnostic outputs.
+They are never clock corrections, localization validity, TF or control inputs.
+Session binding, packet/output association, offset revisions, completeness and
+hardware limits are defined in the [acquisition operation contract](../operations/localization_raw_acquisition.md).
+
 ## 新车软件基线补充（2026-10-12）
 
 实际S2 controller/behavior→cmd_vel_nav→velocity_smoother→cmd_vel→模拟车，唯一最终publisher已在定向smoke核对。LocalizationStatus保持完整AUD-001接口；S2不把truth生成该状态。V2 codec测试单独运行，无Nav2/Goal→serial链或硬件授权。候选source、无mode来源和禁用功能见[合同](new_car_software_20261012.md)。

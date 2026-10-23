@@ -1,0 +1,12 @@
+# Single primary MID360, side=left, no additional remaps.
+required:
+  /livox/left/lidar: livox_ros_driver2/msg/CustomMsg
+  /livox/lio_imu_raw: sensor_msgs/msg/Imu
+  /gimbal/state: rm_competition_interfaces/msg/GimbalState
+  /chassis/heading: rm_competition_interfaces/msg/ChassisHeadingState
+  /serial/connection_state: rm_competition_interfaces/msg/SerialConnectionState
+  /joint_states: sensor_msgs/msg/JointState
+  /tf: tf2_msgs/msg/TFMessage
+  /tf_static: tf2_msgs/msg/TFMessage
+  /livox/left/timestamp_provenance: livox_ros_driver2/msg/TimestampProvenance
+  /serial/v2/timestamp_provenance: rm_competition_interfaces/msg/V2TimestampProvenance

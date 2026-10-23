@@ -96,6 +96,8 @@ def generate_launch_description():
         DeclareLaunchArgument("posture_rate_hz", default_value="10.0"),
         DeclareLaunchArgument("heartbeat_rate_hz", default_value="2.0"),
         DeclareLaunchArgument("required_remote_capabilities", default_value="1"),
+        DeclareLaunchArgument("enable_timestamp_provenance", default_value="false"),
+        DeclareLaunchArgument("provenance_session_id", default_value=""),
         LogInfo(msg=[
             "[serial_transport] requested. device=",
             device,
@@ -147,6 +149,12 @@ def generate_launch_description():
                 "baudrate": ParameterValue(baudrate, value_type=int),
                 "dry_run": ParameterValue(
                     competition_v2_dry_run, value_type=bool
+                ),
+                "enable_timestamp_provenance": ParameterValue(
+                    LaunchConfiguration("enable_timestamp_provenance"), value_type=bool
+                ),
+                "provenance_session_id": ParameterValue(
+                    LaunchConfiguration("provenance_session_id"), value_type=str
                 ),
                 "chassis_rate_hz": ParameterValue(
                     publish_rate_hz, value_type=float
