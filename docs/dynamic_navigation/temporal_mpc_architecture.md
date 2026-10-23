@@ -26,7 +26,7 @@
 审计基点 `03d5dfa64b3d66efb9a90bb993da065e9c73ff94`；main
 `d735ee12bd950dca0e691cdf2f2c61f35cef8ffc`。审计历史记录为 `03d5dfa:docs/dynamic_navigation/hws_migration_audit_20261003.md`；
 [几何契约只读副本](../../experiments/temporal_mpc/reference_inputs/dynamic_obstacle_geometry_contract_2027.md)及
-[开发规范](../development_workflow.md)。合同、运行profile优先于历史报告。
+[开发规范](../development/research_and_validation.md)。合同、运行 profile 优先于历史报告。
 
 ## 2. HWS 源码审查与复用决定
 
