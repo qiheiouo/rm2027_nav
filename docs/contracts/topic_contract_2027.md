@@ -46,6 +46,9 @@
 | `/robot/posture/state` | `rm_competition_interfaces/msg/PostureState` | `competition_v2_transport_node` | future mission/posture task, diagnostics | Target/actual posture, current-session ACK match, completion, transition and fault state |
 | `/serial/connection_state` | `rm_competition_interfaces/msg/SerialConnectionState` | `competition_v2_transport_node` | readiness, diagnostics | Heartbeat freshness, compatibility, peer boot/capabilities and parser counters |
 | `/perception/target_track` | `rm_competition_interfaces/msg/TargetTrack` | armor/target perception adapter | pursuit boundary | Timestamped target estimate with frame, covariance, velocity, confidence and validity |
+| `/perception/dynamic_obstacles_shadow/predictions` | `rm_competition_interfaces/msg/DynamicObstaclePredictionArray` | opt-in `dynamic_obstacle_tracker_shadow` | research-only consumers and diagnostics | Versioned, bounded visible-cluster CV output in `map`; `authority=shadow_only`, and `complete=false` forbids any clearance inference |
+| `/perception/dynamic_obstacles_shadow/markers` | `visualization_msgs/msg/MarkerArray` | opt-in `dynamic_obstacle_tracker_shadow` | RViz and research inspection | Operator aid only; not a machine-readable geometry or control boundary |
+| `/perception/dynamic_obstacles_shadow/diagnostics` | `diagnostic_msgs/msg/DiagnosticArray` | opt-in `dynamic_obstacle_tracker_shadow` | diagnostics and research validation | Tracker state, latency and evidence status; never a motion or clearance authority |
 | `/mission/pursuit_goal` | `geometry_msgs/msg/PoseStamped` | `pursuit_goal_planner` | competition mission/BT | Validated standoff candidate in `map`; it is not sent to Nav2 without mission authority |
 | `/mission/pursuit_goal_valid` | `std_msgs/msg/Bool` | `pursuit_goal_planner` | competition mission/BT, diagnostics | Latched freshness/quality/TF validity of the pursuit candidate |
 | `/mission/state` | `rm_competition_interfaces/msg/MissionState` | competition mission executor | diagnostics, operator UI | Current mission gate, branch and Nav2-action status; never a chassis command |
@@ -60,6 +63,11 @@
 | `/system/readiness` | `rm_competition_interfaces/msg/SystemReadiness` | `readiness_monitor` | operator UI, validation | Read-only missing-requirement summary; never grants motion authority |
 | `/tf` | `tf2_msgs/msg/TFMessage` | TF owners | all modules | Dynamic TF |
 | `/tf_static` | `tf2_msgs/msg/TFMessage` | static TF owners | all modules | Static TF |
+
+`rm_dynamic_obstacle_tracking` is absent from default runtime profiles and its
+launch argument `enabled` defaults to `false`. It owns no TF, Nav2 action,
+costmap, goal, plan, chassis command or motion authority. Adding a controller
+consumer requires a separate contract and reviewed integration branch.
 
 ## Simulation-Only Topics
 

@@ -11,14 +11,14 @@ endpoint and original beam identity. Only consecutive beams with short spatial
 and range gaps become nominal chords; gaps, isolated returns and hidden space
 retain explicit unknown semantics. Chord interiors and short CV propagation are
 uncertified assumptions. The ROS node does not invoke this prototype by default.
-See [the surface/reveal experiment](../../docs/dynamic_obstacle_critic/dynamic_surface_reveal_experiment.md).
 
 The optional `prediction.anchor_mode=last_observation_cv` mode retains the most
 recent associated detection centroid, then advances it to the scan epoch using
 the current filter velocity. It requires `prediction.velocity_decay_tau=0.0`
 and `prediction.max_speed=0.0`. Default `filtered` mode and v1 data remain the
-baseline. Neither mode certifies full object geometry or motion. See
-[the registration record](../../docs/dynamic_obstacle_critic/observation_anchor_cv_experiment.md).
+baseline. Neither mode certifies full object geometry or motion. The retained
+legacy conclusions are indexed in the
+[dynamic-obstacle research history](../../docs/dynamic_navigation/dynamic_obstacle_prediction_full_history_20261004.md).
 
 This package provides an opt-in, shadow-only 2D dynamic-obstacle tracker. It
 uses `/map` and timestamped `/local_scan` endpoints, subtracts static occupied
@@ -46,7 +46,8 @@ It carries the scan source stamp, prediction step, state, visible extents and
 the schema-selected anchors. `complete` indicates output-budget completeness; it does not
 certify detection completeness or physical geometry. Display speed may be
 clipped/decayed, while the published velocity remains the filter estimate.
-See [the geometry and unknown-bound contract](../../docs/contracts/dynamic_obstacle_geometry_contract_2027.md).
+The current public boundary is recorded in the
+[topic contract](../../docs/contracts/topic_contract_2027.md).
 Consumers must reject stale or wrong-frame data and must not parse markers or
 diagnostic strings. Output is deterministically bounded by `prediction.max_tracks`;
 if that bound truncates a frame, `complete=false` and consumers must not infer

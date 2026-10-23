@@ -150,8 +150,9 @@ The following modules must not publish localization TF:
 1. `rm_serial_driver`
 2. `rm_chassis_interface`
 3. `rm_referee_interface`
-4. mission or BT nodes
-5. Nav2 controller, planner, behavior, or BT navigator nodes
+4. `rm_dynamic_obstacle_tracking`
+5. mission or BT nodes
+6. Nav2 controller, planner, behavior, or BT navigator nodes
 
 ## Duplicate TF Rule
 
