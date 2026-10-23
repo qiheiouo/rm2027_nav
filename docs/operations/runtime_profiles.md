@@ -27,6 +27,11 @@ Hardware and competition work adds explicit specialized compositions:
 
 Only one profile should run in a ROS domain at a time.
 
+The opt-in [localization raw acquisition instructions](localization_raw_acquisition.md)
+freeze a ten-topic recorder whitelist and two diagnostic streams. They compose
+existing sensor/state sources only after separate hardware preconditions;
+they do not add a hardware runtime or require FAST-LIO, Z or Nav2.
+
 ## Navigation
 
 ```bash

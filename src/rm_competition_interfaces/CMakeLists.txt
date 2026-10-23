@@ -22,6 +22,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/RefereeState.msg"
   "msg/RobotPosture.msg"
   "msg/SerialConnectionState.msg"
+  "msg/V2TimestampProvenance.msg"
   "msg/SystemReadiness.msg"
   "msg/TargetTrack.msg"
   "srv/SetMissionMode.srv"

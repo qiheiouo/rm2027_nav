@@ -1,0 +1,54 @@
+schema: rm2027-localization-acquisition-v1
+# Fill before recording; pass this exact session_id to BOTH producers.
+session_id: null
+role: null  # prior | query; new physical acquisition, never an A-bag cut.
+bag_directory: bag
+software:
+  main_baseline: d37f8d6e5ebe53533b7fc62aca8bb84392bee31b
+  fast_gitlink: 9aa8c79ef064eafe0fae1308888248be7efa1d2e
+  livox_base: ffb5c721c3356817a84f1c6eeaf2f66c680be24e
+  rm_instrumentation_revision: null  # git rev-parse HEAD at session creation.
+  livox_revision: 24e989f43afd918f333ea20d526ed7ecc6615bb5  # Verify actual HEAD at capture.
+  ros_distro: null  # Actual sourced environment.
+  rmw: null
+  domain_id: null
+runtime:
+  use_sim_time: false
+  actual_launch_commands: []
+  config_snapshots: []  # Effective parameters, Livox JSON, expanded actual model.
+  topic_type_qos_publisher_inventory: null
+devices:
+  primary_mid360:
+    role: left
+    identity: null  # Actual serial; same label as provenance_device_identity.
+    handle_to_identity_mapping: null  # Runtime handle is not a permanent serial.
+    firmware: null
+    internal_imu_frame_lineage: null
+  serial:
+    profile: competition_v2
+    device: null
+    baudrate: null
+    mcu_firmware: null
+    required_capabilities: 36  # Heading(32) AND gimbal(4), no motion grant.
+clock:
+  configured_sources_and_domains: null
+  livox_time_sync_config_snapshot: null
+  mcu_sample_tick_uptime_semantics: null
+  host_clock_sync_config_and_step_log: null
+  actual_source_clock_mapping_and_error_evidence: HARDWARE_DEPENDENT
+hardware:
+  actual_mechanical_dof: HARDWARE_DEPENDENT
+  independent_mechanical_angle_validity: HARDWARE_DEPENDENT
+  real_extrinsics_and_revision: HARDWARE_DEPENDENT
+  actual_home_and_startup_attitude_source: HARDWARE_DEPENDENT
+  heading_physical_reference: HARDWARE_DEPENDENT
+  target_recording_continuity: HARDWARE_DEPENDENT
+session_evidence:
+  startup_stationary_source_window: null
+  process_and_source_boot_instances: []
+  home_heading_reset_clock_mode_events: []
+  valid_window_and_gaps: null
+  collection_method_and_chassis_state: null
+  prior_session_or_frozen_prior_reference: null
+  initial_pose_hint_source: null  # Explicitly disabled if unused, never query truth.
+  completeness_checks_and_recorder_warnings: null

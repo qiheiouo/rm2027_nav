@@ -38,6 +38,7 @@
 #include "rm_competition_interfaces/msg/referee_state.hpp"
 #include "rm_competition_interfaces/msg/robot_posture.hpp"
 #include "rm_competition_interfaces/msg/serial_connection_state.hpp"
+#include "rm_competition_interfaces/msg/v2_timestamp_provenance.hpp"
 #include "rm_serial_driver/competition_v2_protocol.hpp"
 #include "std_msgs/msg/u_int8_multi_array.hpp"
 
@@ -215,6 +216,16 @@ public:
       throw std::runtime_error("required_remote_capabilities must fit uint32");
     }
     required_remote_capabilities_ = static_cast<std::uint32_t>(required_capabilities);
+
+    const bool provenance_enabled = declare_parameter<bool>("enable_timestamp_provenance", false);
+    provenance_session_id_ = declare_parameter<std::string>("provenance_session_id", "");
+    if (provenance_enabled) {
+      if (provenance_session_id_.empty() || provenance_session_id_.size() > 128) {
+        throw std::invalid_argument("provenance_session_id must contain 1..128 bytes");
+      }
+      provenance_pub_ = create_publisher<TimeTrace>(
+        "/serial/v2/timestamp_provenance", rclcpp::QoS(128).best_effort().durability_volatile());
+    }
 
     // This temporary positive-admission interface cannot open a serial device.
     motion_test_mode_ = declare_parameter<bool>("motion_test_mode", false);
@@ -626,6 +637,84 @@ private:
     }
   }
 
+  using TimeTrace = rm_competition_interfaces::msg::V2TimestampProvenance;
+
+  static std::int64_t steadyNanoseconds()
+  {
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(
+      std::chrono::steady_clock::now().time_since_epoch()).count();
+  }
+
+  std::optional<TimeTrace> beginTimeTrace(uint8_t kind, const v2::Frame * frame = nullptr)
+  {
+    if (!provenance_pub_) return std::nullopt;
+    TimeTrace t;
+    t.session_id = provenance_session_id_; t.transport_instance = endpoint_instance_;
+    t.local_boot_id = local_boot_id_;
+    t.kind = kind; t.has_frame = frame != nullptr;
+    if (frame) {t.frame_type = frame->message_type; t.frame_sequence = frame->sequence;}
+    t.handler_ros_ns = now().nanoseconds();
+    t.handler_system_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
+      std::chrono::system_clock::now().time_since_epoch()).count();
+    t.handler_steady_ns = steadyNanoseconds();
+    t.has_read_batch_completion = !dry_run_ && frame != nullptr;
+    if (t.has_read_batch_completion) {
+      t.read_batch_completion_ros_ns = read_batch_ros_ns_;
+      t.read_batch_completion_steady_ns = read_batch_steady_ns_;
+    }
+    bindTimeOffset(t);
+    return t;
+  }
+
+  void bindTimeOffset(TimeTrace & t) const
+  {
+    t.offset_available = have_clock_sync_;
+    t.offset_revision = offset_revision_; t.offset_ns = heartbeat_clock_offset_ns_;
+    t.offset_heartbeat_frame_sequence = offset_heartbeat_sequence_;
+    t.offset_heartbeat_uptime_ms = remote_uptime_ms_;
+    t.associated_boot_id = remote_boot_id_;
+    t.offset_heartbeat_ros_ns = offset_heartbeat_ros_ns_;
+    t.offset_heartbeat_steady_ns = offset_heartbeat_steady_ns_;
+    t.heartbeat_capabilities = remote_capabilities_; t.heartbeat_ready = remote_ready_;
+  }
+
+  void publishTimeTrace(TimeTrace & t)
+  {
+    // Boot changes emit invalid markers inside the heartbeat handler. Number
+    // actual diagnostic publications, not nested handler-entry order.
+    t.record_sequence = ++provenance_sequence_;
+    try {provenance_pub_->publish(t);}
+    catch (const std::exception & e) {
+      RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 2000,
+        "timestamp provenance publish failed: %s", e.what());
+    }
+  }
+
+  void publishDecodeFailure(std::optional<TimeTrace> & t)
+  {
+    if (t) {t->invalid_reason = "payload_decode_failed"; publishTimeTrace(*t);}
+  }
+
+  std::string sampleInvalidReason(bool online, bool valid, uint32_t capability) const
+  {
+    if (!have_clock_sync_) return "no_heartbeat_clock_basis";
+    if (!remoteSupports(capability)) return "connection_or_capability_unavailable";
+    if (!online) return "source_offline";
+    if (!valid) return "source_invalid";
+    return "";
+  }
+
+  void traceOutput(TimeTrace & t, const std_msgs::msg::Header & header,
+    const std::string & topic, uint64_t sequence, bool online, bool valid,
+    const std::string & reason)
+  {
+    bindTimeOffset(t);
+    t.has_output = true; t.output_topic = topic; t.output_sequence = sequence;
+    t.output_header = header; t.output_online = online; t.output_valid = valid;
+    t.invalid_reason = valid ? "" : reason;
+    publishTimeTrace(t);
+  }
+
   void readSerial()
   {
     std::array<std::uint8_t, 512> bytes{};
@@ -642,6 +731,10 @@ private:
         break;
       }
       decoder_.append(bytes.data(), static_cast<std::size_t>(count));
+    }
+    if (provenance_pub_) {
+      read_batch_ros_ns_ = now().nanoseconds();
+      read_batch_steady_ns_ = steadyNanoseconds();
     }
     processFrames();
   }
@@ -674,8 +767,10 @@ private:
 
   void handleHeartbeat(const v2::Frame & frame)
   {
+    auto trace = beginTimeTrace(TimeTrace::HEARTBEAT, &frame);
     const auto heartbeat = v2::decode_heartbeat(frame);
     if (!heartbeat.has_value()) {
+      publishDecodeFailure(trace);
       return;
     }
     if (guard_phase_ == GuardState::PERMITTED) {motionPermitted();}
@@ -692,9 +787,21 @@ private:
     remote_ready_ = heartbeat->ready;
     heartbeat_clock_offset_ns_ = receive_stamp.nanoseconds() -
       static_cast<std::int64_t>(heartbeat->uptime_ms) * 1000000LL;
+    if (provenance_pub_) {
+      ++offset_revision_;
+      offset_heartbeat_sequence_ = frame.sequence;
+      offset_heartbeat_ros_ns_ = receive_stamp.nanoseconds();
+      offset_heartbeat_steady_ns_ = steadyNanoseconds();
+    }
     have_clock_sync_ = true;
     have_remote_heartbeat_ = true;
     last_heartbeat_time_ = steadyNow();
+    if (trace) {
+      trace->payload_decoded = true;
+      bindTimeOffset(*trace);
+      if (!heartbeat->ready) trace->invalid_reason = "heartbeat_not_ready";
+      publishTimeTrace(*trace);
+    }
   }
 
   void handlePostureState(const v2::Frame & frame)
@@ -735,8 +842,10 @@ private:
 
   void handleGimbalState(const v2::Frame & frame)
   {
+    auto trace = beginTimeTrace(TimeTrace::GIMBAL, &frame);
     const auto state = v2::decode_gimbal_state(frame);
     if (!state.has_value()) {
+      publishDecodeFailure(trace);
       return;
     }
     rm_competition_interfaces::msg::GimbalState message;
@@ -748,14 +857,27 @@ private:
     message.online = state->online && remoteSupports(v2::CapabilityGimbalState);
     message.valid = state->valid && message.online && have_clock_sync_;
     gimbal_state_pub_->publish(message);
+    if (trace) {
+      trace->payload_decoded = true;
+      trace->sample_sequence = state->sample_sequence;
+      trace->mcu_time_ms = state->mcu_time_ms;
+      trace->raw_yaw_rad = state->relative_yaw_rad;
+      trace->raw_yaw_rate_rad_s = state->yaw_rate_rad_s;
+      trace->raw_online = state->online; trace->raw_valid = state->valid;
+      traceOutput(*trace, message.header, gimbal_state_pub_->get_topic_name(),
+        ++gimbal_output_sequence_, message.online, message.valid,
+        sampleInvalidReason(state->online, state->valid, v2::CapabilityGimbalState));
+    }
     last_gimbal_time_ = steadyNow();
     gimbal_invalid_published_ = false;
   }
 
   void handleChassisHeadingState(const v2::Frame & frame)
   {
+    auto trace = beginTimeTrace(TimeTrace::HEADING, &frame);
     const auto state = v2::decode_chassis_heading_state(frame);
     if (!state.has_value()) {
+      publishDecodeFailure(trace);
       return;
     }
     rm_competition_interfaces::msg::ChassisHeadingState message;
@@ -769,6 +891,17 @@ private:
     message.online = state->online && remoteSupports(v2::CapabilityChassisHeadingState);
     message.valid = state->valid && message.online && have_clock_sync_;
     chassis_heading_pub_->publish(message);
+    if (trace) {
+      trace->payload_decoded = true;
+      trace->sample_sequence = state->sample_sequence;
+      trace->mcu_time_ms = state->mcu_time_ms;
+      trace->heading_reset_counter = state->reset_counter;
+      trace->raw_yaw_rad = state->yaw_rad; trace->raw_yaw_rate_rad_s = state->yaw_rate_rad_s;
+      trace->raw_online = state->online; trace->raw_valid = state->valid;
+      traceOutput(*trace, message.header, chassis_heading_pub_->get_topic_name(),
+        ++heading_output_sequence_, message.online, message.valid,
+        sampleInvalidReason(state->online, state->valid, v2::CapabilityChassisHeadingState));
+    }
     last_chassis_heading_time_ = steadyNow();
     chassis_heading_invalid_published_ = false;
   }
@@ -890,11 +1023,14 @@ private:
 
   void publishInvalidGimbal(const char * reason)
   {
+    auto trace = beginTimeTrace(TimeTrace::INVALID_GIMBAL);
     rm_competition_interfaces::msg::GimbalState message;
     message.header.stamp = now();
     message.online = remoteSupports(v2::CapabilityGimbalState);
     message.valid = false;
     gimbal_state_pub_->publish(message);
+    if (trace) traceOutput(*trace, message.header, gimbal_state_pub_->get_topic_name(),
+      ++gimbal_output_sequence_, message.online, message.valid, reason);
     gimbal_invalid_published_ = true;
     RCLCPP_WARN_THROTTLE(
       get_logger(), *get_clock(), 2000, "Gimbal state invalidated: %s", reason);
@@ -902,12 +1038,15 @@ private:
 
   void publishInvalidChassisHeading(const char * reason)
   {
+    auto trace = beginTimeTrace(TimeTrace::INVALID_HEADING);
     rm_competition_interfaces::msg::ChassisHeadingState message;
     message.header.stamp = now();
     message.source_boot_id = remote_boot_id_;
     message.online = remoteSupports(v2::CapabilityChassisHeadingState);
     message.valid = false;
     chassis_heading_pub_->publish(message);
+    if (trace) traceOutput(*trace, message.header, chassis_heading_pub_->get_topic_name(),
+      ++heading_output_sequence_, message.online, message.valid, reason);
     chassis_heading_invalid_published_ = true;
     RCLCPP_WARN_THROTTLE(
       get_logger(), *get_clock(), 2000, "Chassis heading invalidated: %s", reason);
@@ -926,6 +1065,13 @@ private:
   }
 
   // Deliberately local to V2; no cross-protocol authority framework.
+  std::string provenance_session_id_;
+  rclcpp::Publisher<TimeTrace>::SharedPtr provenance_pub_;
+  uint64_t provenance_sequence_{0}, offset_revision_{0};
+  uint64_t heading_output_sequence_{0}, gimbal_output_sequence_{0};
+  uint16_t offset_heartbeat_sequence_{0};
+  int64_t offset_heartbeat_ros_ns_{0}, offset_heartbeat_steady_ns_{0};
+  int64_t read_batch_ros_ns_{0}, read_batch_steady_ns_{0};
   bool motion_test_mode_{false};
   uint8_t guard_phase_{GuardState::DISABLED};
   std::string endpoint_instance_, private_cmd_topic_, owner_instance_, session_id_, guard_reason_, evidence_reason_;

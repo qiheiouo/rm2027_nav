@@ -16,6 +16,9 @@ This record documents the external MID360 ROS driver added for Phase 1 hardware 
 - AUD-050 local repair pin: `ffb5c721c3356817a84f1c6eeaf2f66c680be24e`
 - AUD-050 local repair branch: `codex/aud050-ring-queue-20261020`
 - Published maintenance branch: `rm2027/aud020-aud050-20261020`
+- Acquisition instrumentation branch: `codex/localization-acquisition-provenance`
+- Acquisition instrumentation pin: `24e989f43afd918f333ea20d526ed7ecc6615bb5`
+- Instrumentation publication: local commit only; not pushed by this task.
 - ROS package name: `livox_ros_driver2`
 - License: MIT
 - Internal submodules: none observed; the driver repository has no `.gitmodules`.
@@ -107,6 +110,16 @@ restoring the gitlink to `9bdedb484b1dd9bd7420423a728812dcf8cc8267`;
 roll back both local exceptions by restoring the original intake pin.
 
 ## Build Notes
+
+The acquisition pin adds default-disabled, diagnostic-only packet/output time
+provenance on top of AUD-050. The time selector and existing sensor messages are
+unchanged. Metadata follows the existing aggregation and queues, capped at 512
+packet records per cloud; no raw payload copy or extra sensor/TF/control owner
+is introduced. See the [acquisition contract](../operations/localization_raw_acquisition.md)
+and the fork README/message definitions. Restore gitlink
+`ffb5c721c3356817a84f1c6eeaf2f66c680be24e` to remove this instrumentation.
+The new local fork commit must be published before another machine can fetch
+the updated gitlink from GitHub; the isolated checkout retains it here.
 
 With Livox-SDK2 installed:
 
