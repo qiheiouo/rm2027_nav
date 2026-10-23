@@ -6,6 +6,9 @@ protocol.
 
 - `RefereeState` is the normalized, validated match-state boundary.
 - `ChassisMode` keeps lower-controller authority separate from referee data.
+- `DynamicObstaclePrediction` and `DynamicObstaclePredictionArray` carry the
+  bounded, shadow-only dynamic-tracker output. They do not grant clearance or
+  motion authority; consumers must enforce schema, frame, age and completeness.
 - `TargetTrack` is the perception-to-pursuit boundary with frame, timestamp,
   confidence and velocity.
 - `MissionState` reports decision execution without becoming a control topic.
