@@ -69,3 +69,14 @@ with a node-qualified behavior remap: controller and behavior publish
 parameters, controller selection and competition task strategy are unchanged.
 Other entry points require their own routing evidence; the wrapper is scoped
 to the current non-namespaced, non-composed profiles.
+
+## 2027 navigation intent composition
+
+`competition_2027_navigation.launch.py` starts no nodes by default. With
+`enable_navigation_intents:=true`, it composes only Mission and pursuit,
+forces radar-only input and a fresh V2 motion guard, disables mocks, and leaves
+Mission disabled at startup. It supplies no hardware, Nav2 or safety evidence;
+this is an Integration candidate, not a complete competition vehicle profile.
+The old-car competition composition also fixes radar-only tactical input;
+`competition_no_hardware_test` explicitly retains generic research input.
+See [contract](../../docs/contracts/navigation_target_arbitration_2027.md).

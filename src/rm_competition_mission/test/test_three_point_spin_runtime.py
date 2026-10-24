@@ -25,6 +25,7 @@ class FakeNav2(Node):
         self.held_spin_started = threading.Event()
         self.spin_canceled = threading.Event()
         self.hp = 400
+        self.navigation_overlapped_spin = False
         self.nav_server = ActionServer(
             self,
             NavigateToPose,
@@ -56,6 +57,8 @@ class FakeNav2(Node):
         self.create_timer(0.05, self.publish_safety)
 
     def execute_nav(self, goal_handle):
+        if self.held_spin_started.is_set() and not self.spin_canceled.is_set():
+            self.navigation_overlapped_spin = True
         pose = goal_handle.request.pose.pose
         self.nav_goals.append((pose.position.x, pose.position.y))
         goal_handle.succeed()
@@ -72,6 +75,7 @@ class FakeNav2(Node):
         while rclpy.ok() and not goal_handle.is_cancel_requested:
             time.sleep(0.02)
         if goal_handle.is_cancel_requested:
+            time.sleep(0.2)
             goal_handle.canceled()
             self.spin_canceled.set()
         else:
@@ -91,6 +95,7 @@ class FakeNav2(Node):
         self.localization_pub.publish(status)
         self.referee_valid_pub.publish(valid)
         state = RefereeState()
+        state.header.stamp = self.get_clock().now().to_msg()
         state.valid = True
         state.game_progress = 4
         state.current_hp = self.hp
@@ -152,6 +157,7 @@ def test_patrol_spin_and_low_hp_home_action_flow():
         node.hp = 199
         wait_for(node.spin_canceled.is_set, 5.0, "low-HP Spin cancellation", process)
         wait_for(lambda: len(node.nav_goals) >= 5, 5.0, "low-HP home goal", process)
+        assert not node.navigation_overlapped_spin
         home_x, home_y = node.nav_goals[-1]
         assert math.isclose(home_x, 0.872, abs_tol=1e-6)
         assert math.isclose(home_y, 0.469, abs_tol=1e-6)

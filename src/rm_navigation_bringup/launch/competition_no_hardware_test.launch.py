@@ -61,6 +61,7 @@ def generate_launch_description():
             condition=IfCondition(enabled),
             launch_arguments={
                 "enable_pursuit_boundary": "true",
+                "radar_only": "false",
                 "use_mock_target": "true",
                 "use_sim_time": "true",
             }.items(),
@@ -70,6 +71,7 @@ def generate_launch_description():
             condition=IfCondition(enabled),
             launch_arguments={
                 "enable_mission_node": "true",
+                "radar_only": "false",
                 "startup_enabled": "false",
                 "use_safety_mock": "true",
                 "use_sim_time": "true",

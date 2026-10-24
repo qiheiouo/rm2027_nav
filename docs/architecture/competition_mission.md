@@ -46,3 +46,13 @@ documenting which lower-controller authority remains outside ROS.
 旧车早期行为目标与完成表保留在[历史行为记录](../archive/old_car/old_car_competition_minimum_behavior.md)。
 其中完成状态不作为最新接口事实；本分支局部实现见[任务包 README](../../src/rm_competition_mission/README.md)，
 现场接受按 [validation](../validation/old_car/) 的原条件理解。
+
+## 2027 target arbitration Integration candidate
+
+The [current target contract](../contracts/navigation_target_arbitration_2027.md)
+retains this tree and single Mission client, adds atomic pursuit candidates,
+radar-only competition composition, source deadlines and terminal-result action
+handover. Explicit hold/disable and safety precede home; missing home holds.
+Referee/chassis/observed V2 guard now expire independently in Mission.
+[Controlled software evidence](../validation/navigation_target_arbitration_20261024.md)
+does not promote the historical field results or authorize hardware.
