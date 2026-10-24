@@ -10,6 +10,10 @@ competition_mission_node:
     require_game_running: true
     require_chassis_mode: true
     allow_pursuit: false
+    radar_only: true
+    # Legacy debug profiles have no V2 guard. The 2027 composition forces true.
+    require_motion_guard: false
+    input_timeout_sec: 0.5
     game_running_value: 4
     retreat_hp_threshold: 150
     goal_update_distance: 0.35

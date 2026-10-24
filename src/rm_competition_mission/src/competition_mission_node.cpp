@@ -20,6 +20,8 @@
 #include "rm_competition_interfaces/msg/mission_state.hpp"
 #include "rm_competition_interfaces/msg/localization_status.hpp"
 #include "rm_competition_interfaces/msg/referee_state.hpp"
+#include "rm_competition_interfaces/msg/pursuit_candidate.hpp"
+#include "rm_competition_interfaces/msg/v2_motion_guard_state.hpp"
 #include "rm_competition_interfaces/srv/set_mission_mode.hpp"
 #include "std_msgs/msg/bool.hpp"
 
@@ -56,6 +58,8 @@ class CompetitionMissionNode : public rclcpp::Node
 public:
   using NavigateToPose = nav2_msgs::action::NavigateToPose;
   using GoalHandle = rclcpp_action::ClientGoalHandle<NavigateToPose>;
+  using Candidate = rm_competition_interfaces::msg::PursuitCandidate;
+  using GuardState = rm_competition_interfaces::msg::V2MotionGuardState;
   using Spin = nav2_msgs::action::Spin;
   using SpinGoalHandle = rclcpp_action::ClientGoalHandle<Spin>;
 
@@ -83,6 +87,12 @@ public:
     require_game_running_ = declare_parameter<bool>("require_game_running", true);
     require_chassis_mode_ = declare_parameter<bool>("require_chassis_mode", true);
     allow_pursuit_ = declare_parameter<bool>("allow_pursuit", false);
+    radar_only_ = declare_parameter<bool>("radar_only", true);
+    require_motion_guard_ = declare_parameter<bool>("require_motion_guard", false);
+    input_timeout_sec_ = declare_parameter<double>("input_timeout_sec", 0.5);
+    if (!std::isfinite(input_timeout_sec_) || input_timeout_sec_ <= 0.0) {
+      throw std::invalid_argument("input_timeout_sec must be positive");
+    }
     game_running_value_ = declare_parameter<int>("game_running_value", 4);
     retreat_hp_threshold_ = declare_parameter<int>("retreat_hp_threshold", 150);
     goal_update_distance_ = declare_parameter<double>("goal_update_distance", 0.35);
@@ -145,19 +155,32 @@ public:
       [this](rm_competition_interfaces::msg::RefereeState::SharedPtr message) {
         referee_state_ = *message;
         referee_received_ = true;
+        referee_received_at_ = std::chrono::steady_clock::now();
       });
     chassis_sub_ = create_subscription<rm_competition_interfaces::msg::ChassisMode>(
       "/chassis/mode", latched,
       [this](rm_competition_interfaces::msg::ChassisMode::SharedPtr message) {
         chassis_mode_ = *message;
         chassis_received_ = true;
+        chassis_received_at_ = std::chrono::steady_clock::now();
       });
-    pursuit_valid_sub_ = create_subscription<std_msgs::msg::Bool>(
-      "/mission/pursuit_goal_valid", latched,
-      [this](std_msgs::msg::Bool::SharedPtr message) {pursuit_goal_valid_ = message->data;});
-    pursuit_goal_sub_ = create_subscription<geometry_msgs::msg::PoseStamped>(
-      "/mission/pursuit_goal", 10,
-      [this](geometry_msgs::msg::PoseStamped::SharedPtr message) {pursuit_goal_ = *message;});
+    pursuit_sub_ = create_subscription<Candidate>(
+      "/mission/pursuit_candidate", 10,
+      [this](Candidate::SharedPtr message) {
+        const auto stamp = rclcpp::Time(message->header.stamp);
+        if (stamp < rclcpp::Time(pursuit_candidate_.header.stamp)) {return;}
+        if (stamp > rclcpp::Time(pursuit_candidate_.header.stamp)) {
+          pursuit_received_at_ = std::chrono::steady_clock::now();
+        }
+        pursuit_candidate_ = *message;
+      });
+    motion_guard_sub_ = create_subscription<GuardState>(
+      "/motion/v2_guard/state", rclcpp::QoS(1).reliable(),
+      [this](GuardState::SharedPtr message) {
+        motion_guard_ = *message;
+        motion_guard_received_ = true;
+        motion_guard_received_at_ = std::chrono::steady_clock::now();
+      });
 
     set_mode_service_ = create_service<rm_competition_interfaces::srv::SetMissionMode>(
       "/mission/set_mode",
@@ -196,6 +219,7 @@ private:
   {
     geometry_msgs::msg::PoseStamped pose;
     std::string source;
+    std::string track_id{};
   };
 
   void loadWaypoints()
@@ -230,6 +254,7 @@ private:
     factory_.registerSimpleCondition(
       "ShouldReturnHome", [this](BT::TreeNode &) {
         const bool low_hp = referee_valid_ && referee_received_ &&
+          inputFresh(referee_state_.header.stamp, referee_received_at_) &&
           referee_state_.current_hp <= retreat_hp_threshold_;
         return (requested_mode_ == "home" || low_hp) ?
                BT::NodeStatus::SUCCESS : BT::NodeStatus::FAILURE;
@@ -237,8 +262,7 @@ private:
     factory_.registerSimpleCondition(
       "CanPursue", [this](BT::TreeNode &) {
         const bool mode_allows = requested_mode_ == "pursuit" || requested_mode_ == "auto";
-        return (allow_pursuit_ && mode_allows && pursuit_goal_valid_ &&
-               pursuit_goal_.header.frame_id == map_frame_) ?
+        return (allow_pursuit_ && mode_allows && pursuitFresh()) ?
                BT::NodeStatus::SUCCESS : BT::NodeStatus::FAILURE;
       });
     factory_.registerSimpleCondition(
@@ -308,12 +332,40 @@ private:
       localization_received_).count() <= localization_status_timeout_sec_;
   }
 
+  bool inputFresh(
+    const builtin_interfaces::msg::Time & stamp,
+    const std::chrono::steady_clock::time_point & received) const
+  {
+    const double age = (now() - rclcpp::Time(stamp)).seconds();
+    return rclcpp::Time(stamp).nanoseconds() > 0 && age >= -0.05 &&
+      age <= input_timeout_sec_ &&
+      std::chrono::duration<double>(std::chrono::steady_clock::now() - received).count()
+      <= input_timeout_sec_;
+  }
+
+  bool pursuitFresh() const
+  {
+    const auto & c = pursuit_candidate_;
+    const auto & p = c.pose;
+    const double norm = p.orientation.x * p.orientation.x + p.orientation.y * p.orientation.y +
+      p.orientation.z * p.orientation.z + p.orientation.w * p.orientation.w;
+    return c.valid && !c.track_id.empty() && c.header.frame_id == map_frame_ &&
+      (!radar_only_ || c.source == Candidate::SOURCE_RADAR) &&
+      inputFresh(c.header.stamp, pursuit_received_at_) &&
+      rclcpp::Time(c.header.stamp) > pursuit_not_before_ &&
+      rclcpp::Time(c.valid_until) > now() &&
+      (rclcpp::Time(c.valid_until) - rclcpp::Time(c.header.stamp)).seconds() <= input_timeout_sec_ &&
+      std::isfinite(p.position.x) && std::isfinite(p.position.y) && std::isfinite(p.position.z) &&
+      std::isfinite(norm) && std::abs(norm - 1.0) < 0.01;
+  }
+
   bool safetyReady() const
   {
     if (require_localization_valid_ && !localizationFresh()) {
       return false;
     }
-    if (require_referee_state_ && (!referee_valid_ || !referee_received_)) {
+    if (require_referee_state_ && (!referee_valid_ || !referee_received_ ||
+      !inputFresh(referee_state_.header.stamp, referee_received_at_))) {
       return false;
     }
     if (require_game_running_ &&
@@ -322,8 +374,15 @@ private:
       return false;
     }
     if (require_chassis_mode_ &&
-      (!chassis_received_ || !chassis_mode_.online ||
+      (!chassis_received_ || !inputFresh(chassis_mode_.header.stamp, chassis_received_at_) ||
+      !chassis_mode_.online ||
       !chassis_mode_.autonomous_enabled || chassis_mode_.emergency_stop))
+    {
+      return false;
+    }
+    if ((require_motion_guard_ || motion_guard_received_) &&
+      (!motion_guard_received_ || motion_guard_.phase != GuardState::PERMITTED ||
+      !inputFresh(motion_guard_.header.stamp, motion_guard_received_at_)))
     {
       return false;
     }
@@ -335,7 +394,7 @@ private:
     if (!home_pose_.has_value()) {
       active_branch_ = "hold_missing_home";
       desired_goal_.reset();
-      return BT::NodeStatus::FAILURE;
+      return BT::NodeStatus::SUCCESS;
     }
     desired_goal_ = GoalRequest{*home_pose_, "home"};
     active_branch_ = "home";
@@ -344,10 +403,13 @@ private:
 
   BT::NodeStatus selectPursuit()
   {
-    if (!pursuit_goal_valid_ || pursuit_goal_.header.frame_id != map_frame_) {
+    if (!pursuitFresh()) {
       return BT::NodeStatus::FAILURE;
     }
-    desired_goal_ = GoalRequest{pursuit_goal_, "pursuit"};
+    geometry_msgs::msg::PoseStamped pose;
+    pose.header = pursuit_candidate_.header;
+    pose.pose = pursuit_candidate_.pose;
+    desired_goal_ = GoalRequest{pose, "pursuit", pursuit_candidate_.track_id};
     active_branch_ = "pursuit";
     return BT::NodeStatus::SUCCESS;
   }
@@ -389,7 +451,14 @@ private:
     localization_last_clock_ns_ = std::max(localization_last_clock_ns_, clock_ns);
     desired_goal_.reset();
     patrol_spin_selected_ = false;
-    tree_->tickRoot();
+    if (!operator_enabled_ || requested_mode_ == "hold" || !safetyReady()) {
+      // A new target observation is required after a hold/revocation, even if
+      // the previous candidate still has a short remaining lease.
+      pursuit_not_before_ = now();
+      active_branch_ = "hold";
+    } else {
+      tree_->tickRoot();
+    }
     if (patrol_spin_selected_ &&
       (patrol_spin_pending_ || spin_goal_sent_ || active_spin_goal_handle_))
     {
@@ -404,7 +473,7 @@ private:
 
   bool goalChanged(const GoalRequest & left, const GoalRequest & right) const
   {
-    if (left.source != right.source) {
+    if (left.source != right.source || left.track_id != right.track_id) {
       return true;
     }
     const double dx = left.pose.pose.position.x - right.pose.pose.position.x;
@@ -415,10 +484,36 @@ private:
     return std::hypot(dx, dy) > goal_update_distance_ || std::abs(dyaw) > goal_update_yaw_;
   }
 
+  bool navigationOutstanding() const
+  {
+    return navigation_pending_ || active_goal_handle_ != nullptr;
+  }
+
+  bool spinOutstanding() const
+  {
+    return spin_goal_sent_ || active_spin_goal_handle_ != nullptr;
+  }
+
   void reconcileNavigation()
   {
     if (!desired_goal_.has_value()) {
       cancelNavigation("mission hold or safety gate");
+      return;
+    }
+    if (spinOutstanding()) {
+      navigation_status_ = "waiting_for_spin_cancel";
+      return;
+    }
+    if (navigationOutstanding()) {
+      if (!navigation_cancel_requested_ && last_sent_goal_.has_value() &&
+        goalChanged(*desired_goal_, *last_sent_goal_))
+      {
+        const bool new_intent = desired_goal_->source != last_sent_goal_->source ||
+          desired_goal_->track_id != last_sent_goal_->track_id;
+        if (new_intent || (now() - last_goal_send_time_).seconds() >= minimum_goal_update_sec_) {
+          cancelNavigation("intent changed");
+        }
+      }
       return;
     }
     if (completed_goal_.has_value() && !goalChanged(*desired_goal_, *completed_goal_)) {
@@ -437,11 +532,11 @@ private:
         return;
       }
     }
-    if (last_sent_goal_.has_value() && !goalChanged(*desired_goal_, *last_sent_goal_)) {
-      return;
-    }
-    const double since_send = (now() - last_goal_send_time_).seconds();
-    if (last_goal_send_time_.nanoseconds() > 0 && since_send < minimum_goal_update_sec_) {
+    if (completed_goal_.has_value() && desired_goal_->source == "pursuit" &&
+      completed_goal_->source == "pursuit" &&
+      desired_goal_->track_id == completed_goal_->track_id &&
+      (now() - last_goal_send_time_).seconds() < minimum_goal_update_sec_)
+    {
       return;
     }
     sendGoal(*desired_goal_);
@@ -453,7 +548,9 @@ private:
       navigation_status_ = "waiting_for_nav2";
       return;
     }
-    cancelNavigation("goal update", false);
+    navigation_pending_ = true;
+    navigation_cancel_requested_ = false;
+    navigation_cancel_sent_ = false;
     request.pose.header.stamp = now();
     NavigateToPose::Goal goal;
     goal.pose = request.pose;
@@ -472,7 +569,17 @@ private:
           }
           return;
         }
+        navigation_pending_ = false;
         active_goal_handle_ = handle;
+        if (navigation_cancel_requested_) {
+          if (handle) {
+            cancelNavigation("late acceptance");
+          } else {
+            navigation_cancel_requested_ = false;
+            last_sent_goal_.reset();
+          }
+          return;
+        }
         navigation_status_ = handle ? "goal_active" : "goal_rejected";
         if (!handle) {
           failed_goal_ = last_sent_goal_;
@@ -487,6 +594,13 @@ private:
           return;
         }
         active_goal_handle_.reset();
+        navigation_pending_ = false;
+        if (navigation_cancel_requested_) {
+          navigation_cancel_requested_ = false;
+          last_sent_goal_.reset();
+          navigation_status_ = "goal_cancel_complete";
+          return;
+        }
         if (result.code == rclcpp_action::ResultCode::SUCCEEDED) {
           navigation_status_ = "goal_succeeded";
           failed_goal_.reset();
@@ -505,6 +619,9 @@ private:
           }
         } else if (result.code == rclcpp_action::ResultCode::CANCELED) {
           navigation_status_ = "goal_canceled";
+          failed_goal_ = last_sent_goal_;
+          ++consecutive_goal_failures_;
+          last_goal_send_time_ = now();
         } else {
           navigation_status_ = "goal_failed";
           failed_goal_ = last_sent_goal_;
@@ -512,6 +629,7 @@ private:
           last_goal_send_time_ = now();
           last_sent_goal_.reset();
         }
+        last_sent_goal_.reset();
       };
     navigation_client_->async_send_goal(goal, options);
   }
@@ -521,7 +639,7 @@ private:
     if (!patrol_spin_pending_) {
       return;
     }
-    if (spin_goal_sent_ || active_spin_goal_handle_) {
+    if (spinOutstanding() || navigationOutstanding()) {
       return;
     }
     if (consecutive_spin_failures_ >= max_consecutive_spin_failures_) {
@@ -551,6 +669,8 @@ private:
 
     const std::uint64_t generation = ++spin_generation_;
     spin_goal_sent_ = true;
+    spin_cancel_requested_ = false;
+    spin_cancel_sent_ = false;
     last_spin_send_time_ = now();
     navigation_status_ = "spin_goal_pending";
 
@@ -564,6 +684,15 @@ private:
           return;
         }
         active_spin_goal_handle_ = handle;
+        if (spin_cancel_requested_) {
+          if (handle) {
+            cancelSpin("late acceptance");
+          } else {
+            spin_goal_sent_ = false;
+            spin_cancel_requested_ = false;
+          }
+          return;
+        }
         navigation_status_ = handle ? "spin_active" : "spin_rejected";
         if (!handle) {
           spin_goal_sent_ = false;
@@ -578,6 +707,11 @@ private:
         }
         active_spin_goal_handle_.reset();
         spin_goal_sent_ = false;
+        if (spin_cancel_requested_) {
+          spin_cancel_requested_ = false;
+          navigation_status_ = "spin_cancel_complete";
+          return;
+        }
         if (result.code == rclcpp_action::ResultCode::SUCCEEDED) {
           navigation_status_ = "spin_succeeded";
           patrol_spin_pending_ = false;
@@ -600,37 +734,29 @@ private:
 
   void cancelSpin(const std::string & reason)
   {
-    const bool had_spin = patrol_spin_pending_ || spin_goal_sent_ || active_spin_goal_handle_;
-    if (!had_spin) {
-      return;
-    }
-    if (active_spin_goal_handle_) {
-      spin_client_->async_cancel_goal(active_spin_goal_handle_);
-    }
-    ++spin_generation_;
-    active_spin_goal_handle_.reset();
-    spin_goal_sent_ = false;
     patrol_spin_pending_ = false;
     consecutive_spin_failures_ = 0;
-    navigation_status_ = "spin_canceled: " + reason;
+    if (!spinOutstanding()) {return;}
+    spin_cancel_requested_ = true;
+    if (active_spin_goal_handle_ && !spin_cancel_sent_) {
+      spin_cancel_sent_ = true;
+      spin_client_->async_cancel_goal(active_spin_goal_handle_);
+    }
+    navigation_status_ = "spin_canceling: " + reason;
   }
 
   void cancelNavigation(const std::string & reason, bool clear_completed = true)
   {
-    if (active_goal_handle_) {
+    if (clear_completed) {completed_goal_.reset();}
+    if (!navigationOutstanding()) {return;}
+    navigation_cancel_requested_ = true;
+    if (active_goal_handle_ && !navigation_cancel_sent_) {
+      navigation_cancel_sent_ = true;
       navigation_client_->async_cancel_goal(active_goal_handle_);
     }
-    if (active_goal_handle_ || last_sent_goal_.has_value()) {
-      ++goal_generation_;
-      navigation_status_ = "goal_canceled: " + reason;
-    } else {
-      navigation_status_ = "holding";
-    }
-    active_goal_handle_.reset();
-    last_sent_goal_.reset();
-    if (clear_completed) {
-      completed_goal_.reset();
-    }
+    // Keep the pending/active handle until its terminal result. A cancel ACK
+    // only means CANCELING; it does not grant ownership to a replacement.
+    navigation_status_ = "goal_canceling: " + reason;
   }
 
   void publishState()
@@ -659,6 +785,22 @@ private:
   bool require_game_running_;
   bool require_chassis_mode_;
   bool allow_pursuit_;
+  bool radar_only_;
+  bool require_motion_guard_;
+  double input_timeout_sec_;
+  bool motion_guard_received_{false};
+  GuardState motion_guard_;
+  Candidate pursuit_candidate_;
+  std::chrono::steady_clock::time_point pursuit_received_at_;
+  std::chrono::steady_clock::time_point referee_received_at_;
+  std::chrono::steady_clock::time_point chassis_received_at_;
+  std::chrono::steady_clock::time_point motion_guard_received_at_;
+  rclcpp::Time pursuit_not_before_{0, 0, RCL_ROS_TIME};
+  bool navigation_pending_{false};
+  bool navigation_cancel_requested_{false};
+  bool navigation_cancel_sent_{false};
+  bool spin_cancel_requested_{false};
+  bool spin_cancel_sent_{false};
   int game_running_value_;
   int retreat_hp_threshold_;
   double goal_update_distance_;
@@ -690,10 +832,8 @@ private:
   bool referee_valid_{false};
   bool referee_received_{false};
   bool chassis_received_{false};
-  bool pursuit_goal_valid_{false};
   rm_competition_interfaces::msg::RefereeState referee_state_;
   rm_competition_interfaces::msg::ChassisMode chassis_mode_;
-  geometry_msgs::msg::PoseStamped pursuit_goal_;
 
   BT::BehaviorTreeFactory factory_;
   std::unique_ptr<BT::Tree> tree_;
@@ -723,8 +863,8 @@ private:
     referee_sub_;
   rclcpp::Subscription<rm_competition_interfaces::msg::ChassisMode>::SharedPtr
     chassis_sub_;
-  rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr pursuit_valid_sub_;
-  rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr pursuit_goal_sub_;
+  rclcpp::Subscription<Candidate>::SharedPtr pursuit_sub_;
+  rclcpp::Subscription<GuardState>::SharedPtr motion_guard_sub_;
   rclcpp::Service<rm_competition_interfaces::srv::SetMissionMode>::SharedPtr
     set_mode_service_;
   rclcpp::TimerBase::SharedPtr timer_;

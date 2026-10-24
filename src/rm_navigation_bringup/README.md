@@ -59,3 +59,14 @@ The old-car profile must not import the old `serial_task` node or restore old
 topic glue such as `/Pose_pub`, `/my_set_goal`, or `/nav_result`.
 
 新车软件入口`new_car_software.launch.py`默认零节点inventory；config/new_car_candidate_manifest.yaml是能力清单而非硬件参数。其余测试模式须显式enable_test，固定无设备。Humble与Jazzy S2分开使用，无硬件运行模式。见[合同](../../docs/contracts/new_car_software_20261012.md)、[复现](../../tests/new_car_integration/README.md)。
+
+## 2027 navigation intent composition
+
+`competition_2027_navigation.launch.py` starts no nodes by default. With
+`enable_navigation_intents:=true`, it composes only Mission and pursuit,
+forces radar-only input and a fresh V2 motion guard, disables mocks, and leaves
+Mission disabled at startup. It supplies no hardware, Nav2 or safety evidence;
+this is an Integration candidate, not a complete competition vehicle profile.
+The old-car competition composition also fixes radar-only tactical input;
+`competition_no_hardware_test` explicitly retains generic research input.
+See [contract](../../docs/contracts/navigation_target_arbitration_2027.md).

@@ -24,6 +24,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/SerialConnectionState.msg"
   "msg/SystemReadiness.msg"
   "msg/TargetTrack.msg"
+  "msg/PursuitCandidate.msg"
   "srv/SetMissionMode.srv"
   DEPENDENCIES builtin_interfaces geometry_msgs std_msgs
 )

@@ -57,5 +57,27 @@ the isolated test profile as the final match configuration.
 Localization health is consumed from reliable/volatile `/localization/status`
 (`LocalizationStatus`), with instance/time/sequence validation and a 1.0 s
 steady-clock and source-deadline lease. Cached Bool is no longer a localization
-input. All other inputs retain their previous behavior; this change alone does
-not establish final serial authorization or physical stopping.
+input. Referee/chassis and an observed V2 guard also have independent 0.5 s leases.
+This does not establish final serial authorization or physical stopping.
+
+## 2027 arbitration candidate
+
+Mission now consumes `/mission/pursuit_candidate` (`PursuitCandidate`), carrying
+source, target ID and original source deadline together. The legacy pursuit
+pose/Bool remain diagnostic outputs only. `radar_only=true` rejects research
+candidates; set it false explicitly for research. `auto` enables pursuit over
+patrol, while explicit `patrol` continues to select only the route.
+
+Explicit hold/disable and required safety gates stop both actions. Low-health
+or requested home beats pursuit; missing home holds. A changed branch/ID
+cancels immediately and waits for the old action's terminal result before
+sending a replacement. Same-ID updates retain the 0.35 m/rad thresholds and
+0.5 s minimum interval. Patrol resumes its interrupted index.
+
+`require_motion_guard=true` requires fresh PERMITTED on `/motion/v2_guard/state`.
+Any observed denial or expired guard also closes the gate in legacy debug
+configuration. This is a read-only veto, not an AUD-003 owner/session producer.
+After hold/revocation, pursuit requires a new source observation.
+
+See the [full contract](../../docs/contracts/navigation_target_arbitration_2027.md)
+and [software validation](../../docs/validation/navigation_target_arbitration_20261024.md).

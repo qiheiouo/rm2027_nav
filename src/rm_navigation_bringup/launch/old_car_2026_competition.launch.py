@@ -462,6 +462,7 @@ def generate_launch_description():
             condition=IfCondition(enable_stack),
             launch_arguments={
                 "enable_pursuit_boundary": use_pursuit,
+                "radar_only": "true",
                 "use_mock_target": use_target_mock,
                 "use_sim_time": use_sim_time,
             }.items(),
@@ -471,6 +472,7 @@ def generate_launch_description():
             condition=IfCondition(enable_stack),
             launch_arguments={
                 "enable_mission_node": use_mission,
+                "radar_only": "true",
                 "startup_enabled": mission_startup_enabled,
                 "use_safety_mock": use_safety_mock,
                 "require_chassis_mode": mission_requires_chassis,

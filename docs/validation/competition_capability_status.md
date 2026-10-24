@@ -73,3 +73,13 @@ including an unresolved shutdown timeout, burst timing and hardware inputs.
 AUD-003, MCU mode/stopping and physical safety acceptance remain open.
 No hardware positive authorization or default profile change follows from
 these local results. See [stage conclusion](../new_car_stage_freeze_20261013.md).
+
+## 2026-10-24 navigation target arbitration candidate
+
+[Contract](../contracts/navigation_target_arbitration_2027.md) and
+[controlled validation](navigation_target_arbitration_20261024.md) cover one
+Mission owner, terminal-result preemption, home priority, guard/chassis veto,
+pursuit source deadlines, patrol resumption and radar-only competition policy.
+Research input remains explicitly selectable. This is software Integration
+acceptance only; actual radar ingress and Mission/AUD-003 owner-session
+integration are still pending. Localization research remains frozen.

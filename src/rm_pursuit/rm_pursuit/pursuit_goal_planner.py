@@ -1,4 +1,5 @@
 import math
+import time
 
 import rclpy
 from geometry_msgs.msg import PoseStamped
@@ -6,7 +7,7 @@ from rclpy.duration import Duration
 from rclpy.executors import ExternalShutdownException
 from rclpy.node import Node
 from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy
-from rm_competition_interfaces.msg import TargetTrack
+from rm_competition_interfaces.msg import PursuitCandidate, TargetTrack
 from std_msgs.msg import Bool
 from tf2_ros import Buffer, TransformException, TransformListener
 
@@ -38,9 +39,12 @@ def rotate_vector(x, y, z, quaternion):
 class PursuitGoalPlanner(Node):
     def __init__(self):
         super().__init__("pursuit_goal_planner")
+        self._radar_only = self.declare_parameter("radar_only", False).value
         self._input_topic = self.declare_parameter(
             "input_topic", "/perception/target_track"
         ).value
+        if self._radar_only:
+            self._input_topic = "/radar/target_track"
         self._goal_topic = self.declare_parameter(
             "goal_topic", "/mission/pursuit_goal"
         ).value
@@ -88,6 +92,9 @@ class PursuitGoalPlanner(Node):
         latched = QoSProfile(depth=1)
         latched.reliability = ReliabilityPolicy.RELIABLE
         latched.durability = DurabilityPolicy.TRANSIENT_LOCAL
+        self._candidate_pub = self.create_publisher(
+            PursuitCandidate, "/mission/pursuit_candidate", 10
+        )
         self._goal_pub = self.create_publisher(PoseStamped, self._goal_topic, 10)
         self._valid_pub = self.create_publisher(Bool, self._valid_topic, latched)
         self._subscription = self.create_subscription(
@@ -96,6 +103,7 @@ class PursuitGoalPlanner(Node):
         self._tf_buffer = Buffer()
         self._tf_listener = TransformListener(self._tf_buffer, self)
         self._latest_track = None
+        self._track_received = 0.0
         self._last_valid = None
         self._timer = self.create_timer(1.0 / self._publish_rate_hz, self._update)
         self._publish_valid(False)
@@ -104,6 +112,15 @@ class PursuitGoalPlanner(Node):
         )
 
     def _handle_track(self, message: TargetTrack) -> None:
+        stamp_ns = rclpy.time.Time.from_msg(message.header.stamp).nanoseconds
+        if self._latest_track is not None:
+            previous = rclpy.time.Time.from_msg(self._latest_track.header.stamp).nanoseconds
+            if stamp_ns < previous:
+                return
+            if stamp_ns > previous:
+                self._track_received = time.monotonic()
+        else:
+            self._track_received = time.monotonic()
         self._latest_track = message
 
     def _update(self) -> None:
@@ -173,10 +190,11 @@ class PursuitGoalPlanner(Node):
         goal.pose.orientation.z = math.sin(result.yaw * 0.5)
         goal.pose.orientation.w = math.cos(result.yaw * 0.5)
         self._goal_pub.publish(goal)
-        self._publish_valid(True)
+        self._publish_valid(True, goal)
 
     def _track_is_valid(self, track: TargetTrack) -> bool:
-        if not track.valid or not track.header.frame_id:
+        if (not track.valid or not track.header.frame_id or not track.track_id
+                or time.monotonic() - self._track_received > self._max_track_age_sec):
             return False
         if not math.isfinite(track.confidence) or track.confidence < self._min_confidence:
             return False
@@ -211,7 +229,21 @@ class PursuitGoalPlanner(Node):
             return False
         return True
 
-    def _publish_valid(self, value: bool) -> None:
+    def _publish_valid(self, value: bool, goal=None) -> None:
+        candidate = PursuitCandidate()
+        candidate.header.frame_id = self._map_frame
+        candidate.source = (PursuitCandidate.SOURCE_RADAR if self._radar_only
+                            else PursuitCandidate.SOURCE_RESEARCH)
+        track = self._latest_track
+        if track is not None:
+            candidate.header.stamp = track.header.stamp
+            candidate.track_id = track.track_id
+            candidate.valid_until = (rclpy.time.Time.from_msg(track.header.stamp)
+                                     + Duration(seconds=self._max_track_age_sec)).to_msg()
+        candidate.valid = value
+        if goal is not None:
+            candidate.pose = goal.pose
+        self._candidate_pub.publish(candidate)
         if self._last_valid == value:
             return
         self._last_valid = value

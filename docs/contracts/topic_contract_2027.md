@@ -45,9 +45,12 @@
 | `/robot/posture/request` | `rm_competition_interfaces/msg/PostureRequest` | future mission/posture task | `competition_v2_transport_node` | Desired one-of-six posture with command ID; independent of `/cmd_vel` |
 | `/robot/posture/state` | `rm_competition_interfaces/msg/PostureState` | `competition_v2_transport_node` | future mission/posture task, diagnostics | Target/actual posture, current-session ACK match, completion, transition and fault state |
 | `/serial/connection_state` | `rm_competition_interfaces/msg/SerialConnectionState` | `competition_v2_transport_node` | readiness, diagnostics | Heartbeat freshness, compatibility, peer boot/capabilities and parser counters |
+| `/radar/target_track` | `rm_competition_interfaces/msg/TargetTrack` | future authorized radar-link adapter | pursuit in radar-only policy | Competition tactical input only; real producer not yet implemented |
 | `/perception/target_track` | `rm_competition_interfaces/msg/TargetTrack` | armor/target perception adapter | pursuit boundary | Timestamped target estimate with frame, covariance, velocity, confidence and validity |
-| `/mission/pursuit_goal` | `geometry_msgs/msg/PoseStamped` | `pursuit_goal_planner` | competition mission/BT | Validated standoff candidate in `map`; it is not sent to Nav2 without mission authority |
-| `/mission/pursuit_goal_valid` | `std_msgs/msg/Bool` | `pursuit_goal_planner` | competition mission/BT, diagnostics | Latched freshness/quality/TF validity of the pursuit candidate |
+| `/mission/pursuit_candidate` | `rm_competition_interfaces/msg/PursuitCandidate` | selected pursuit planner | competition Mission | Atomic map goal, source, track identity and original source deadline; sole pursuit input to Mission |
+| `/motion/v2_guard/state` | `rm_competition_interfaces/msg/V2MotionGuardState` | V2 final encoding guard | Mission, diagnostics | Read-only final guard phase; non-PERMITTED or stale cancels navigation; cannot grant an owner lease |
+| `/mission/pursuit_goal` | `geometry_msgs/msg/PoseStamped` | `pursuit_goal_planner` | research tools, diagnostics | Legacy map standoff pose; Mission uses the atomic candidate instead |
+| `/mission/pursuit_goal_valid` | `std_msgs/msg/Bool` | `pursuit_goal_planner` | research tools, diagnostics | Legacy validity snapshot; no Mission authority or independent lifetime |
 | `/mission/state` | `rm_competition_interfaces/msg/MissionState` | competition mission executor | diagnostics, operator UI | Current mission gate, branch and Nav2-action status; never a chassis command |
 | `/dog_hole/state` | `std_msgs/msg/String` | new-car `dog_hole_manager` | mission adapter, diagnostics | Tunnel task state from `IDLE` through `FINISHED` or `FAILED`; simulation candidate only |
 | `/dog_hole/control_mode` | `std_msgs/msg/String` | new-car `dog_hole_manager` | diagnostics | Active `PLANNER`, `NAV2`, `CENTERLINE` or stopped control mode |
@@ -214,6 +217,9 @@ temporarily owns NavigateToPose while the competition mission is absent. It
 must not be launched alongside `competition_mission_node`. Production
 integration must move approach/align/resume authority into the competition
 mission or an explicitly reviewed single action owner before real-vehicle use.
+
+Mission target priorities, atomic candidate lifetime, radar-only input and terminal-result
+preemption are defined in [Target Arbitration](navigation_target_arbitration_2027.md).
 
 ## Forbidden Topic Glue
 

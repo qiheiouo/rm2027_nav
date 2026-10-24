@@ -329,3 +329,20 @@ The two `*_source_reference` / `*_stable_epoch_pending` configs in rm_lio_bringu
 are opt-in software fixtures, not a combined hardware navigation profile.
 The existing dual experiment remains default-disabled. The published baseline
 and AUD-003 prohibition are unchanged; see [stage freeze](../new_car_stage_freeze_20261013.md).
+
+## 2027 navigation arbitration candidate
+
+`competition_2027_navigation.launch.py` is a navigation-layer composition, with
+`enable_navigation_intents=false` by default. Enabling it starts only the
+existing Mission and pursuit nodes. Mission still starts disabled, accepts only
+radar-tagged atomic pursuit candidates and requires fresh chassis and V2 final
+guard evidence. It never starts a safety mock or provides motion authorization.
+External Nav2 and trusted safety producers must be supplied separately.
+
+Old-car competition now selects radar-only pursuit as well; its legacy/HPM
+debug authority settings remain distinct from the V2 candidate. The explicit
+no-hardware simulation composition keeps generic research/mock input enabled.
+Input boundaries and cancellation/resumption semantics are in the
+[target arbitration contract](../contracts/navigation_target_arbitration_2027.md).
+Real radar ingress and Mission-to-AUD-003 positive owner-session integration
+remain absent; this composition is not a deployment entry point.
