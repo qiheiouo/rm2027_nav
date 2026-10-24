@@ -9,9 +9,10 @@ Priority in the default tree:
 
 1. close the safety gate and hold;
 2. return home when explicitly requested or HP is below threshold;
-3. pursue a fresh validated candidate when explicitly allowed;
-4. follow the configured patrol route;
-5. hold.
+3. execute the latest valid temporary supply/recovery/special mission;
+4. pursue a fresh validated candidate when explicitly allowed;
+5. follow the configured patrol route;
+6. hold.
 
 The safe config starts disabled and contains no home or patrol coordinates.
 Enabling the node is not the same as enabling motion: the operator must call
@@ -81,3 +82,27 @@ After hold/revocation, pursuit requires a new source observation.
 
 See the [full contract](../../docs/contracts/navigation_target_arbitration_2027.md)
 and [software validation](../../docs/validation/navigation_target_arbitration_20261024.md).
+
+## Minimal competition missions
+
+`/mission/set_temporary` (`SetTemporaryMission`) selects one temporary task:
+`supply` uses optional YAML `supply_pose`, `recovery` uses `recovery_pose`, and
+`special` uses its validated planar map-frame target. These are navigation
+arrival tasks, with no automatic ammo/HP/reward decision. Missing configured
+points reject the request; the safe YAML keeps them unset.
+
+Commands carry a stable mission ID, monotonic sequence, absolute valid_until
+and cancellation. Repeats do not renew deadlines or resend goals. Different
+valid tasks replace the one slot; no queue is retained. Completion, cancel or
+expiry recomputes the persistent mode and preserves patrol index. Authority
+loss cancels motion; only still-valid tasks may resume on recovery.
+
+Return home now latches when selected, discards the temporary task and holds
+at home after arrival. Explicit SetMissionMode releases that latch and clears
+the temporary slot; low HP still relatches it. No old pursuit pose is restored.
+The service is a trusted local Mission command, never a teammate or raw
+operator-to-Nav2 bypass. Both supplied trees support it; custom trees require
+the explicit-task nodes at the documented priority.
+
+See [mission contract](../../docs/contracts/minimal_competition_mission_2027.md)
+and [validation](../../docs/validation/minimal_competition_mission_20261024.md).

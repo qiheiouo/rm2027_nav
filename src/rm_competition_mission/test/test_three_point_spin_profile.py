@@ -39,11 +39,13 @@ def test_tree_prioritizes_low_hp_home_before_spin_patrol():
     sequences = strategy.findall("Sequence")
     assert [node.get("name") for node in sequences] == [
         "low_hp_return_home",
+        "explicit_temporary_mission",
         "three_point_patrol_with_spin",
     ]
     assert sequences[0].find("ShouldReturnHome") is not None
     assert sequences[0].find("SelectHome") is not None
-    assert sequences[1].find("SelectPatrolWithSpin") is not None
+    assert sequences[1].find("SelectTemporaryMission") is not None
+    assert sequences[2].find("SelectPatrolWithSpin") is not None
 
 
 def test_mission_profile_is_disabled_and_expresses_requested_contract():

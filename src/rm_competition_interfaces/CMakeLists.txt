@@ -26,6 +26,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/TargetTrack.msg"
   "msg/PursuitCandidate.msg"
   "srv/SetMissionMode.srv"
+  "srv/SetTemporaryMission.srv"
   DEPENDENCIES builtin_interfaces geometry_msgs std_msgs
 )
 

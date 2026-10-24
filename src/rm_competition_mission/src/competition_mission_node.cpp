@@ -23,6 +23,7 @@
 #include "rm_competition_interfaces/msg/pursuit_candidate.hpp"
 #include "rm_competition_interfaces/msg/v2_motion_guard_state.hpp"
 #include "rm_competition_interfaces/srv/set_mission_mode.hpp"
+#include "rm_competition_interfaces/srv/set_temporary_mission.hpp"
 #include "std_msgs/msg/bool.hpp"
 
 namespace
@@ -58,6 +59,7 @@ class CompetitionMissionNode : public rclcpp::Node
 public:
   using NavigateToPose = nav2_msgs::action::NavigateToPose;
   using GoalHandle = rclcpp_action::ClientGoalHandle<NavigateToPose>;
+  using TemporaryCommand = rm_competition_interfaces::srv::SetTemporaryMission;
   using Candidate = rm_competition_interfaces::msg::PursuitCandidate;
   using GuardState = rm_competition_interfaces::msg::V2MotionGuardState;
   using Spin = nav2_msgs::action::Spin;
@@ -111,6 +113,12 @@ public:
       "spin_failure_retry_sec", 2.0);
     max_consecutive_spin_failures_ = declare_parameter<int>(
       "max_consecutive_spin_failures", 3);
+    supply_values_ = declare_parameter<std::vector<double>>("supply_pose", std::vector<double>{});
+    recovery_values_ = declare_parameter<std::vector<double>>("recovery_pose", std::vector<double>{});
+    maximum_temporary_mission_sec_ = declare_parameter<double>("maximum_temporary_mission_sec", 300.0);
+    if (!std::isfinite(maximum_temporary_mission_sec_) || maximum_temporary_mission_sec_ <= 0.0) {
+      throw std::invalid_argument("maximum_temporary_mission_sec must be positive");
+    }
     home_values_ = declare_parameter<std::vector<double>>(
       "home_pose", std::vector<double>{});
     patrol_values_ = declare_parameter<std::vector<double>>(
@@ -193,6 +201,8 @@ public:
           response->message = "mode must be hold, home, patrol, pursuit or auto";
           return;
         }
+        finishTemporary("mode_changed");
+        return_home_latched_ = false;
         operator_enabled_ = request->enable;
         requested_mode_ = request->mode;
         failed_goal_.reset();
@@ -200,6 +210,13 @@ public:
         consecutive_spin_failures_ = 0;
         response->accepted = true;
         response->message = operator_enabled_ ? "mission enabled" : "mission disabled";
+      });
+
+    temporary_service_ = create_service<TemporaryCommand>(
+      "/mission/set_temporary",
+      [this](const std::shared_ptr<TemporaryCommand::Request> request,
+        std::shared_ptr<TemporaryCommand::Response> response) {
+        handleTemporary(*request, *response);
       });
 
     const auto period = std::chrono::duration<double>(1.0 / tick_rate_hz_);
@@ -222,8 +239,136 @@ private:
     std::string track_id{};
   };
 
+  struct TemporaryMission
+  {
+    GoalRequest goal;
+    rclcpp::Time deadline;
+    std::chrono::steady_clock::time_point steady_deadline;
+  };
+
+  static bool validPlanarPose(const geometry_msgs::msg::PoseStamped & pose,
+    const std::string & frame)
+  {
+    const auto & p = pose.pose;
+    const double norm = p.orientation.z * p.orientation.z + p.orientation.w * p.orientation.w;
+    return pose.header.frame_id == frame &&
+      std::isfinite(p.position.x) && std::isfinite(p.position.y) &&
+      std::isfinite(p.position.z) && std::abs(p.position.z) < 1e-6 &&
+      std::isfinite(p.orientation.x) && std::abs(p.orientation.x) < 1e-6 &&
+      std::isfinite(p.orientation.y) && std::abs(p.orientation.y) < 1e-6 &&
+      std::isfinite(norm) && std::abs(norm - 1.0) < 0.01;
+  }
+
+  bool temporaryFresh() const
+  {
+    return temporary_.has_value() && now() < temporary_->deadline &&
+      std::chrono::steady_clock::now() < temporary_->steady_deadline;
+  }
+
+  void finishTemporary(const std::string & reason)
+  {
+    if (!temporary_) {return;}
+    temporary_status_ = temporary_->goal.source + ":" + temporary_->goal.track_id + ":" + reason;
+    temporary_.reset();
+    pursuit_not_before_ = now();
+  }
+
+  bool shouldReturnHome() const
+  {
+    const bool low_hp = referee_valid_ && referee_received_ &&
+      inputFresh(referee_state_.header.stamp, referee_received_at_) &&
+      referee_state_.current_hp <= retreat_hp_threshold_;
+    return return_home_latched_ || requested_mode_ == "home" || low_hp;
+  }
+
+  void handleTemporary(const TemporaryCommand::Request & command,
+    TemporaryCommand::Response & response)
+  {
+    response.accepted = false;
+    if (command.sequence == 0 || command.mission_id.empty()) {
+      response.message = "nonzero sequence and mission_id are required"; return;
+    }
+    if (command.sequence <= last_temporary_sequence_) {
+      response.accepted = command.sequence == last_temporary_sequence_ &&
+        last_temporary_command_.has_value() && command == *last_temporary_command_;
+      response.message = response.accepted ? "duplicate; no action or lease renewal" :
+        "old sequence or reused sequence with different payload";
+      return;
+    }
+    if (command.cancel) {
+      if (!temporary_ || temporary_->goal.track_id != command.mission_id) {
+        response.message = "no matching current temporary mission"; return;
+      }
+      finishTemporary("canceled");
+    } else {
+      if (!operator_enabled_ || requested_mode_ == "hold" || shouldReturnHome()) {
+        response.message = "temporary mission requires enabled non-hold/non-home mode"; return;
+      }
+      const auto & stamp = command.valid_until;
+      if (stamp.sec < 0 || stamp.nanosec >= 1000000000U) {
+        response.message = "malformed valid_until"; return;
+      }
+      const rclcpp::Time deadline(stamp);
+      const double remaining = (deadline - now()).seconds();
+      if (remaining <= 0.0 || remaining > maximum_temporary_mission_sec_) {
+        response.message = "expired or excessive temporary deadline"; return;
+      }
+      geometry_msgs::msg::PoseStamped target;
+      if (command.kind == "supply" || command.kind == "recovery") {
+        const auto & configured = command.kind == "supply" ? supply_pose_ : recovery_pose_;
+        if (!configured) {response.message = "missing configured " + command.kind + " pose"; return;}
+        target = *configured;
+      } else if (command.kind == "special") {
+        target = command.target;
+      } else {
+        response.message = "kind must be supply, recovery or special"; return;
+      }
+      if (!validPlanarPose(target, map_frame_)) {
+        response.message = "target must be a finite planar map-frame pose"; return;
+      }
+      // A higher transport sequence may repeat the same logical command, but
+      // cannot mutate its identity/target/deadline or resurrect a finished one.
+      if (last_temporary_payload_ && command.mission_id == last_temporary_payload_->mission_id) {
+        auto payload = command;
+        payload.sequence = last_temporary_payload_->sequence;
+        if (!(payload == *last_temporary_payload_)) {
+          response.message = "mission id payload is immutable; use a new id"; return;
+        }
+        last_temporary_sequence_ = command.sequence;
+        last_temporary_command_ = command;
+        response.accepted = true;
+        response.message = "same mission; no action or lease renewal"; return;
+      }
+      finishTemporary("replaced");
+      temporary_ = TemporaryMission{GoalRequest{target, command.kind, command.mission_id}, deadline,
+        std::chrono::steady_clock::now() + std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+          std::chrono::duration<double>(remaining))};
+      last_temporary_payload_ = command;
+      temporary_status_ = command.kind + ":" + command.mission_id + ":accepted";
+      pursuit_not_before_ = now();
+      failed_goal_.reset();
+      consecutive_goal_failures_ = 0;
+    }
+    last_temporary_sequence_ = command.sequence;
+    last_temporary_command_ = command;
+    response.accepted = true;
+    response.message = command.cancel ? "temporary mission canceled" : "temporary mission accepted";
+  }
+
   void loadWaypoints()
   {
+    const auto load_optional = [this](const std::vector<double> & values,
+        const std::string & name) -> std::optional<geometry_msgs::msg::PoseStamped> {
+        if (values.empty()) {return std::nullopt;}
+        if (values.size() != 3 || !std::all_of(values.begin(), values.end(),
+          [](double v) {return std::isfinite(v);}))
+        {
+          throw std::invalid_argument(name + " must be empty or finite [x, y, yaw]");
+        }
+        return makePose(map_frame_, values[0], values[1], values[2]);
+      };
+    supply_pose_ = load_optional(supply_values_, "supply_pose");
+    recovery_pose_ = load_optional(recovery_values_, "recovery_pose");
     if (!home_values_.empty() && home_values_.size() != 3) {
       throw std::invalid_argument("home_pose must be empty or [x, y, yaw]");
     }
@@ -253,11 +398,18 @@ private:
       });
     factory_.registerSimpleCondition(
       "ShouldReturnHome", [this](BT::TreeNode &) {
-        const bool low_hp = referee_valid_ && referee_received_ &&
-          inputFresh(referee_state_.header.stamp, referee_received_at_) &&
-          referee_state_.current_hp <= retreat_hp_threshold_;
-        return (requested_mode_ == "home" || low_hp) ?
-               BT::NodeStatus::SUCCESS : BT::NodeStatus::FAILURE;
+        return shouldReturnHome() ? BT::NodeStatus::SUCCESS : BT::NodeStatus::FAILURE;
+      });
+    factory_.registerSimpleCondition(
+      "HasTemporaryMission", [this](BT::TreeNode &) {
+        return temporaryFresh() ? BT::NodeStatus::SUCCESS : BT::NodeStatus::FAILURE;
+      });
+    factory_.registerSimpleAction(
+      "SelectTemporaryMission", [this](BT::TreeNode &) {
+        if (!temporaryFresh()) {return BT::NodeStatus::FAILURE;}
+        desired_goal_ = temporary_->goal;
+        active_branch_ = temporary_->goal.source;
+        return BT::NodeStatus::SUCCESS;
       });
     factory_.registerSimpleCondition(
       "CanPursue", [this](BT::TreeNode &) {
@@ -391,6 +543,9 @@ private:
 
   BT::NodeStatus selectHome()
   {
+    return_home_latched_ = true;
+    finishTemporary("preempted_home");
+    pursuit_not_before_ = now();
     if (!home_pose_.has_value()) {
       active_branch_ = "hold_missing_home";
       desired_goal_.reset();
@@ -447,8 +602,10 @@ private:
     const auto clock_ns = now().nanoseconds();
     if (clock_ns < localization_last_clock_ns_) {
       localization_valid_ = false;
+      finishTemporary("clock_rollback");
     }
     localization_last_clock_ns_ = std::max(localization_last_clock_ns_, clock_ns);
+    if (temporary_ && !temporaryFresh()) {finishTemporary("expired");}
     desired_goal_.reset();
     patrol_spin_selected_ = false;
     if (!operator_enabled_ || requested_mode_ == "hold" || !safetyReady()) {
@@ -606,6 +763,12 @@ private:
           failed_goal_.reset();
           consecutive_goal_failures_ = 0;
           completed_goal_ = last_sent_goal_;
+          if (temporary_ && last_sent_goal_ &&
+            temporary_->goal.source == last_sent_goal_->source &&
+            temporary_->goal.track_id == last_sent_goal_->track_id)
+          {
+            finishTemporary(temporaryFresh() ? "completed" : "expired");
+          }
           if (last_sent_goal_.has_value() && !patrol_poses_.empty()) {
             if (last_sent_goal_->source == "patrol") {
               patrol_index_ = (patrol_index_ + 1) % patrol_poses_.size();
@@ -768,9 +931,22 @@ private:
     state.requested_mode = requested_mode_;
     state.active_branch = active_branch_;
     state.navigation_status = navigation_status_;
-    state.detail = safetyReady() ? "safety_ready" : "safety_gate_closed";
+    state.detail = std::string(safetyReady() ? "safety_ready" : "safety_gate_closed") +
+      "; temporary=" + temporary_status_ +
+      "; home_latched=" + (return_home_latched_ ? "true" : "false");
     mission_state_pub_->publish(state);
   }
+
+  std::optional<TemporaryMission> temporary_;
+  std::optional<TemporaryCommand::Request> last_temporary_command_;
+  std::optional<TemporaryCommand::Request> last_temporary_payload_;
+  std::uint64_t last_temporary_sequence_{0};
+  std::string temporary_status_{"none"};
+  bool return_home_latched_{false};
+  double maximum_temporary_mission_sec_;
+  std::vector<double> supply_values_, recovery_values_;
+  std::optional<geometry_msgs::msg::PoseStamped> supply_pose_, recovery_pose_;
+  rclcpp::Service<TemporaryCommand>::SharedPtr temporary_service_;
 
   std::string tree_xml_;
   bool startup_enabled_;

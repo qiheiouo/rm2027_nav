@@ -252,6 +252,7 @@ def test_s1_to_s10_and_action_handover():
             print("S6 PASS: final guard denied -> cancel, zero replacement goals")
             node.track = None
             node.hp = 400
+            node.mode("auto")  # Explicitly release persistent return-home while still denied.
             node.guard = V2MotionGuardState.PERMITTED
             wait_goal(node, 2.0, 8)
             assert node.state.active_branch == "patrol"
@@ -399,6 +400,7 @@ def test_s1_to_s10_and_action_handover():
             wait(lambda: node.state.active_branch == "hold_missing_home", "missing home hold")
             stable_count(node)
             node.hp = 400
+            node.mode("auto")  # Missing-home return also remains latched until explicit release.
             wait_goal(node, 3.5, len(node.goals))
             node.hp = 100
             wait(lambda: not node.active, "missing home cancels pursuit")

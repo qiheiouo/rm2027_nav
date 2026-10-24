@@ -83,3 +83,11 @@ pursuit source deadlines, patrol resumption and radar-only competition policy.
 Research input remains explicitly selectable. This is software Integration
 acceptance only; actual radar ingress and Mission/AUD-003 owner-session
 integration are still pending. Localization research remains frozen.
+
+## 2026-10-24 minimal competition Mission candidate
+
+One bounded supply/recovery/special slot reuses the arbitration feature's
+single action owner. Arrival/cancel/expiry resume the current long-term mode;
+home preempts and stays persistent. Safe configuration still has no field
+supply/recovery coordinates, tactical triggers remain deferred and hardware
+acceptance is unchanged. See [scoped software evidence](minimal_competition_mission_20261024.md).

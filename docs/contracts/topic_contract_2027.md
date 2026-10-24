@@ -254,3 +254,13 @@ No new motion, serial or TF owner is introduced by this interface.
 ## 新车软件基线补充（2026-10-12）
 
 实际S2 controller/behavior→cmd_vel_nav→velocity_smoother→cmd_vel→模拟车，唯一最终publisher已在定向smoke核对。LocalizationStatus保持完整AUD-001接口；S2不把truth生成该状态。V2 codec测试单独运行，无Nav2/Goal→serial链或硬件授权。候选source、无mode来源和禁用功能见[合同](new_car_software_20261012.md)。
+
+## Minimal competition Mission command
+
+`/mission/set_temporary` uses `rm_competition_interfaces/srv/SetTemporaryMission`.
+The existing Mission is its sole consumer and remains the only task-level
+Nav2 owner. Supply/recovery use reviewed configured poses; special carries a
+validated map-frame target. The command never changes enable/authority and
+must not be exposed as an arbitrary teammate tactical channel. Lifetime,
+priority and home/temporary resume rules are defined in the
+[minimal Mission contract](minimal_competition_mission_2027.md).

@@ -9,6 +9,10 @@
             <ShouldReturnHome/>
             <SelectHome/>
           </Sequence>
+          <Sequence name="explicit_temporary_mission">
+            <HasTemporaryMission/>
+            <SelectTemporaryMission/>
+          </Sequence>
           <Sequence name="pursue_valid_target">
             <CanPursue/>
             <SelectPursuit/>
