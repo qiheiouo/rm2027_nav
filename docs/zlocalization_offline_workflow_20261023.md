@@ -165,3 +165,24 @@ ros2 launch rm_zlocalization_candidate z_localization_candidate.launch.py \
 保存复现入口：`tests/zlocalization/laptop_smoke.py --save-map-only --output <新目录>`；
 五个工具仍直接调用 upstream，无新增生产 wrapper。完成后 **FROZEN_WAIT_HARDWARE_DATA**，
 不再扩展新车前功能。
+
+## 2026-10-24 parity：prior / Nav2 坐标复核
+
+以上 10-23 smoke/freeze 是历史证据；本轮补充正式
+[坐标合同与新车 acquisition/acceptance](contracts/map_bundle.md#z-localization-prior--nav2-坐标合同parity-候选2026-10-24)。
+先以确定的 SE(3) 将**整个** prior bundle 烘焙到 Nav2 map，重建 descriptor；
+YAML origin 只解释 raster，不是还要施加到 Z 输出的变换。
+
+结构/文件 validator 之后，手动运行新 checker：
+
+```bash
+ros2 run rm_map_tools check_zlocalization_coordinates \
+  --prior-pcd "$RUN_ROOT/prior/map.pcd" --map-yaml "$RUN_ROOT/nav2/map.yaml" \
+  --occupancy-image "$RUN_ROOT/nav2/map.pgm" --transform-metadata "$RUN_ROOT/coordinates.yaml"
+```
+
+metadata 使用 `rm_map_tools/config/zlocalization_coordinates.example.yaml` 结构，
+实际填入 mapping→prior→Nav2 变换、生成栅格的独立原点/分辨率记录、三个文件身份、
+至少三个不共线独立地标及预先确定的阈值。checker 可诊断未烘焙变换，但不会替操作者变换地图。
+Synthetic checker pass 不等于新车地图接受；M11 仍等待真实 prior/map/独立地标和 query bag。
+当前 parity 还有 S03/F14 软件边界，不能沿用历史 freeze 文字声称本轮全部问题已关闭。

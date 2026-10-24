@@ -1,0 +1,44 @@
+# Schema template only. REPLACE hashes, transforms, raster records and landmarks.
+# These geometry/acceptance values are examples, never new-car calibration/thresholds.
+schema_version: 1
+dataset_kind: synthetic  # new_car_real only for actual acquired assets
+map_id: REPLACE_MAP_ID
+revision: REPLACE_REVISION
+units: m
+axes: right_handed_z_up
+frames: {mapping: mapping_raw, prior: map, nav2: map}
+T_prior_mapping:
+  - [1, 0, 0, 0]
+  - [0, 1, 0, 0]
+  - [0, 0, 1, 0]
+  - [0, 0, 0, 1]
+T_map_prior:
+  - [1, 0, 0, 0]
+  - [0, 1, 0, 0]
+  - [0, 0, 1, 0]
+  - [0, 0, 0, 1]
+# Independent raster generation record: lower-left outer corner in Nav2 map.
+expected_grid_origin: [0, 0, 0]
+expected_resolution: 0.05
+pixel_convention: top_left_rows_down_cell_centers
+occupancy_z_band_m: [0.1, 1.8]  # select from actual obstacle-height/projection contract
+artifacts:
+  prior_pcd_sha256: REPLACE
+  map_yaml_sha256: REPLACE
+  occupancy_image_sha256: REPLACE
+acceptance:  # Declare before evaluating actual maps; examples only.
+  min_landmarks: 3
+  min_points_inside_ratio: 0.90
+  min_bounds_overlap_ratio: 0.90
+  min_sample_occupied_ratio: 0.80
+  max_landmark_error_m: 0.10
+  max_pcd_support_error_m: 0.10
+  sample_max_distance_m: 0.10
+landmark_source: REPLACE_WITH_INDEPENDENT_SURVEY_AND_RASTER_RECORD
+landmarks_independent: false
+# At least 3 noncollinear landmarks. pixel is integer [col,row], top-left origin.
+# null deliberately prevents using unfilled template as accepted evidence.
+landmarks:
+  - {id: L1, prior_xyz: null, map_xy: null, pixel: null, occupancy: occupied}
+  - {id: L2, prior_xyz: null, map_xy: null, pixel: null, occupancy: occupied}
+  - {id: L3, prior_xyz: null, map_xy: null, pixel: null, occupancy: occupied}
