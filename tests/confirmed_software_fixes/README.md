@@ -22,3 +22,8 @@ ctest --test-dir build/confirmed_regression --output-on-failure
 ```
 
 JSON 和进程日志写入 build；不提交生成产物。测试必须独占 ROS domain。
+
+AUD-052：配置同一测试目录时加 `-DFASTLIO_SOURCE=/absolute/path/to/src/fast_lio_multi`，
+source 既有 `livox_ros_driver2` 消息依赖。真实 ESKF + 完整共享 ImuProcess，无理想 predict
+替代。`aud052_deskew` 验证单雷达1/2、双雷达，零/正 offset、50ms 浮点边界、单点、
+重复/乱序、空云及匀速旋转；对每点断言三维解析误差 <1e-6m，并检查帧末状态。
