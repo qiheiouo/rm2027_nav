@@ -401,3 +401,17 @@ are enabled. Both shipped trees place explicit tasks below home and above
 pursuit/patrol. Return-home now holds after arrival until explicit mode release.
 All hardware, startup-disabled and guard defaults remain unchanged. See
 [contract](../contracts/minimal_competition_mission_2027.md).
+## Z-Localization upstream parity candidate（2026-10-24）
+
+仅在 `codex/zlocalization-upstream-parity-20261024`；不合入 main，不授予 Hardware Go。
+`rm_zlocalization_candidate` 两个入口均 `enabled:=false`，默认不启动节点。
+`z_localization_candidate.launch.py enabled:=true` 支持原 FAST-LIO legacy 或显式
+`frontend:=zlio`，保留既有 canonical owner。`zlio_shadow.launch.py enabled:=true`
+仅运行私有原生前后端，不发布公共 TF、canonical odom/status 或任何命令。
+原生配置及 IMU 单位必须显式给出；前端/云台/时间标定没有默认实车值。
+
+`enable_loop:=true` 仅用于 mapping；`descriptor:=gprobe`、`visualization:=true`、
+`world_cloud:=true`、`rviz:=true` 各自显式选择。UWB/旧 TDT 输出/重复 driver 仍排除。
+canonical native 换代后锁定，必须整组重启；shadow 原生 reset 不会重置 RM canonical。
+同域只运行一个定位组合；A/B 使用分别重启的独立域，并排除 bag 内已录 canonical TF。
+见[完整矩阵与 bag 合入门槛](../zlocalization_upstream_parity_20261024.md)。

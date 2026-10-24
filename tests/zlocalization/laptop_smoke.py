@@ -12,7 +12,10 @@ import time
 import numpy as np
 import rclpy
 from geometry_msgs.msg import TransformStamped
+from diagnostic_msgs.msg import DiagnosticArray
+from localization_interfaces.msg import FrontendFrame, FrontendSession
 from nav_msgs.msg import Odometry
+from rclpy.qos import QoSProfile, DurabilityPolicy
 from rm_competition_interfaces.msg import LocalizationStatus
 from sensor_msgs.msg import PointCloud2
 from sensor_msgs_py import point_cloud2
@@ -45,7 +48,10 @@ def tf_matrix(tf):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--prior', action='store_true')
-    parser.add_argument('--event', choices=('invalidate', 'restart'), default='invalidate')
+    parser.add_argument('--native', action='store_true', help='Atomic native-message boundary fixture, no estimator claim')
+    parser.add_argument('--descriptor', choices=('scan_context', 'gprobe'), default='scan_context')
+    parser.add_argument('--loop', action='store_true')
+    parser.add_argument('--event', choices=('invalidate', 'restart', 'epoch'), default='invalidate')
     parser.add_argument('--save-map-only', action='store_true',
         help='Reuse the fixture only to exercise the upstream runtime bundle save service')
     parser.add_argument('--output', required=True)
@@ -58,8 +64,11 @@ def main():
     node = rclpy.create_node('zlocalization_laptop_observer')
     raw_pub = node.create_publisher(Odometry, '/odometry/fast_lio_raw', 20)
     cloud_pub = node.create_publisher(PointCloud2, '/lio/cloud_registered', 20)
+    frame_pub = node.create_publisher(FrontendFrame, '/zlocalization/frontend/frame', 50)
+    session_pub = node.create_publisher(FrontendSession, '/zlocalization/frontend/session',
+        QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL))
     broadcaster = TransformBroadcaster(node)
-    received = {'status': [], 'tf': [], 'state': [], 'odom': [], 'private_odom': [], 'private_cloud': []}
+    received = {'status': [], 'tf': [], 'state': [], 'odom': [], 'private_odom': [], 'private_cloud': [], 'diagnostics': []}
     subs = [
         node.create_subscription(LocalizationStatus, '/localization/status', received['status'].append, 100),
         node.create_subscription(TFMessage, '/tf', received['tf'].append, 100),
@@ -67,7 +76,10 @@ def main():
         node.create_subscription(Odometry, '/odometry/lio', received['odom'].append, 100),
         node.create_subscription(Odometry, '/zlocalization/fastlio_odom', received['private_odom'].append, 100),
         node.create_subscription(PointCloud2, '/zlocalization/cloud_registered', received['private_cloud'].append, 20),
+        node.create_subscription(DiagnosticArray, '/zlocalization/diagnostics', received['diagnostics'].append, 20),
     ]
+    if args.native:
+        subs.append(node.create_subscription(Odometry, '/zlocalization/zlio_raw', received['private_odom'].append, 50))
     k0 = rotate((0, 1, 0), .35, (.3, -.1, .4))
     # Arbitrary stable frontend origin, including a non-identity first state.
     raw_from_world = rotate((0, 0, 1), -.25, (.6, .2, -.1)) @ np.linalg.inv(k0)
@@ -110,10 +122,13 @@ def main():
         config_path = out/'fixture_config.yaml'
         config_path.write_text(yaml.safe_dump(config))
         launch_args = ['prior_map:='+str(out/'prior'), 'config_file:='+str(config_path)]
+    launch_args.extend(['descriptor:=' + args.descriptor, 'enable_loop:=' + str(args.loop).lower()])
+    if args.native:
+        launch_args.extend(['frontend:=zlio', 'start_zlio:=false'])
     env = dict(os.environ)
     log = (out/'launch.log').open('w')
     process = subprocess.Popen(['ros2', 'launch', 'rm_zlocalization_candidate',
-        'z_localization_candidate.launch.py', *launch_args], env=env, stdout=log,
+        'z_localization_candidate.launch.py', 'enabled:=true', *launch_args], env=env, stdout=log,
         stderr=subprocess.STDOUT, start_new_session=True)
     result = {}
 
@@ -123,6 +138,8 @@ def main():
             rclpy.spin_once(node, timeout_sec=.01)
             if process.poll() is not None:
                 raise RuntimeError('candidate exited; see launch.log')
+
+    native_epoch = 0
 
     def drive(index):
         stamp = node.get_clock().now().to_msg()
@@ -140,8 +157,20 @@ def main():
         odom.header = Header(stamp=stamp, frame_id='odom')
         odom.child_frame_id = 'body'
         fill_pose(odom.pose.pose, raw)
-        raw_pub.publish(odom)
-        cloud_pub.publish(point_cloud2.create_cloud_xyz32(Header(stamp=stamp, frame_id='odom'), points))
+        if args.native:
+            session_pub.publish(FrontendSession(instance_id=123, epoch=native_epoch))
+            odom.header.frame_id = 'zlio_odom'
+            odom.child_frame_id = 'lio_imu_link'
+            for i in range(6):
+                odom.pose.covariance[7*i] = .01
+            local = (points - raw[:3, 3]) @ raw[:3, :3]
+            cloud = point_cloud2.create_cloud_xyz32(Header(stamp=stamp, frame_id='lio_imu_link'), local)
+            frame_pub.publish(FrontendFrame(instance_id=123, epoch=native_epoch,
+                sequence=index+1, begin=stamp, odometry=odom, cloud=cloud,
+                matches=len(points), lidar_updated=True))
+        else:
+            raw_pub.publish(odom)
+            cloud_pub.publish(point_cloud2.create_cloud_xyz32(Header(stamp=stamp, frame_id='odom'), points))
         spin(.10)
 
     try:
@@ -159,13 +188,16 @@ def main():
         error = float(np.max(np.abs(tf_matrix(corrections[-1]) - raw_from_world)))
         assert error < .03, f'dynamic geometry correction error {error}'
         result['max_correction_matrix_error'] = error
-        assert received['private_odom'] and received['private_cloud'] and received['odom']
-        assert received['private_odom'][-1].header.frame_id == 'fast_lio_odom'
+        assert received['private_odom'] and received['odom']
+        assert received['private_odom'][-1].header.frame_id == ('zlio_odom' if args.native else 'fast_lio_odom')
         assert received['private_odom'][-1].child_frame_id == 'lio_imu_link'
-        assert received['private_cloud'][-1].header.frame_id == 'fast_lio_odom'
-        assert received['private_odom'][-1].header.stamp == received['private_cloud'][-1].header.stamp
-        assert not any(received['private_odom'][-1].pose.covariance)
-        result['input_frames_times_fallback'] = True
+        if args.native:
+            assert not any(received['private_odom'][-1].pose.covariance)
+        else:
+            assert received['private_cloud'][-1].header.frame_id == 'fast_lio_odom'
+            assert received['private_odom'][-1].header.stamp == received['private_cloud'][-1].header.stamp
+            assert not any(received['private_odom'][-1].pose.covariance)
+        result['input_frames_times_covariance'] = True
         # Identify the only public map/odom-capable publisher in this composition.
         owners = [p.node_name for p in node.get_publishers_info_by_topic('/tf')]
         assert owners.count('map_odom_from_global_pose') == 1 and 'zlocalization_backend' not in owners
@@ -188,6 +220,8 @@ def main():
             return
         spin(.9)
         assert not received['status'][-1].valid, 'stale trusted pose survived lease'
+        assert received['diagnostics'] and received['diagnostics'][-1].status[0].level != b'\x00'
+        result['diagnostics_expired_on_source_loss'] = True
         tf_count = len(received['tf'])
         spin(.2)
         new_corrections = [t for msg in received['tf'][tf_count:] for t in msg.transforms if t.header.frame_id == 'map' and t.child_frame_id == 'odom']
@@ -204,6 +238,9 @@ def main():
             while not future.done() and time.monotonic() < end:
                 spin(.05)
             assert future.done() and future.result().success
+        elif args.event == 'epoch':
+            assert args.native
+            native_epoch = 1
         else:
             node.destroy_publisher(raw_pub)
             raw_pub = node.create_publisher(Odometry, '/odometry/fast_lio_raw', 20)
@@ -228,6 +265,7 @@ def main():
         log.close()
         node.destroy_node()
         rclpy.shutdown()
+        assert 'process has died' not in (out/'launch.log').read_text(), 'child process failed; see launch.log'
 
 
 if __name__ == '__main__':

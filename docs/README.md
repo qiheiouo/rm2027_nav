@@ -104,3 +104,5 @@ docs/
 
 - [2026-10-24 software-only debt closure](validation/software_debt_closure_20261024.md)：
   当前main/候选依赖、限定AUD整改、仲裁先于最小Mission的实际验收与未闭合门。
+- [Z-Localization / ZLIO upstream parity audit 与完整迁移矩阵](zlocalization_upstream_parity_20261024.md)：
+  独立 Integration 分支的软件补齐、排除项及新车 bag 合入门槛；不是 Hardware Go。
