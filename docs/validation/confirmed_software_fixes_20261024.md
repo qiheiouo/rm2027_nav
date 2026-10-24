@@ -1,7 +1,7 @@
 # 三项已确认软件缺陷修复（2026-10-24）
 
 Integration；从 `main d37f8d6` 开始，依据 Needs-Evidence Closure `82bc206`，
-严格按 016 → 052 → 056 独立提交。不重新审计，不修改 Mission/比赛策略。
+严格按 016 → 052 → 056 独立提交。收尾时只读查询远端 main 仍为 d37f8d6。不重新审计，不修改 Mission/比赛策略。
 运行环境复用 Humble/Nav2 1.1.20 镜像，禁网、私有 IPC、无设备、非 root、
 cap-drop ALL/no-new-privileges、2 CPU/2 GiB。软件证据不能作为 Hardware Go。
 
@@ -75,3 +75,53 @@ main、needs-evidence/software-debt、mission、intent、posture、Z-localizatio
 
 Hardware gate 保留：真实 bag 的 offset/运动分布、实测外参、真实估计精度和负载下时序；
 本次合成解析 oracle 只闭合遍历算法，不是 Hardware Go。
+
+## AUD-056
+
+正确合同：接受超时、halt、对象销毁不能丢失请求归属；迟到接受后要取消，旧反馈/结果
+不能写回 BT 输出；同一 BT node 在明确拒绝/终态前不得重发。取消 ACK 不是终态。
+不通过增加 server_timeout、sleep 或外层 Mission 终态来关闭本项。
+
+根因：接受超时 reset future，而 halt 只处理已知 handle，回调组在 halt 后又无人推进；
+迟到接受的目标无取消 owner。原回调直接捕获 this，保留迟到处理时还必须防止
+跨失败/销毁生命周期访问。
+
+最小复现：真实当前 ROS client + 安装 BtActionNode，事件闸门扣住接受响应，BT 失败并
+halt 后才释放；服务端接受旧请求但0次cancel，正确性回归失败。
+
+修改：在固定 Nav2 overlay 的共享模板内保留 pending future/已有 handle，停止其输出
+回调；正常已接受目标保持原有有界 halt 等待，未闭合请求转交局部清理任务并持续处理
+回调，迟到接受即取消，拒绝或真实终态才解除本 node 的失败屏障。
+清理仅持有 ROS client/node/group 和失效回调凭据，不访问已销毁 BT；context
+pre-shutdown 先中断并收束清理任务、释放 DDS 资源，再允许 ROS 退出。
+不更改比赛树、策略、action名、默认20ms参数、重试选择或最终速度 owner。
+
+验证中正常 halt 的取消钩子被检查为仅接收有效取消结果；新夹具补齐服务器 handle
+建立事件，避免把 goal response ready 误认为服务器侧 handle 已存入夹具。定向 ASan 发现本次修复初版独立清理线程与 ROS/FastDDS 退出重叠，已按上述
+pre-shutdown 合同修复；不把该失败版本列为通过。
+初次包编译的构建工具自动开多编译任务触及2GiB限制，改为 `cmake --build -j1`；
+最终 BT 包使用 -O0 编译以控制验证资源，不用该结果声明实时性能。
+
+结果：9类事件回归均通过，定向 ASan（关闭 leak 检查，仅验证非法访问/生命周期）
+每类连续3次通过；没有用此前失败运行宣称通过。真实 `nav2_behavior_tree` 包及全部
+action plugins 重编/安装通过；显式指定安装包的 CMake package_DIR，确认 header
+来自修复安装目录（第一次手动安装后下游仍误选 apt，已纠正），没有用源 header 覆盖。
+实际加载重建的 Spin plugin，迟到接受/取消、终态前阻断和新请求成功均通过。
+
+最终组合 CTest **14/14通过，6.13s**：AUD-016的3项、AUD-052的51场景数值项、
+AUD-056的9种事件调度和1项实际插件。planner/controller与BT修复共同加载，
+受测服务器均正常退出，没有真实 driver/UART/MCU、最终物理速度或额外运动owner。
+证据保留在主工作区 `build/confirmed_software_validation/`；准确构建/运行入口见
+[回归说明](../../tests/confirmed_software_fixes/README.md)。生成日志/build未入Git。
+
+兼容性：按当时所有本地候选 ref 的临时 index 检查累计补丁，main与主要候选可直接
+应用，dynamic-surface/hws-shadow仅有旧runtime文档路径差异。BT模板改变C++派生类
+布局，必须重建本包action插件，不能混入旧apt模板派生插件；消息/action ABI未变。
+Needs-Evidence `82bc206` 的三项历史 characterization 明确断言“缺陷仍存在”，修复后
+不能原样作为验收：迁入时停用旧016/052/056注册，改跑本次正确性regression；其余
+queue/FOV/Livox刻画不在本任务重审。该分支未进行完整联合回归，不声称其原8/8仍成立。
+建议进入main的软件修复候选，需部署同一Nav2 overlay；保留下面的硬件接受门。
+
+Hardware gate 保留：目标 CPU 的接受/取消/恢复分布，Nav2内部执行到最终速度撤权、
+UART/MCU及物理停车。迟到接受到cancel之间可能已经执行；本软件补丁不提供物理SLA。
+服务端始终无响应/不终结时保持本 node 的失败屏障；没有添加自动超时解锁或pipeline重启。
