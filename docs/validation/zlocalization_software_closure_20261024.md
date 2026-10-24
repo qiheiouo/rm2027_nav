@@ -123,3 +123,25 @@ fixture 输出 consistency=true、real_map_accepted=false、hardware_go=false。
 在坐标合同中维护：独立 mapping/query bag、完整 raw/final bundle、PGM/YAML 与变换来源、
 至少三处分布良好的独立实测地标和匹配 hashes → 结构/几何 checker → 人工空间复核 →
 query bag 定位/恢复/动态机械/同刻 TF 评价。synthetic 结果不填作真实地标或真实 prior 验收。
+
+安装命令正/负例均已复核：有效 synthetic fixture exit 0，未填写模板 exit 2；直接调用
+installed console executable 时 stdout 是完整可解析 JSON。首个负例调用器测试用 `ros2 run`
+包装器，包装器的 failure footer 令整段 JSON 解析报 Extra data；改为直接测试真实 executable
+后正/负例均通过。未改 checker 判据，也没有吞掉失败码。
+
+## 三阶段结束决策
+
+| 原项 | 本轮最终状态 | 关闭条件 |
+|---|---|---|
+| S03 | Partial / Not reproduced；root unknown，confidence low；blocker 未关闭 | 归因原退出故障并做最小修复/回归，或独立可复核地排除原故障；可用的 race 工具/原 core 是下一项有效证据 |
+| F14 | Partial；正式语义/隔离缺陷已解决；自动跨 reset canonical 接续未实现 | versioned canonical 输入 + owner reset 事务及回归；或明确仅接受锁定/完整重启支持范围，不把它标成连续接续已实现 |
+| M11 | Partial；软件 checker/合同就绪；真实地图接受未完成 | 实际 prior/map/变换来源/独立地标及 query bag 的真实接受流程 |
+
+**Software Modify；不能进入 `FROZEN_WAIT_NEW_CAR_DATA`；不具备合入 main 条件。**
+保留全部 feature gate，不开启默认路径，不 merge/push main。没有 Hardware Go。
+
+本轮独立实现/证据 commit：`52e4e5a`、`7deded0`、`fd50098`；最后原 parity 报告/矩阵
+同步作为单独文档提交。完整 69 行迁移清单保持原分类，无重复 upstream audit。
+主线合入仍需 S03 关闭、拟支持范围明确、实际 M11 与 G0–G8 证据、受影响回归和项目要求的
+目标机/受控实车接受。真实 bag 不能解决缺失的软件 reset 事务；软件 fixture 也不能解决
+新车时间/机械/地图正确性、实际精度/恢复效果或硬件授权。

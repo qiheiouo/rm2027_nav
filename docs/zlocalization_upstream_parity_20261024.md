@@ -54,23 +54,34 @@
 主要功能和安全软件入口；三个 Partial 与七个排除项继续构成明确边界。
 当前 checkout 的 `Missing` 列特指没有 **Z 集成**，不是说 RM 原有定位/驱动能力不存在。
 
-三个 Partial：
+三个 Partial（本轮在 `474572e` 上严格串行复核，未重做功能审计）：
 
-1. **F14：native canonical 跨 reset 连续接续**。原生 shadow 的完整协调重置已可用，
-   canonical 路径遇到 instance/epoch/失败/重置请求即锁定，要求整组重启。
-   现有 canonical/full-base owner 没有同一 ResetFrontend 事务和 startup/home 换代接口；
-   只重置 ZLIO 后自动恢复会将新 odom basis 与旧 reference 混用。
-   安全软件子集已交付；连续接续须另行建立 owner 事务契约，不能由 bag 结果或改 YAML 解锁。
-2. **M11：3D prior 与 Nav2 occupancy 原点一致性**。变换/过滤/生成工具均可用，
-   但缺少新车实际 prior、occupancy、landmark 和源时刻机械几何的独立复核。
-   合成坐标变换不能替代地图接受。
+1. **S03：shutdown 原 `-11` 仍未归因，blocker 不关闭。** Phase 1 先做复现，
+   250/250 有效启停 exit 0：baseline mixed 100 + peer-first 30，ASan/UBSan/LSan mixed 100
+   + peer-first 20。无 timeout、sanitizer 报告。TSan backend/空程序均在 main 前遭遇环境错误，
+   不能给 race-free 结论。无原 core；UAF/race/double free/shutdown ordering/第三方问题均没有
+   足够因果证据确认或排除。Not reproduced，原根因 confidence low；未改生产 lifecycle。
+2. **F14：canonical 自动跨 reset 接续仍未实现，保持 Partial。** 已先形成九类事件的
+   [正式会话合同/state machine](zlocalization_interface_contract_20261023.md#2026-10-24-canonical-会话状态机本轮先定合同再实现)，
+   明确真实 pose discontinuity、process identity/sequence、clock、loss recovery 与旧消息隔离。
+   复现并修复 LOST 后延迟旧 pose 被重新标 valid 的缺陷；38 pytest、实际 DDS paused/backwards
+   clock、native epoch/legacy publisher restart 完整链 smoke 通过。reset/session/time rollback
+   仍锁定，必须整组重启；现 plain Odometry 缺 epoch，owner 缺协调 reset 事务。
+   不将安全锁定重命名成自动 continuity；该软件协议缺口不能靠新 bag 关闭。
+3. **M11：坐标合同/checker 已就绪，真实地图接受仍未完成。** 新增
+   [正式坐标合同及真实 acquisition/acceptance](contracts/map_bundle.md#z-localization-prior--nav2-坐标合同parity-候选2026-10-24)
+   和手动 `rm_map_tools check_zlocalization_coordinates`，覆盖文件/SE3/frame、origin/yaw、
+   bounds、landmark/PCD/pixel、height-band sample；25 checker tests，map tools 63 pass/1 skip。
+   未烘焙 prior→map 变换会明确失败。synthetic 仅检验 checker，不作为新车 prior/map 证据。
 
-3. **S03：停机可靠性仍有未关闭证据**。首轮 legacy smoke 在诊断节点因 Python byte 类型
-   退出后，整组 SIGINT 时 backend 曾以 `-11` 退出。类型问题已修复；随后 legacy、native、
-   prior、G-PROBE/loop、shadow 和未 invalidate 的正常 mapping 保存共六次停机均 clean。
-   目前没有该崩溃的可靠最小复现或根因，不把六次通过说成已修复。保留为 G6/G8 合入阻塞，
-   需要复现/定位或有充分的根因排除证据后关闭；本轮不猜测修改估计器或析构顺序。
+本轮细节、根因置信度及工具限制见
+[三阶段软件闭合记录](validation/zlocalization_software_closure_20261024.md)；
+[最小 shutdown 证据](validation/zlocalization_shutdown_evidence_20261024.json)。
+分类总数保持 57/3/0/7/2；补齐证据与缺陷修复不等于三个 Partial 均关闭。
 
+**当前决策：Software Modify；不能进入 `FROZEN_WAIT_NEW_CAR_DATA`；不具备合入 main 条件。**
+S03 仍是软件 blocker，F14 完整连续接续还缺 owner 协议；M11 则等待实际地图接受。
+受限锁定/重启子集可继续离线候选验证。没有 Hardware Go。
 
 七个排除项：bundled driver 启动（用 RM driver）、legacy 假 reset、UWB producer、UWB
 融合/在线标定、固定 sensor→body 应用、TDT legacy 输出、直接上游 canonical TF。
@@ -110,7 +121,7 @@ body 标定 executable 仍可离线使用；固定标定结果不能覆盖转动
 |---|---|---|---|---|
 | S01 | 来源、GPL 与固定版本 | Already migrated | Already migrated | external/COLCON_IGNORE |
 | S02 | 显式构建与重复 Livox 隔离 | Partially migrated | Already migrated | 显式 base-paths；不发现 external |
-| S03 | 运行后停机与资源释放可靠性 | Already migrated | Partially migrated | 受限候选；不得据此开放部署 |
+| S03 | 运行后停机与资源释放可靠性 | Already migrated | Partially migrated | 250 次未复现；根因未知，blocker 保留 |
 | F01 | ZLIO 核心 Eq/状态滤波 | Missing | Already migrated | frontend:=zlio;enabled:=true |
 | F02 | 多帧惯性/几何初始化与协方差 | Missing | Already migrated | 显式 frontend_config |
 | F03 | 连续时间轨迹、预积分、逐点 deskew | Missing | Already migrated | 原生入口 |
@@ -124,7 +135,7 @@ body 标定 executable 仍可离线使用；固定标定结果不能覆盖转动
 | F11 | instance/epoch/sequence/失败通知 | Partially migrated | Already migrated | native canonical 锁定边界 |
 | F12 | start/stop 输入排空服务 | Missing | Already migrated | /zlocalization[/shadow]/{start,stop} |
 | F13 | 原生幂等 warm/cold reset 协议 | Missing | Already migrated | shadow /upstream_reset_request |
-| F14 | native canonical 跨 reset 连续接续 | Missing | Partially migrated | 换代锁定；要求整组重启 |
+| F14 | native canonical 跨 reset 连续接续 | Missing | Partially migrated | 正式会话合同；旧证据修复；自动接续仍缺 owner 事务 |
 | F15 | legacy FAST-LIO reset 等价协议 | Intentionally excluded | Intentionally excluded | legacy 不提供 ResetFrontend |
 | L01 | 原生 lio.launch 参数入口 | Missing | Already migrated | RM native 参数直接调用 zlio_node |
 | L02 | frontend.launch 显示点云/轨迹 | Missing | Already migrated | shadow visualization:=true |
@@ -164,7 +175,7 @@ body 标定 executable 仍可离线使用；固定标定结果不能覆盖转动
 | M08 | SC/G-PROBE/both 离线描述子生成 | Partially migrated | Already migrated | --descriptor-type scan_context/ gprobe/ both |
 | M09 | SC 原地 rebuild/参数元数据 | Already migrated | Already migrated | rebuild_scan_context_descriptors |
 | M10 | 原子写出、非空目录/别名/损坏保护 | Already migrated | Already migrated | 上游工具原生约束 |
-| M11 | 3D prior 与 Nav2 occupancy 原点一致性 | Partially migrated | Partially migrated | 独立 map review |
+| M11 | 3D prior 与 Nav2 occupancy 原点一致性 | Partially migrated | Partially migrated | 坐标 checker 就绪；真实 prior/map/landmark 接受待完成 |
 | M12 | 任意 roll/pitch 网格采样生成器 | Not applicable | Not applicable | 上游没有此能力 |
 | D01 | 五态/可信/冻结/故障原因 | Already migrated | Already migrated | 私有 /state |
 | D02 | epoch/generation/revision/failure 诊断 | Partially migrated | Already migrated | diagnostics=true；私有 DiagnosticArray |
@@ -178,9 +189,30 @@ body 标定 executable 仍可离线使用；固定标定结果不能覆盖转动
 | T02 | 公开大数据 cleanup/evaluation 指标 | Not applicable | Not applicable | LOCALIZATION_TEST_DATA_DIR 显式 |
 | T03 | 上游 launch/config 参数组全覆盖清单 | Partially migrated | Already migrated | 工具原生 CLI + 两个受控入口 |
 
-## 本次软件验证
+## 本轮剩余项软件验证（基于 474572e）
 
-结果按两次运行区分。中断前完整运行的结果来自本次对话保存的真实工具输出；
+本轮没有扩展 upstream 功能清单；按 Phase 1→2→3 完成，生产退出逻辑没有猜测性修改。
+独立提交：`52e4e5a` shutdown 复现工具/证据；`7deded0` canonical 会话隔离修复；
+`fd50098` prior/Nav2 坐标合同/checker。三阶段结束后才更新本报告和原矩阵。
+
+| 检查 | 本轮真实结果 | 限制 |
+|---|---|---|
+| baseline shutdown stress | 130/130 exit 0；含 30 peer-first | Not reproduced，不是根因排除 |
+| ASan/UBSan/LSan stress | 120/120 exit 0，无报告/timeout；最大退出 0.408s | app/core 插桩；ROS/PCL/GTSAM/TBB 库内部未插桩 |
+| TSan | backend 编译成功，运行 main 前 exit 66 unexpected memory mapping；空程序对照复核同故障 | 不可用，未证明无 race；空程序一次 -11 也不算 backend 复现 |
+| session 确定性 harness | 38/38 pytest；旧版 LOST→旧 pose 复活可复现，修复后拒绝；含单次/多次/100 次快速 reset、延迟/重排、旧 session、loss/recovery、clock | 自动 rebase 仍锁定 |
+| 直接依赖构建/回归 | candidate/adapter/bridge 3 package 构建；canonical CTest 1/1（15 gtests），bridge 3/3（5 math + 7 gate + 4 profile cases） | 没有重跑无关模块或声称硬件效果 |
+| 实际 ROS clock | paused expiry、invalid heartbeat、fresh resume、backwards latch、source-time TF/covariance PASS | adapter DDS fixture；无 estimator claim |
+| native/legacy 实际全链 | 两条 smoke PASS；动态 correction 最大误差 1.11e-16；断流 TF 停刷；epoch / publisher restart 锁定；clean exits | 原子消息/room fixture，无新车定位精度证据 |
+| 坐标 checker | 25/25 tests；map tools 63 passed / 1 skipped；安装命令 synthetic pass=0、未填模板 reject=2、JSON | skip 为未打包真实 field baseline；从不批准真实地图 |
+
+复现命令、事件合同、失败夹具/工具限制、真实数据接受步骤见
+[闭合记录](validation/zlocalization_software_closure_20261024.md)和
+[tests README](../tests/zlocalization/README.md)。以下为 `474572e` 及更早验证，保留原条件。
+
+## 基础迁移与原 parity 软件验证（历史证据）
+
+以下历史结果按两次运行区分。中断前完整运行的结果来自本次对话保存的真实工具输出；
 临时目录在中断期间清理后，源码按原执行顺序恢复，恢复后的复核单独列出。
 
 | 检查 | 结果与适用边界 |
@@ -244,9 +276,9 @@ native canonical 能力必须维持关闭，不能借主路径通过顺带启用
 | G1 原始传感器/时间 | Livox timebase/header+offset 或 PC2 字段/单位、IMU g/SI/轴、clock、丢包统计；低速/高速/断流 | 点时刻和 IMU 源时刻单调且同时间域；原生两输入格式至少验证实际使用者；legacy cloud/odom 同基准并满足 1ms 同步；无 scan40 静默 rebase；单位和固定内部外参经确认 |
 | G2 动态几何/canonical | 静止转云台、纯车体 yaw、高速自转、pitch/坡道/横坡；同步真实 gimbal/heading/home/boot 数据 | 车体静止时不把云台转动当车体运动；sensor→base 只施加一次；源时刻 TF 缺失不使用 latest/固定角替代；唯一 map→odom、odom→base owner；full-base/reference 对齐资格明确 |
 | G3 ZLIO vs FAST-LIO | 同 bag、相同校准/单位/时间和独立 session；静止初始化、运动、遮挡/弱几何、狗洞等 | 初始化成功/失败可解释；deskew、速度符号/量纲正确；ATE/RPE/姿态/漂移/失效率与稳定 baseline 同口径比较，预先确定绝对误差预算且无不可接受退化；没有参考真值时不得只以轨迹闭合作为精度证明 |
-| G4 地图流程 | 实测 raw 多帧 bundle→clean→人工复核→filter/transform/build/rebuild；静态 landmark 与动态物体标签/可见性 | 不删除关键静态结构；地图完整可重载、原始不可变；poses/clouds/map/descriptors 同一坐标，SC/GP 参数元数据一致；网格水平/FOV/高度假设适用；3D prior 与 Nav2 occupancy 原点/尺度/朝向经独立 landmark 确认 |
+| G4 地图流程 | 实测 raw 多帧 bundle→clean→人工复核→filter/transform/build/rebuild；静态 landmark 与动态物体标签/可见性 | 不删除关键静态结构；地图完整可重载、原始不可变；poses/clouds/map/descriptors 同一坐标，SC/GP 参数元数据一致；网格水平/FOV/高度假设适用；3D prior 与 Nav2 occupancy 原点/尺度/朝向经独立 landmark 确认；先跑结构 validator 和本轮 coordinate checker，保留实际 metadata/报告，synthetic pass 不算接受 |
 | G5 正常先验定位/统计 | 独立 query；正常巡航、云台运动、自转、坡道、窄结构；原定位 A/B | 有 hint 和无 hint 分开评价；误差、correction 跳变、有效覆盖率、收敛时间满足预先预算与 baseline 对照；检查 rank/退化、NIS/创新相关性、covariance coverage；不使用 missing canonical covariance 做置信判断 |
-| G6 丢失/恢复/会话 | 遮挡、错误/相似场景、输入暂停/恢复、时间回退、节点重启、instance/epoch/MCU boot 变化、manual relocalize/invalidate | 无输入/不匹配/故障不 trusted；源 stamp+0.5s 内失效，旧心跳/冻结 TF 不续租；错误 basin 接受数必须为 0；恢复使用新有效输入并经完整几何验收；canonical 换代必须锁定且不能被同 epoch 输入复活，整组重启后旧缓存不污染；自动 canonical reset 连续接续仍不得启用 |
+| G6 丢失/恢复/会话 | 遮挡、错误/相似场景、输入暂停/恢复、时间回退、节点重启、instance/epoch/MCU boot 变化、manual relocalize/invalidate | 无输入/不匹配/故障不 trusted；源 stamp+0.5s 内失效，旧心跳/冻结 TF 不续租；错误 basin 接受数必须为 0；恢复使用新有效输入并经完整几何验收；canonical 换代必须锁定且不能被旧 session 输入复活，整组重启后旧缓存不污染；loss/expiry 后必须严格新 source 水位，暂停/回退按正式合同验证；自动 canonical reset 连续接续仍不得启用 |
 | G7 descriptor/loop 可选能力 | SC/GP 分别使用匹配 prior；不同 yaw/位置/倾斜/重复结构；mapping 真回环和伪回环 | 分别记录 recall@K、错误接受、恢复成功/延迟；最终错误接受为 0，召回/成功率满足预先固定预算；GP 不得沿用有限 FOV 示例冒充本车调参；loop 只 mapping，真实边改正漂移、伪边被拒、无重复提交或地图破坏 |
 | G8 runtime/诊断/资源 | 回放长段、bag 暂停/恢复、backend/adapter 杀进程；拟部署 NUC 负载、温度/CPU/内存/延迟 | state/version/reason 与失效时刻一致；steady-time 断流可见，无 stale valid；无双 owner/命令副作用；源到输出延迟持续落在 0.5s lease 内并满足控制时延预算；内存/图/云缓存有界，无持续排队或热降频导致失效 |
 | G9 Hardware 与运动授权（独立） | 确认过的 MCU/安装/固件/时钟/ESTOP/停稳；若将来接 UWB，另行契约与标定 | bag 通过不替代现场检查。完成项目已有目标机、受控低速实车及 AUD-003 最终授权验收后再讨论 Hardware Go；定位 trusted 从不直接授予速度 |
@@ -260,3 +292,9 @@ F14 可保留为明确不支持连续 reset 的锁定/重启策略，M11 在先�
 源码/contract/默认 gate 一致；同步最新 main 后重跑受影响构建与核心回归，
 按项目要求补足受控实车/目标机证据后单独 PR。UWB/自动 canonical reset/硬件默认启用
 不能包含在这次软件审计的通过范围。本任务不执行 merge 或 push。
+
+本轮结束仍不允许冻结为“只等新车数据”：S03 需要可归因的退出故障证据/修复或独立排除；
+若要完整 F14，需版本化 canonical 输入及 owner reset 事务，并补协调 reset 集成验证。
+如拟合入时明确只支持锁定/整组重启，F14 可作为明确不支持项保留，但不能由测试通过
+自动改为已完成。新车数据专属门槛是 G1–G7 的真实输入/动态几何/效果与 M11 地图接受；
+目标机资源、实车安装/固件/停稳/运动授权和 Hardware Go 仍须独立现场验证。
