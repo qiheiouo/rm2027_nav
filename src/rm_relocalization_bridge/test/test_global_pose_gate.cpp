@@ -121,3 +121,13 @@ TEST(GlobalPoseGate, ChecksUnobservedDimensionsToo)
   message.pose.covariance[14] = -0.1;
   EXPECT_FALSE(rm_relocalization_bridge::validateGlobalPose(message, kNow, {}));
 }
+
+TEST(GlobalPoseGate, LargeUnobservedVarianceCannotMaskInvalidPlanarBlock)
+{
+  auto message = validPose();
+  message.pose.covariance[14] = 1.0e12;
+  message.pose.covariance[1] = message.pose.covariance[6] = 0.2;
+  EXPECT_FALSE(rm_relocalization_bridge::validateGlobalPose(message, kNow, {}));
+  message.pose.covariance[1] = message.pose.covariance[6] = 0.08;
+  EXPECT_TRUE(rm_relocalization_bridge::validateGlobalPose(message, kNow, {}));
+}

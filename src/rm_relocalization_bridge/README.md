@@ -101,7 +101,9 @@ expires automatically. For AMCL/GICP use the selected backend status chain.
 The common AMCL/GICP pose gate validates all 36 finite values of the ROS
 `[x,y,z,roll,pitch,yaw]` covariance as a symmetric positive-semidefinite 6x6
 matrix, allowing zero unobserved dimensions and rank-deficient valid matrices.
-Numerical symmetry/eigenvalue tolerance is `1e-10 * max(1, max(abs(C)))`.
+Checks normalize positive-variance dimensions by their standard deviations;
+zero-variance dimensions require zero cross terms. The normalized symmetry/PSD
+tolerance is `1e-10`, so a large unused variance cannot mask an invalid block.
 Existing x/y/yaw variance limits and pose/time/frame gates are unchanged. This
 checks mathematical legality; it does not calibrate sensor uncertainty or repair
 backend/canonical covariance propagation (AUD-012/013).

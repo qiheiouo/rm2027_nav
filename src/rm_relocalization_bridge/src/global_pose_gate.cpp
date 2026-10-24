@@ -110,12 +110,29 @@ bool validateGlobalPose(
       return reject(reason, "negative covariance");
     }
   }
-  const double tolerance = 1.0e-10 * std::max(1.0, matrix.cwiseAbs().maxCoeff());
-  if ((matrix - matrix.transpose()).cwiseAbs().maxCoeff() > tolerance) {
+  // Normalize by each dimension's standard deviation, so a large unused
+  // variance cannot hide a negative eigenvalue in the navigation block.
+  Eigen::Matrix<double, 6, 6> normalized;
+  for (int row = 0; row < 6; ++row) {
+    for (int col = 0; col < 6; ++col) {
+      if (matrix(row, row) == 0.0 || matrix(col, col) == 0.0) {
+        if (matrix(row, col) != 0.0) {return reject(reason, "non-PSD covariance");}
+        normalized(row, col) = 0.0;
+      } else {
+        normalized(row, col) = matrix(row, col) /
+          std::sqrt(matrix(row, row)) / std::sqrt(matrix(col, col));
+      }
+    }
+  }
+  constexpr double tolerance = 1.0e-10;
+  if (!normalized.allFinite() || normalized.cwiseAbs().maxCoeff() > 1.0 + tolerance) {
+    return reject(reason, "non-PSD covariance");
+  }
+  if ((normalized - normalized.transpose()).cwiseAbs().maxCoeff() > tolerance) {
     return reject(reason, "asymmetric covariance");
   }
   const Eigen::SelfAdjointEigenSolver<Eigen::Matrix<double, 6, 6>> solver(
-    0.5 * (matrix + matrix.transpose()), Eigen::EigenvaluesOnly);
+    0.5 * (normalized + normalized.transpose()), Eigen::EigenvaluesOnly);
   if (solver.info() != Eigen::Success || solver.eigenvalues().minCoeff() < -tolerance) {
     return reject(reason, "non-PSD covariance");
   }

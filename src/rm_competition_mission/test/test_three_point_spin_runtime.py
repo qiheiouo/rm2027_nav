@@ -12,7 +12,7 @@ from rclpy.action import ActionServer, CancelResponse, GoalResponse
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy
-from rm_competition_interfaces.msg import LocalizationStatus, RefereeState
+from rm_competition_interfaces.msg import LocalizationStatus, MissionState, RefereeState
 from std_msgs.msg import Bool
 from rclpy.duration import Duration
 
@@ -26,6 +26,7 @@ class FakeNav2(Node):
         self.spin_canceled = threading.Event()
         self.hp = 400
         self.navigation_overlapped_spin = False
+        self.mission_states = []
         self.nav_server = ActionServer(
             self,
             NavigateToPose,
@@ -47,6 +48,7 @@ class FakeNav2(Node):
             reliability=ReliabilityPolicy.RELIABLE,
             durability=DurabilityPolicy.TRANSIENT_LOCAL,
         )
+        self.create_subscription(MissionState, "/mission/state", self.mission_states.append, qos)
         self.localization_pub = self.create_publisher(
             LocalizationStatus, "/localization/status", 1
         )
@@ -140,6 +142,12 @@ def test_patrol_spin_and_low_hp_home_action_flow():
     )
     try:
         wait_for(node.held_spin_started.is_set, 10.0, "fourth Spin goal", process)
+        wait_for(lambda: node.mission_states and node.mission_states[-1].navigation_status == "spin_active",
+                 2.0, "Spin diagnostic active", process)
+        start = len(node.mission_states)
+        wait_for(lambda: len(node.mission_states) >= start + 3, 2.0, "Spin diagnostic ticks", process)
+        assert all(state.navigation_status == "spin_active" for state in node.mission_states[start:])
+        print("AUD-045 PASS: idle navigation cancel preserves active Spin diagnostic")
         assert len(node.nav_goals) >= 4
         expected_patrol = [
             (4.775, 2.075),

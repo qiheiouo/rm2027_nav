@@ -56,4 +56,24 @@ GICP构建只出现既有PCL pcap/png可选功能警告。
 未构建/启动驱动。Humble composition使用Python大小写False。注册测试不再用APPEND_ENV传单一路径，
 避免ament拼接冒号。最终注册入口已重新通过，未放宽业务断言。
 
-arbitration / minimal Mission gate 尚待下一提交实际迁入与验收。
+## 仲裁 gate（在 Mission 增量之前）
+
+复用原候选7be5dc6，迁入为e761239。只处理两处文档尾部冲突，保留双方内容；
+生产仲裁、BT顺序、原home阈值、patrol点序、pursuit计算没有另写实现。
+在尚无f141eef增量的状态构建interfaces/pursuit/Mission/bringup四包，通过3/3注册CTest：
+S1–S10、重复源不续租、planner退出、迟到接受、取消后等终态、ESTOP/guard/chassis失联、
+缺home停止、generic研究入口、三点巡逻/Spin。共8 pytest case，另pursuit数学3 case通过。
+测试断言所有替代请求晚于旧action终态，同时active最大值=1。
+
+- AUD-002：referee/chassis接收lease、原子pursuit源身份/期限的软件范围Closed。
+- AUD-011：pending/active取消保留owner到终态的软件范围Closed。
+- AUD-045：补实际MissionState观测，活动Spin连续3个tick保持spin_active；空导航cancel不覆盖状态，Closed。
+- 正式2027组合强制radar-only和guard只读否决，默认不启动；不提供AUD-003正授权。
+
+上述软件仲裁 gate 已先通过；此后才允许迁入f141eef。
+
+复核AUD-015又增加尺度反例：z方差1e12不能掩盖xy非法相关块。
+初版全局容差实际接受该非法矩阵（已复现失败），改为逐维标准差归一化，
+零方差要求零交叉项，normalized symmetry/PSD容差1e-10；保持原variance上限。
+最终重跑：gate12项、relocalization math5项、readiness4项全部通过；
+包含大方差非法块拒绝及同尺度合法相关矩阵接受。
