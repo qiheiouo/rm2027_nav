@@ -85,3 +85,34 @@ The second command starts the real adapter and DDS/TF with a paused/resumed/
 backwards `/clock`. Native/legacy full-chain smoke remains `laptop_smoke.py`
 above. No fixture proves cross-reset automatic canonical rebase: it remains
 unsupported and latched, pending an owner-level versioned reset transaction.
+
+
+## F14 canonical reset/session transaction
+
+Apply `zlocalization_scan_end_pose.patch`, then `zlocalization_session_frame.patch`.
+Rebuild upstream localization_interfaces, RM interfaces, backend and the candidate's
+canonical/bridge dependencies in one overlay; never mix old generated message binaries.
+The opt-in gate is `canonical_session_transactions:=true` with native frontend and
+managed existing canonical owner. Gate=false regression keeps the original latch path.
+
+```bash
+ctest --test-dir "$BUILD_BASE/rm_localization_adapters" --output-on-failure
+python3 tests/zlocalization/session_transaction_smoke.py --output build/f14/wire1
+python3 tests/zlocalization/backend_session_reset_smoke.py --resets 10 --output build/f14/rpc1
+```
+
+The first smoke starts actual canonical/bridge/translation nodes and injects ordered
+atomic native observations with a controlled ROS clock and dynamic TF: pending TF
+across reset, 100 rapid barriers and recovery, stale/reordered callbacks, normal
+revision-only notice, loss/recovery, pause/resume, source retirement and clock jump.
+It checks full covariance and the public map→odom→base composition at the accepted
+source time. The deterministic C++ harness additionally stresses 10,000 epochs,
+1,000 rapid/idempotent prepare commands, held callback tickets and covariance cross terms.
+
+The RPC smoke starts the real backend + same owners, serves a deterministic
+ResetFrontend fixture, returns IN_PROGRESS then COMPLETED with the same transaction
+key, changes raw numerical gauge and checks post-reset recovery. It then replaces
+frontend instance/epoch and verifies fresh prior recovery plus rejection of old
+instance data. Its synthetic prior is only an unambiguous F14 integration fixture;
+it is not a new-car map/accuracy test. It uses the installed backend build_pcd_map_bundle executable, or an explicit
+`--bundle-tool /path/to/build_pcd_map_bundle` for a build-only overlay. No estimator/reset mathematics are changed by these tests.

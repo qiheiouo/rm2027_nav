@@ -20,6 +20,7 @@ message dependency; do not build the bundled duplicate driver.
 ```bash
 git submodule update --init external/z_localization
 git -C external/z_localization apply ../../patches/zlocalization_scan_end_pose.patch
+git -C external/z_localization apply ../../patches/zlocalization_session_frame.patch
 source /opt/ros/humble/setup.bash
 source "$LIVOX_OVERLAY/setup.bash"
 colcon build --base-paths external/z_localization/src/localization_interfaces \
@@ -37,7 +38,11 @@ GCC 11 at `-O1` reports an upstream `std::optional` `maybe-uninitialized`
 warning in `window.cpp`; the flag above keeps it visible without turning it into
 an error. Estimator mathematics are unchanged. The three-line backend patch
 publishes scan-end pose from the same committed projection for either frontend.
-Apply it once; the recorded submodule pin remains clean upstream.
+Apply it once; the second F14 patch adds ordered atomic session outputs and a wire type,
+without changing estimator/reset mathematics. Both patches are parent-owned; the
+recorded submodule pin remains clean upstream. Rebuild both interfaces packages
+and every affected consumer in the same overlay; do not mix old generated message
+binaries with the extended LocalizationStatus schema.
 
 ## FAST-LIO candidate
 
@@ -88,7 +93,7 @@ TF and derives chassis twist. `map_odom_from_global_pose` remains the sole
 map→odom owner. `start_zlio:=false` accepts an external native producer adhering
 to the same private frame/session contract; it is used by the boundary fixture.
 
-**Any instance/epoch change, reset request, processing failure or nonmonotonic
+**With `canonical_session_transactions:=false` (default), any instance/epoch change, reset request, processing failure or nonmonotonic
 frame sequence/time latches the canonical adapter invalid. Restart the complete
 frontend/canonical/backend/adapter/bridge group.** No automatic canonical reset
 continuity is claimed. High-frequency native prediction is available in shadow;
@@ -129,3 +134,57 @@ lease. A new trusted, strictly newer observation may recover with a real map-pos
 jump. ROS clock rollback and a nonzero initial frontend epoch latch invalid.
 The steady timer continues invalid status heartbeats during a paused clock or a
 latched session. Reset/map/prior changes still require restarting the whole group.
+
+
+## F14 transactional native canonical (explicit opt-in)
+
+```bash
+ros2 launch rm_zlocalization_candidate z_localization_candidate.launch.py \
+  enabled:=true frontend:=zlio canonical_session_transactions:=true \
+  frontend_config:="$CALIBRATED_ZLIO_CONFIG" imu_acceleration_scale:="$IMU_ACCELERATION_SCALE" \
+  prior_map:=/absolute/prior
+```
+
+Requires the managed `lio_adapter`; an external full-base owner cannot be silently
+substituted. Both gates default false. Legacy/shadow behavior is unchanged.
+The backend publishes one ordered native LocalizationFrame under
+`/zlocalization/backend_session_frame`. The existing candidate translates its
+schema atomically to `/zlocalization/session_input`; it does no pose/state pairing.
+The same canonical owner consumes that packet, clears reference/pending TF/twist
+on epoch advance, emits an invalid barrier, and reanchors from fresh scan-time TF.
+A second sample initializes finite-difference twist. No owner process restart is
+needed for coordinated frontend reset or confirmed frontend instance replacement.
+
+The bridge accepts `/zlocalization/canonical_frame` as one atomic odom/global-pose/
+covariance/validity transaction. It consumes no bare odometry or unversioned pose
+on this path. `/localization/status` adds session_id/session_epoch while producer
+and status sequence retain their process identities. Source leases and the
+LOST/expiry revocation watermark remain mandatory. Public correction TF is stamped
+at the accepted source observation and is not refreshed by timer heartbeats.
+
+The upstream `/zlocalization/upstream_reset_request` remains the frontend reset
+owner. IN_PROGRESS retains its idempotency key; new backend epoch commits the
+canonical boundary; REJECTED may only recover with fresh old-epoch evidence;
+INDETERMINATE never itself supplies trusted pose. A real prior match may introduce
+a map pose jump. Canonical odom is explicitly allowed a new origin on reset;
+physical continuity is not fabricated.
+
+A backend *process* replacement is explicitly selected by its new UUID:
+
+```bash
+ros2 service call /zlocalization/canonical/select_source \
+  rm_competition_interfaces/srv/SelectLocalizationSource \
+  "{producer_id: '$NEW_BACKEND_UUID', minimum_epoch: 0}"
+```
+
+The old UUID is retired. Service success means PREPARED, not localization valid;
+wait for a fresh valid status in the new canonical epoch. Ordinary frontend
+session changes are confirmed by backend's existing reset transaction and need
+no manual UUID selection. Clock rollback cancels pending work and requires a new
+backend epoch plus source/ROS clock beyond the previous high-water; catching up
+alone cannot revive old data or overlapping mechanical TF.
+
+See the [nine-event contract extension](../../docs/zlocalization_interface_contract_20261023.md#f14-versioned-canonical-transaction2026-10-24显式-opt-in)
+and [F14 test evidence](../../docs/validation/zlocalization_software_closure_20261024.md).
+F14 software transaction availability does not close other parity blockers or
+provide Hardware Go.

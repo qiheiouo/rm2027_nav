@@ -1,0 +1,123 @@
+diff --git a/src/backend/apps/publisher.cpp b/src/backend/apps/publisher.cpp
+--- a/src/backend/apps/publisher.cpp
++++ b/src/backend/apps/publisher.cpp
+@@ -3,6 +3,7 @@
+  * @brief 管理 ROS 发布资源及完整输出的身份复核边界。
+  */
+ #include "apps/publisher.hpp"
++#include <random>
+
+ #include "apps/ros.hpp"
+ #include "backend/covariance.hpp"
+@@ -47,6 +48,12 @@
+                                                                rclcpp::QoS(1).transient_local());
+     pose_covariance_pub_ = node_.create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>(
+         "~/localization_pose", rclcpp::QoS(20).reliable());
++
++    if (parameters_.input.frontend == "zlio") {
++        session_id_ = std::to_string(std::random_device{}()) + ":" + std::to_string(std::random_device{}());
++        session_pub_ = node_.create_publisher<localization_interfaces::msg::LocalizationFrame>(
++            "~/session_frame", rclcpp::QoS(100).reliable());
++    }
+
+     // 地图和调试视图按开关创建，并为晚加入的显示端保留最近一次快照。
+     if (parameters_.visualization.publish_prior_map && parameters_.runtime.prior_map_enabled) {
+@@ -177,6 +184,29 @@
+         std::lock_guard<std::mutex> lock(publication_mutex_);
+         if (!controller_->projectionIsCurrent(projection))
+             return;
++        if (session_pub_) {
++            localization_interfaces::msg::LocalizationFrame message;
++            message.emitted_at = node_.now();
++            message.producer_id = session_id_;
++            message.epoch = projection.epoch;
++            message.sequence = ++session_sequence_;
++            message.state_generation = projection.state_generation;
++            message.pose_revision = projection.pose_revision;
++            message.has_odometry = true;
++            message.valid = projection.valid && projection.pose_trusted && projection.should_publish_tf;
++            message.odometry.header.frame_id = parameters_.input.odom_frame;
++            message.odometry.header.stamp = stamp;
++            message.odometry.child_frame_id = parameters_.input.sensor_frame;
++            message.odometry.pose.pose = matrixToPoseStamped(frame.odom_pose, parameters_.input.odom_frame, stamp).pose;
++            message.global_pose.header.frame_id = parameters_.input.map_frame;
++            message.global_pose.header.stamp = stamp;
++            message.global_pose.pose.pose = matrixToPoseStamped(projection.T_map_sensor, parameters_.input.map_frame, stamp).pose;
++            const auto covariance = projection.pose_covariance_valid ? projection.pose_covariance : fallbackFrontendPoseCovariance();
++            for (int i = 0; i < 6; ++i)
++                for (int j = 0; j < 6; ++j)
++                    message.global_pose.pose.covariance[6 * i + j] = covariance(i, j);
++            session_pub_->publish(message);
++        }
+         publishProjection(projection, stamp);
+         // RM2027: scan-end-only input needs a pose from this same projection.
+         if (projection.status != LocalizationStatus::Initializing)
+diff --git a/src/backend/apps/publisher.hpp b/src/backend/apps/publisher.hpp
+--- a/src/backend/apps/publisher.hpp
++++ b/src/backend/apps/publisher.hpp
+@@ -3,6 +3,7 @@
+  * @brief 拥有 ROS 输出资源、缓存和发布身份边界。
+  */
+ #pragma once
++#include <localization_interfaces/msg/localization_frame.hpp>
+ #include <atomic>
+ #include <exception>
+ #include <functional>
+@@ -124,6 +125,9 @@
+     rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odometry_pub_;
+     std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
+
++    rclcpp::Publisher<localization_interfaces::msg::LocalizationFrame>::SharedPtr session_pub_;
++    std::string session_id_;
++    std::uint64_t session_sequence_ = 0;
+     rclcpp::Publisher<std_msgs::msg::String>::SharedPtr state_pub_;
+     rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr
+         pose_covariance_pub_;
+diff --git a/src/backend/apps/publisher_state.cpp b/src/backend/apps/publisher_state.cpp
+--- a/src/backend/apps/publisher_state.cpp
++++ b/src/backend/apps/publisher_state.cpp
+@@ -135,6 +135,17 @@
+     if (snapshot.epoch != current.epoch || snapshot.pose_revision != current.pose_revision ||
+         snapshot.localization.generation != current.localization.generation)
+         return;
++    if (session_pub_) {
++        localization_interfaces::msg::LocalizationFrame message;
++        message.emitted_at = node_.now();
++        message.producer_id = session_id_;
++        message.epoch = snapshot.epoch;
++        message.sequence = ++session_sequence_;
++        message.state_generation = snapshot.localization.generation;
++        message.pose_revision = snapshot.pose_revision;
++        message.valid = LocalizationStateMachine::poseTrusted(snapshot.localization.status);
++        session_pub_->publish(message);
++    }
+     publishLocalizationState(snapshot.localization.status, snapshot.localization.reason,
+                              snapshot.localization.estimator_failures,
+                              rclcpp::Time(0, 0, RCL_ROS_TIME),
+diff --git a/src/localization_interfaces/CMakeLists.txt b/src/localization_interfaces/CMakeLists.txt
+--- a/src/localization_interfaces/CMakeLists.txt
++++ b/src/localization_interfaces/CMakeLists.txt
+@@ -15,6 +15,7 @@
+   "msg/FrontendFrame.msg"
+   "msg/FrontendOdometry.msg"
+   "msg/FrontendSession.msg"
++  "msg/LocalizationFrame.msg"
+   DEPENDENCIES builtin_interfaces geometry_msgs nav_msgs sensor_msgs
+ )
+
+diff --git a/src/localization_interfaces/msg/LocalizationFrame.msg b/src/localization_interfaces/msg/LocalizationFrame.msg
+new file mode 100644
+--- /dev/null
++++ b/src/localization_interfaces/msg/LocalizationFrame.msg
+@@ -0,0 +1,11 @@
++# One totally ordered backend/owner output. State notices carry no measurement.
++builtin_interfaces/Time emitted_at
++string producer_id
++uint64 epoch
++uint64 sequence
++uint64 state_generation
++uint64 pose_revision
++bool has_odometry
++bool valid
++nav_msgs/Odometry odometry
++geometry_msgs/PoseWithCovarianceStamped global_pose

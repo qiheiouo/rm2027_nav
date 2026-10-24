@@ -25,6 +25,9 @@ def setup(context):
     upstream = policy.upstream_module(share('backend'))
     flag = lambda name: upstream.launch_bool(value(name))
     native = value('frontend') == 'zlio'
+    transactional = flag('canonical_session_transactions')
+    if transactional and (not native or not flag('start_lio_adapter')):
+        raise ValueError('session transactions require native ZLIO and the managed canonical owner')
     if native and flag('start_fastlio'):
         raise ValueError('native ZLIO and FAST-LIO are mutually exclusive')
     parameters = policy.backend_parameters(
@@ -39,20 +42,24 @@ def setup(context):
                          ('/tf_static', '/zlocalization/_quarantine/tf_static'),
                          ('~/localization_pose', '/zlocalization/sensor_pose'),
                          ('~/localization_state', '/zlocalization/state'),
+                         ('~/session_frame', '/zlocalization/backend_session_frame'),
                          ('/localization/odometry', '/zlocalization/sensor_odometry')]),
         Node(package='rm_zlocalization_candidate', executable='candidate_adapter.py',
              parameters=[{'use_sim_time': sim, 'frontend': value('frontend'),
+                          'canonical_session_transactions': transactional,
                           'raw_frame': 'zlio_odom' if native else 'odom',
                           'raw_child': 'lio_imu_link' if native else 'body'}], output='screen'),
         Node(package='rm_relocalization_bridge', executable='map_odom_from_global_pose',
              parameters=[{'use_sim_time': sim,
                           'upstream_valid_topic': '/localization/zlocalization_backend_valid',
                           'max_pose_odom_dt_sec': .001,
-                          'max_global_pose_age_sec': .5}], output='screen'),
+                          'max_global_pose_age_sec': .5,
+                          'canonical_session_transactions': transactional}], output='screen'),
     ]
     if flag('diagnostics'):
         actions.append(Node(package='rm_zlocalization_candidate', executable='runtime_diagnostics.py',
-            parameters=[{'use_sim_time': sim}], output='screen'))
+            parameters=[{'use_sim_time': sim, 'adapter_status_topic':
+                '/localization/status' if transactional else '/localization/zlocalization_backend_valid/status'}], output='screen'))
     if flag('rviz'):
         actions.append(Node(package='rviz2', executable='rviz2', name='zlocalization_rviz',
             parameters=[{'use_sim_time': sim}],
@@ -62,6 +69,7 @@ def setup(context):
         actions.append(Node(package='rm_localization_adapters', executable='lio_adapter',
             parameters=[str(Path(share('rm_localization_adapters')) / 'config/lio_adapter.yaml'),
                 {'use_sim_time': sim, 'backend_child_frame_alias_enabled': True,
+                 'canonical_session_transactions': transactional,
                  'expected_input_odom_frame': 'zlio_odom' if native else 'odom',
                  'raw_odom_parent_frame_mode': 'sensor_initial',
                  'sensor_initial_reference_mode': 'first_source_sample',
@@ -87,7 +95,7 @@ def setup(context):
 
 def generate_launch_description():
     defaults = {
-        'enabled': 'false',
+        'enabled': 'false', 'canonical_session_transactions': 'false',
         'config_file': str(Path(share('rm_zlocalization_candidate')) / 'config/z_localization_candidate.yaml'),
         'prior_map': '', 'mode': 'localization', 'use_sim_time': 'false',
         'start_lio_adapter': 'true', 'start_fastlio': 'false', 'frontend': 'legacy', 'start_zlio': 'true',

@@ -1,0 +1,75 @@
+{
+  "base": "cebb150",
+  "scope": "F14 only, native opt-in; no S03/M11 work",
+  "deterministic_cpp": {
+    "cases": 7,
+    "epoch_switches": 10000,
+    "rapid_idempotent_selects": 1000
+  },
+  "upstream_selected_tests": {
+    "reset_session_epoch": 17,
+    "reset_warm_cold_continuity": 18
+  },
+  "candidate_pytest": 38,
+  "canonical_existing_gtests": 15,
+  "bridge_ctest_targets": 3,
+  "wire": {
+    "expired_callback_cannot_advance_epoch": true,
+    "reset_pending_tf_and_old_epoch_rejected": true,
+    "rapid_100_resets_recovered": true,
+    "loss_old_pose_not_resurrected": true,
+    "reordered_callback_rejected": true,
+    "revision_notice_requires_fresh_observation": true,
+    "pause_resume_fresh_source": true,
+    "new_producer_selected_old_retired": true,
+    "time_jump_new_epoch_and_highwater_recovery": true,
+    "status_messages": 553,
+    "canonical_odometry": 8,
+    "scope": "synthetic ROS transaction, no hardware claim"
+  },
+  "backend": {
+    "actual_backend_reset_recovered": 10,
+    "canonical_epochs": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ],
+    "frontend_process_replacement_recovered": true,
+    "old_frontend_messages_rejected": true,
+    "reset_rpc_calls": 22,
+    "in_progress_same_transaction_retry": true,
+    "max_atomic_pose_transfer_error": 2.220446049250313e-16,
+    "max_covariance_transfer_error": 5.421010862427522e-20,
+    "scope": "actual backend + deterministic frontend RPC + synthetic prior; no hardware/map acceptance"
+  },
+  "gate_false": {
+    "startup_untrusted": true,
+    "max_correction_matrix_error": 1.1102230246251565e-16,
+    "input_frames_times_covariance": true,
+    "public_tf_publishers": [
+      "zlocalization_laptop_observer",
+      "map_odom_from_global_pose",
+      "lio_adapter"
+    ],
+    "diagnostics_expired_on_source_loss": true,
+    "input_loss_invalid_and_tf_stopped": true,
+    "epoch_latched": true,
+    "state_messages": 35,
+    "canonical_odometry_messages": 31,
+    "scope": "deterministic ROS fixture; no real sensor or localization performance evidence"
+  },
+  "stale_packet_ticket_probe": {
+    "before_returncode": 1,
+    "after_returncode": 0,
+    "regression_in_cpp": true
+  },
+  "source_patch_roundtrip": "PASS: baseline+session patches reproduce exact tested source; upstream clean",
+  "clock_snapshot_regression": "wall-clock chain failed before capture-order fix; controlled and wall-clock chains pass after"
+}

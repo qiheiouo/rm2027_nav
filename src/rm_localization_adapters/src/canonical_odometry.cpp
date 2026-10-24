@@ -9,6 +9,27 @@
 
 namespace rm_localization_adapters
 {
+std::array<double, 36> shift_pose_covariance(
+  const std::array<double, 36> & covariance, const tf2::Vector3 & lever)
+{
+  double j[6][6]{};
+  for (int i = 0; i < 6; ++i) {j[i][i] = 1.;}
+  j[0][4] = lever.z(); j[0][5] = -lever.y();
+  j[1][3] = -lever.z(); j[1][5] = lever.x();
+  j[2][3] = lever.y(); j[2][4] = -lever.x();
+  std::array<double, 36> result{};
+  for (int a = 0; a < 6; ++a) {
+    for (int b = 0; b < 6; ++b) {
+      for (int c = 0; c < 6; ++c) {
+        for (int d = 0; d < 6; ++d) {
+          result[6*a+b] += j[a][c] * covariance[6*c+d] * j[b][d];
+        }
+      }
+    }
+  }
+  return result;
+}
+
 
 namespace
 {

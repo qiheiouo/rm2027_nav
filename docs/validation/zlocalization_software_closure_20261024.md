@@ -145,3 +145,69 @@ installed console executable 时 stdout 是完整可解析 JSON。首个负例�
 主线合入仍需 S03 关闭、拟支持范围明确、实际 M11 与 G0–G8 证据、受影响回归和项目要求的
 目标机/受控实车接受。真实 bag 不能解决缺失的软件 reset 事务；软件 fixture 也不能解决
 新车时间/机械/地图正确性、实际精度/恢复效果或硬件授权。
+
+## F14 后续事务闭合（基线 cebb150；仅 F14）
+
+**Resolved（native opt-in 软件事务）；整体 Software Modify 不变。**
+此前本页 Phase 2 的 Partial 是 cebb150 当时状态；本节取代其中“owner 协议未实现”的结论。
+S03 / M11 未开展新调查或功能工作，原 blocker/真实接受要求保持。本轮不 merge/push main。
+
+### 实现与状态
+
+先补九事件合同，再实现 `canonical_session_transactions=false`（默认）gate，true 仅支持
+native ZLIO + managed 既有 lio_adapter。backend 的上游幂等 ResetFrontend 仍是唯一 reset owner。
+parent 补丁 `zlocalization_session_frame.patch` 在原 scan-end patch 后应用，不改估计器/reset 数学，
+上游 pin 不变。新增 ordered atomic LocalizationFrame；状态通知和 scan 观测使用同一发布锁与
+全进程 sequence；旧 projection 仍在发布前复核。candidate 仅逐字段作 schema 转换，避免正常
+RM canonical/bridge 对可选 upstream package 产生构建依赖。
+
+既有 lio_adapter 原子切换 PREPARED→PRIMED→ACTIVE：清 source reference、pending TF、twist
+history；发 invalid barrier；新 epoch 新 source-time TF 锚定；后续样本才生成 finite-difference
+速度。不拼接旧末端 pose。LOST/expiry/revision-only notice 撤销旧 source；新 source 才可恢复。
+旧 epoch、retired UUID、失序 sequence/version、stale ticket、过期 emission time 均拒绝。
+新 backend process 由显式 select-source pin UUID/minimum_epoch；服务 ACK 只表示 PREPARED，
+COMMITTED 由新 canonical epoch 的 valid status 表示；新 frontend instance 则由 backend
+原协议确认并映射 epoch，自动接续不需重启 owner。
+
+Bridge 只消费单一 canonical frame（odom+map→base pose/covariance+version+validity），不按
+裸 timestamp 跨话题配对。新 status 暴露 session_id/session_epoch；status producer/sequence
+在同一进程内持续递增。map→odom TF 使用接受 source stamp，每个 source 最多发布一次，
+publication 与撤销共锁；不以心跳伪造新测量。full 6×6 covariance 用同刻 TF 的杆臂 Jacobian
+传播；canonical odom covariance 仍明确 missing，twist variance 使用既有配置。
+
+Clock backwards 取消旧 ticket，须新 backend epoch 且 clock/source 超过旧高水位才恢复；
+catch-up/旧心跳本身不能解锁。普通 reset/session 切换不依赖整组重启。所有 public TF owner
+保持原有两位；消费者按新 session 清缓存，不能仅凭 TF cache 或 Bool 使用旧会话。
+新 interface 字段要求所有相关 consumer 使用同一次重建的 overlay，禁止混用旧生成二进制。
+
+### 决定性回归与限制
+
+- **7 新 C++ cases PASS**：10,000 epoch+late work stress；1,000 rapid/idempotent prepare；
+  epoch/UUID 隔离、LOST/expiry/clock、协方差 cross terms。原 canonical 15 gtests 通过。
+- Bridge CTest **3/3 targets PASS**（5 math + 7 gate gtests + 4 profile cases）；
+  candidate **38/38 pytest PASS**；两套 interfaces、backend、三个直接 consumer 均构建通过。
+- 上游只选 F14 相关 reset/session/epoch **17 cases** 与 reset/warm/cold/continuity **18 cases**，
+  共 **35 PASS**；没有运行 S03 shutdown stress 或声称该问题关闭。
+- 实际 ROS translation→canonical→bridge fault smoke：**100 次快速 epoch barrier 后恢复**，
+  pending TF 中 reset、旧 epoch/producer/reordered callback、LOST 后旧 pose、revision-only
+  notice、pause/resume、过期 emission callback、source retirement、time rollback+新 epoch+
+  high-water recovery 均通过。moving body + dynamic mount 的同刻 pose/covariance、公共
+  map→odom→base 组合一致；两位 owner 的 UUID 不变。
+- 实际 backend RPC smoke：**10 次 reset + 1 次 frontend instance replacement 后恢复**；
+  **22 RPC calls**，每次先 IN_PROGRESS 后同一幂等键 COMPLETED；无 owner 重启。
+  逐源原子输出的 pose/covariance 传递误差见 [最小证据](zlocalization_f14_evidence_20261024.json)，
+  量级约 2.22e-16 / 1e-20；旧 native frame/session 注入不污染新会话。
+- `gate=false` 原 native epoch-latch full-chain smoke PASS，原 38 pytest/默认配置保护保留。
+  两个总 gate 均仍 false；shadow 新输出仍映射到 private prefix，没有新增公共 owner。
+
+发现并消除的实现/夹具问题：首次 header 安装布局不匹配 ROSIDL include root，修正后重建；
+对称房间 prior 曾接受 180° 匹配，加入不对称结构后最小复核通过，未改估计器/阈值；
+新 stale-packet probe 曾发现“拒绝旧 sample 却取消当前 work”，最小反例 exit 1，修正后 exit 0
+并纳入 regression；扩展测试自身意外回退 1ns，被 time barrier 正确拒绝，固定夹具时钟。
+最终真实 wall-clock 链还捕获一次“先保存 now，后以稍晚 clock check，再准入旧 now”造成
+几微秒假回退，修正读取顺序后真实/受控两条时钟链均重跑通过，未放宽时间门槛。
+这些失败均不计入通过次数；保留结论所需最小证据，原始日志在 ignored build/f14。
+
+本轮仅为 **Integration 软件事务闭合**。synthetic frontend/prior/机械 TF 不代替真实 ZLIO
+精度、地图接受或新车机械时间合同；没有 Hardware Go。F14 从矩阵 Partial 改为 gated
+Already migrated；S03/M11 结论保持，整体依然 Software Modify，不因本轮合入 main。

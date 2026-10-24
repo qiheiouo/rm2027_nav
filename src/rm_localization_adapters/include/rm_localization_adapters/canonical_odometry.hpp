@@ -2,6 +2,7 @@
 #define RM_LOCALIZATION_ADAPTERS__CANONICAL_ODOMETRY_HPP_
 
 #include <cstdint>
+#include <array>
 
 #include "geometry_msgs/msg/twist.hpp"
 #include "tf2/LinearMath/Transform.h"
@@ -25,6 +26,9 @@ struct ChassisHeadingFusionResult
 };
 
 double wrap_angle(double angle_rad);
+
+std::array<double, 36> shift_pose_covariance(
+  const std::array<double, 36> & covariance, const tf2::Vector3 & lever_map);
 
 ChassisHeadingFusionResult compute_base_transform_from_chassis_heading(
   const tf2::Transform & raw_initial_to_sensor_at_start,

@@ -22,6 +22,8 @@
 #include "tf2_ros/transform_broadcaster.h"
 
 #include "rm_relocalization_bridge/relocalization_math.hpp"
+#include "rm_competition_interfaces/localization_session.hpp"
+#include "rm_competition_interfaces/msg/localization_frame.hpp"
 
 namespace
 {
@@ -114,6 +116,16 @@ public:
 
     status_pub_ = create_publisher<rm_competition_interfaces::msg::LocalizationStatus>(
       "/localization/status", rclcpp::QoS(1).reliable());
+    session_transactions_ = declare_parameter<bool>("canonical_session_transactions", false);
+    if (session_transactions_) {
+      upstream_valid_required_ = true;
+      session_fence_ = std::make_unique<rm_competition_interfaces::LocalizationSession>(now().nanoseconds());
+      session_sub_ = create_subscription<rm_competition_interfaces::msg::LocalizationFrame>(
+        "/zlocalization/canonical_frame", 100,
+        [this](rm_competition_interfaces::msg::LocalizationFrame::ConstSharedPtr frame) {
+          handleSessionFrame(*frame);
+        });
+    } else {
     odom_sub_ = create_subscription<nav_msgs::msg::Odometry>(
       odom_topic_, rclcpp::QoS(100).reliable(),
       [this](const nav_msgs::msg::Odometry::SharedPtr msg) {handleOdometry(*msg);});
@@ -133,6 +145,7 @@ public:
           checkValidityLocked();
           handleGlobalPoseLocked(*msg);
         });
+    }
     }
 
     reset_service_ = create_service<std_srvs::srv::Trigger>(
@@ -199,6 +212,7 @@ private:
   void checkValidityLocked()
   {
     const auto clock_ns = now().nanoseconds();
+    if (session_fence_) {session_fence_->clock(clock_ns);}
     if (started_at_.nanoseconds() <= 0 && clock_ns > 0) {
       started_at_ = now();
       recovery_after_ns_ = clock_ns;
@@ -215,6 +229,52 @@ private:
       if (clock_reversed) {recovery_after_ns_ = last_clock_ns_;}
       invalidateLocked();
     }
+  }
+
+  void handleSessionFrame(const rm_competition_interfaces::msg::LocalizationFrame & frame)
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    checkValidityLocked();
+    const auto current = now().nanoseconds();
+    if (frame.emitted_at.sec < 0 || frame.emitted_at.nanosec >= 1000000000U ||
+      (frame.has_odometry && (frame.odometry.header.stamp.sec < 0 ||
+      frame.odometry.header.stamp.nanosec >= 1000000000U))) {return;}
+    const auto emitted = rclcpp::Time(frame.emitted_at).nanoseconds();
+    if (emitted < started_at_.nanoseconds() || emitted > current+100000000LL ||
+      current-emitted > 500000000LL) {return;}
+    const auto source = rclcpp::Time(frame.odometry.header.stamp).nanoseconds();
+    const auto before = session_fence_->boundary();
+    const auto admitted = session_fence_->observe(frame.producer_id, frame.epoch, frame.sequence,
+      frame.state_generation, frame.pose_revision, source, frame.has_odometry, frame.valid, current);
+    if (session_fence_->boundary() != before) {
+      invalidateLocked(); odom_cache_.clear(); pending_global_poses_.clear();
+      accepted_pose_ = geometry_msgs::msg::PoseWithCovarianceStamped(); evidence_until_ = now();
+      session_id_ = frame.producer_id; session_epoch_ = frame.epoch;
+      publishValid(false);
+    }
+    if (!admitted) {return;}
+    if (!frame.valid) {accepted_pose_ = geometry_msgs::msg::PoseWithCovarianceStamped(); invalidateLocked(); return;}
+    if (!frame.has_odometry) {return;}  // a notice is never new localization evidence
+    const auto & odom = frame.odometry;
+    const auto & global = frame.global_pose;
+    if (odom.header.frame_id != odom_frame_ || odom.child_frame_id != base_frame_ ||
+      global.header.frame_id != map_frame_ || global.header.stamp != odom.header.stamp ||
+      !validatePose(odom.pose.pose) || !validatePose(global.pose.pose) ||
+      !std::all_of(global.pose.covariance.begin(), global.pose.covariance.end(),
+        [](double x) {return std::isfinite(x);}) ||
+      source <= recovery_after_ns_ || source <= last_pose_ns_ ||
+      source > current + static_cast<int64_t>(max_future_sec_*1e9) ||
+      current-source > static_cast<int64_t>(max_global_pose_age_sec_*1e9)) {
+      session_fence_->revoke(); invalidateLocked(); return;
+    }
+    last_pose_ns_ = source; upstream_pose_ns_ = source;
+    upstream_emitted_ns_ = rclcpp::Time(frame.emitted_at).nanoseconds();
+    upstream_valid_ = true; last_evidence_received_ = std::chrono::steady_clock::now();
+    evidence_until_ = rclcpp::Time(source+static_cast<int64_t>(max_global_pose_age_sec_*1e9), RCL_ROS_TIME);
+    const auto ticket = session_fence_->ticket();
+    session_fence_->clock(now().nanoseconds());
+    if (!session_fence_->current(ticket)) {invalidateLocked(); return;}
+    acceptCorrection(poseToTransform(global.pose.pose), {source, poseToTransform(odom.pose.pose)}, global);
   }
 
   void handleUpstreamStatus(const rm_competition_interfaces::msg::LocalizationStatus & msg)
@@ -423,6 +483,8 @@ private:
     status.header.stamp = now();
     status.header.frame_id = map_frame_;
     status.producer_id = producer_id_;
+    status.session_id = session_id_;
+    status.session_epoch = session_epoch_;
     status.started_at = started_at_;
     status.sequence = ++sequence_;
     status.valid = value;
@@ -434,8 +496,8 @@ private:
   void publishCurrentTransform()
   {
     tf2::Transform transform;
+    std::lock_guard<std::mutex> lock(mutex_);
     {
-      std::lock_guard<std::mutex> lock(mutex_);
       checkValidityLocked();
       publishValid(valid_ && (!upstream_valid_required_ || upstream_valid_));
       if (!valid_ || (upstream_valid_required_ && !upstream_valid_)) {
@@ -445,7 +507,12 @@ private:
     }
 
     geometry_msgs::msg::TransformStamped message;
-    message.header.stamp = now();
+    if (session_transactions_) {
+      const auto source_ns = rclcpp::Time(accepted_pose_.header.stamp).nanoseconds();
+      if (source_ns <= last_session_tf_stamp_ns_) {return;}
+      last_session_tf_stamp_ns_ = source_ns;
+      message.header.stamp = accepted_pose_.header.stamp;
+    } else {message.header.stamp = now();}
     message.header.frame_id = map_frame_;
     message.child_frame_id = odom_frame_;
     message.transform = transformToMessage(transform);
@@ -455,6 +522,12 @@ private:
     }
   }
 
+  bool session_transactions_{false};
+  std::unique_ptr<rm_competition_interfaces::LocalizationSession> session_fence_;
+  rclcpp::Subscription<rm_competition_interfaces::msg::LocalizationFrame>::SharedPtr session_sub_;
+  std::string session_id_;
+  uint64_t session_epoch_{0};
+  int64_t last_session_tf_stamp_ns_{0};
   std::string producer_id_, upstream_id_;
   rclcpp::Time started_at_{0, 0, RCL_ROS_TIME}, evidence_until_{0, 0, RCL_ROS_TIME};
   int64_t recovery_after_ns_{0}, last_clock_ns_{0}, last_pose_ns_{0};
