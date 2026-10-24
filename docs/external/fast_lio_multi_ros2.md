@@ -9,6 +9,8 @@
 - First deterministic repair pin: `ae5bef29c89ba7a1004d75657db482bb277e603a`
 - Final-freeze pin before this exception: `69f1070328c431f4c7b8bd586eca074141da3aae`
 - AUD-059 local repair pin: `9aa8c79ef064eafe0fae1308888248be7efa1d2e`
+- AUD-052 repair pin: `8fb3296dba33b8924bd8e92c15df88e0a3e246dc`
+- Local fork: `https://github.com/qiheiouo/FAST_LIO_MULTI_ROS2.git`
 - AUD-059 local repair branch: `codex/aud059-invalid-imu-init-20261020`
 - License: GPL-2.0
 - ROS version: ROS2 Humble on Ubuntu 22.04 is documented by upstream.
@@ -53,6 +55,12 @@ can still initialize normally. The original valid-input state and covariance
 fixture remains numerically unchanged. The local commit is not pushed; recover
 it from this worktree or an explicitly exported bundle. Roll back the exception
 by restoring the final-freeze gitlink `69f1070328c431f4c7b8bd586eca074141da3aae`.
+AUD-052 changes only the three backward point traversals in shared ImuProcess:
+reverse cursors stop at rend, and the interval includes offset zero. Every covered
+point is compensated once. The ESKF, extrinsics and dual time origins are unchanged.
+The repair is committed locally; before main adoption publish this exact dependency
+commit to the configured fork. Roll back by restoring the AUD-059 gitlink. See the
+[focused regression evidence](../validation/confirmed_software_fixes_20261024.md#aud-052).
 Async/adaptive still contain the unselected AUD-046 measurement defect.
 
 The inspected upstream source publishes `/Odometry` with
