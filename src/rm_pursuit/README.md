@@ -31,3 +31,7 @@ The existing 0.3 s track budget is preserved, including a steady-clock bound.
 Republishing the same sample cannot renew it. A real radar-link producer is
 still absent. No serial format, new tracker or prediction model was added.
 See [Target Arbitration](../../docs/contracts/navigation_target_arbitration_2027.md).
+
+Malformed, expired and excessively future target stamps are ignored before
+updating the source watermark, so invalid input cannot crash the planner or
+block subsequent valid observations. Ignored input does not renew a lease.

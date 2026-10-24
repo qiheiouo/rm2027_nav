@@ -29,7 +29,8 @@ PCL GICP inside this package without changing its ROS contract.
 ### Generic single-bundle body cloud (AUD-061)
 
 Generic navigation requires the stable single bundle producer and selects
-`/lio/cloud_registered_body`, enabling only its body-cloud output. With
+`/lio/cloud_registered_body`, enabling its body-cloud output and the required upstream scan master flag.
+The backend also emits a raw-world cloud; GICP does not consume it. With
 `use_fast_lio_body_cloud=true`, this backend accepts private frame `body` only,
 interprets it as the inspected backend's IMU frame `lio_imu_link`, and transforms
 points using canonical TF at the source timestamp. No `body` TF is published.

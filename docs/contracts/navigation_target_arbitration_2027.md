@@ -54,6 +54,8 @@ SetMissionMode 释放，到达后保持；不会自动回旧 pursuit 或临时�
 Mission 独立检查 frame、有限值、单位四元数、来源、采样时间、deadline 和稳态时钟 lease；
 `input_timeout_sec=0.5 s` 是上限，不能延长 planner 的 0.3 s 源期限。
 同一采样时间重复出现不能刷新 Mission 或 planner 的稳态 lease；旧时间样本被忽略。
+时间字段先检查格式与采样年龄，再更新 watermark；非法或远未来输入不能终止 owner，
+也不能阻塞随后合法样本。被忽略的输入不续租已有候选。
 
 - **valid**：上述检查全部通过；才可参与仲裁。
 - **stale**：采样年龄、valid_until 或稳态 lease 过期，包括 planner 退出。

@@ -339,15 +339,20 @@ The default YAML remains the placeholder. Full-base alignment and calibration
 still require their existing hardware gates.
 
 The default Phase2A single bundle disables delayed zero-start rebasing and
-uses the existing first-source reference adapter. Generic GICP requires
+uses `lio_adapter_fast_lio_single_bundle.yaml` only for single bundle. Other
+methods and dual retain the old shared adapter config; explicit config overrides
+remain effective. Generic GICP requires
 `use_lio_backend:=true`, `sensor_mode:=single`, `update_method:=bundle`, and
 `gicp_input_cloud_topic:=/lio/cloud_registered_body`; it enables body-cloud
-publication and transforms through source-time canonical TF. Missing producer,
+publication and its upstream scan master flag, and transforms through source-time
+canonical TF. Upstream also emits its raw-world scan, which GICP never consumes.
+Both flags remain off outside this opt-in. Missing producer,
 dual/async and raw-world topics are rejected before starting nodes. Standalone
 GICP external-cloud and old-car profiles retain their existing boundaries.
 
 Generic navigation and the legacy Gazebo base now share the non-composed
-Humble velocity-routing wrapper. Controller/behavior feed `/cmd_vel_nav`;
+Humble velocity-routing wrapper in `rm_nav_config` (the bringup entry forwards
+there, avoiding a reverse simulation dependency). Controller/behavior feed `/cmd_vel_nav`;
 `velocity_smoother` is the sole final `/cmd_vel` publisher. No task policy,
 controller tuning, simulation world or disturbance model is changed.
 

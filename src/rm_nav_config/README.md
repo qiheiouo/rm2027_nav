@@ -106,3 +106,8 @@ Phase 1 constraints:
 
 `pb_omni_pid_pursuit_controller` remains a fallback comparison if the complete
 real-robot workload exceeds the accepted MPPI profile's CPU budget.
+
+The shared `nav2_velocity_routed.launch.py` keeps controller and behavior output
+on `/cmd_vel_nav`, with only the smoother publishing final `/cmd_vel`. Both
+bringup and simulation depend on this package; the bringup compatibility entry
+forwards here without introducing a reverse simulation-to-bringup dependency.

@@ -45,7 +45,11 @@ def generate_launch_description():
     default_lio_adapter_config = PathJoinSubstitution([
         FindPackageShare("rm_lio_bringup"),
         "config",
-        "lio_adapter_fast_lio_multi.yaml",
+        PythonExpression([
+            "'lio_adapter_fast_lio_single_bundle.yaml' if '", sensor_mode,
+            "' == 'single' and '", update_method,
+            "' == 'bundle' else 'lio_adapter_fast_lio_multi.yaml'",
+        ]),
     ])
     lio_adapter_config = LaunchConfiguration("lio_adapter_config")
     default_gimbal_state_adapter_config = PathJoinSubstitution([

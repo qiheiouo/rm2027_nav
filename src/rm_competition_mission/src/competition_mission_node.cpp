@@ -52,6 +52,11 @@ bool validMode(const std::string & mode)
          mode == "pursuit" || mode == "auto";
 }
 
+bool wellFormedTime(const builtin_interfaces::msg::Time & stamp)
+{
+  return stamp.sec >= 0 && stamp.nanosec < 1000000000U;
+}
+
 }  // namespace
 
 class CompetitionMissionNode : public rclcpp::Node
@@ -175,7 +180,13 @@ public:
     pursuit_sub_ = create_subscription<Candidate>(
       "/mission/pursuit_candidate", 10,
       [this](Candidate::SharedPtr message) {
+        if (!wellFormedTime(message->header.stamp) || !wellFormedTime(message->valid_until)) {
+          return;
+        }
         const auto stamp = rclcpp::Time(message->header.stamp);
+        const double age = (now() - stamp).seconds();
+        // Invalid/future input must not poison the increasing source watermark.
+        if (stamp.nanoseconds() <= 0 || age < -0.05 || age > input_timeout_sec_) {return;}
         if (stamp < rclcpp::Time(pursuit_candidate_.header.stamp)) {return;}
         if (stamp > rclcpp::Time(pursuit_candidate_.header.stamp)) {
           pursuit_received_at_ = std::chrono::steady_clock::now();
@@ -488,6 +499,7 @@ private:
     const builtin_interfaces::msg::Time & stamp,
     const std::chrono::steady_clock::time_point & received) const
   {
+    if (!wellFormedTime(stamp)) {return false;}
     const double age = (now() - rclcpp::Time(stamp)).seconds();
     return rclcpp::Time(stamp).nanoseconds() > 0 && age >= -0.05 &&
       age <= input_timeout_sec_ &&
@@ -502,6 +514,7 @@ private:
     const double norm = p.orientation.x * p.orientation.x + p.orientation.y * p.orientation.y +
       p.orientation.z * p.orientation.z + p.orientation.w * p.orientation.w;
     return c.valid && !c.track_id.empty() && c.header.frame_id == map_frame_ &&
+      (c.source == Candidate::SOURCE_RADAR || c.source == Candidate::SOURCE_RESEARCH) &&
       (!radar_only_ || c.source == Candidate::SOURCE_RADAR) &&
       inputFresh(c.header.stamp, pursuit_received_at_) &&
       rclcpp::Time(c.header.stamp) > pursuit_not_before_ &&

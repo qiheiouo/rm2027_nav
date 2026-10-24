@@ -106,3 +106,8 @@ the explicit-task nodes at the documented priority.
 
 See [mission contract](../../docs/contracts/minimal_competition_mission_2027.md)
 and [validation](../../docs/validation/minimal_competition_mission_20261024.md).
+
+Malformed candidate timestamps and deadlines are rejected before constructing
+ROS times. Future/outdated samples cannot advance the pursuit watermark; a
+subsequent valid sample can recover without restarting Mission. Malformed safety
+stamps close the safety gate. Existing candidate leases are never extended.

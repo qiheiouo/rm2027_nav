@@ -84,8 +84,15 @@ and `tests/final_dual_closure/README.md` for reproducible tests.
 ### Default single startup epoch (AUD-041)
 
 The default single bundle disables delayed `zero_start_pose`. Its matching
-`lio_adapter_fast_lio_multi.yaml` reuses `first_source_sample`: canonical odom
+`lio_adapter_fast_lio_single_bundle.yaml` reuses `first_source_sample`: canonical odom
 is base at the first accepted source-time sample, with the parent mapping
 frozen once. Restart backend and adapter together after an epoch fault. This
 is a coordinate convention, not measured world heading. Old-car/dual/custom
 profiles retain their own contracts; delayed-rebase profiles remain gated.
+
+Phase2A selects this reference config only for `sensor_mode=single` and
+`update_method=bundle`; dual/async/adaptive retain the previous shared adapter
+config. Explicit `lio_adapter_config` still wins. Requesting the body cloud also
+enables FAST-LIO's required `scan_publish_en` master flag, so upstream emits its
+raw-world cloud as well. That cloud is diagnostic only and is not canonical odom.
+With both scan flags off, publication remains disabled.

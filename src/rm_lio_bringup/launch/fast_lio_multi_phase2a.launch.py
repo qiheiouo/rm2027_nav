@@ -3,7 +3,7 @@ import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, LogInfo, OpaqueFunction
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
 
@@ -75,7 +75,11 @@ def _launch_setup(context, *args, **kwargs):
             LaunchConfiguration("scan_bodyframe_pub_en"), value_type=bool
         ),
         "publish.scan_publish_en": ParameterValue(
-            LaunchConfiguration("scan_publish_en"), value_type=bool
+            # Pinned FAST-LIO gates body publication on this master flag too.
+            PythonExpression([
+                "'", LaunchConfiguration("scan_publish_en"), "'.lower() in ['1','true','yes','on'] or '",
+                LaunchConfiguration("scan_bodyframe_pub_en"), "'.lower() in ['1','true','yes','on']",
+            ]), value_type=bool
         ),
     }
     if sensor_mode == "single":

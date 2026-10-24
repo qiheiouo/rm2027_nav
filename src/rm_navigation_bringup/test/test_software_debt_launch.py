@@ -102,7 +102,7 @@ def test_single_startup_reference_is_stable_across_40_samples(tmp_path):
     rows = []
     node.create_subscription(Odometry, "/odometry/lio", rows.append, 100)
     pub = node.create_publisher(Odometry, "/odometry/fast_lio_raw", 10)
-    config = ROOT / "src/rm_lio_bringup/config/lio_adapter_fast_lio_multi.yaml"
+    config = ROOT / "src/rm_lio_bringup/config/lio_adapter_fast_lio_single_bundle.yaml"
     with (tmp_path / "startup.log").open("w") as log:
         process = subprocess.Popen(["ros2", "run", "rm_localization_adapters", "lio_adapter",
             "--ros-args", "--params-file", str(config)], stdout=log, stderr=subprocess.STDOUT,
@@ -273,3 +273,77 @@ def test_nav2_behavior_and_controller_share_smoother_input(tmp_path):
             stop(process)
             node.destroy_node()
             rclpy.shutdown()
+
+
+def load_launch(relative):
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("review_launch", ROOT / relative)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+@pytest.mark.parametrize("body,world,expected", [
+    ("false", "false", False), ("false", "true", True), ("true", "false", True),
+])
+def test_fast_lio_body_request_enables_upstream_master_publish_gate(body, world, expected, monkeypatch):
+    from launch import LaunchContext
+    from launch_ros.utilities import evaluate_parameters, normalize_parameters
+    module = load_launch("src/rm_lio_bringup/launch/fast_lio_multi_phase2a.launch.py")
+    context = LaunchContext()
+    context.launch_configurations.update(
+        use_backend="true", sensor_mode="single", selected_side="left", update_method="bundle",
+        config_file="", use_sim_time="false", publish_tf_results="false",
+        scan_publish_en=world, scan_bodyframe_pub_en=body)
+    monkeypatch.setattr(module, "Node", lambda **kwargs: kwargs)
+    backend = module._launch_setup(context)[-1]
+    params = evaluate_parameters(context, normalize_parameters(backend["parameters"]))[1]
+    # Pinned backend 9aa8c79 gates publish_frame_body on BOTH booleans.
+    assert params["publish.scan_publish_en"] is expected
+    assert params["publish.scan_bodyframe_pub_en"] is (body == "true")
+
+
+@pytest.mark.parametrize("sensor,method,reference", [
+    ("single", "bundle", True), ("dual", "bundle", False),
+    ("single", "async", False), ("single", "adaptive", False),
+])
+def test_phase2a_reference_default_is_limited_to_single_bundle(sensor, method, reference):
+    import yaml
+    from launch import LaunchContext
+    from launch.actions import DeclareLaunchArgument
+    from launch.utilities import perform_substitutions
+    module = load_launch("src/rm_navigation_bringup/launch/phase2a_lio_bringup.launch.py")
+    context = LaunchContext()
+    context.launch_configurations.update(sensor_mode=sensor, update_method=method)
+    declaration = next(a for a in module.generate_launch_description().entities
+                       if isinstance(a, DeclareLaunchArgument) and a.name == "lio_adapter_config")
+    selected = Path(perform_substitutions(context, declaration.default_value))
+    config = yaml.safe_load(selected.read_text())["lio_adapter"]["ros__parameters"]
+    assert (config.get("sensor_initial_reference_mode") == "first_source_sample") is reference
+
+
+@pytest.mark.parametrize("filename", ["competition_2027_navigation.launch.py",
+                                      "old_car_2026_competition.launch.py",
+                                      "old_car_2026_three_point_spin_test.launch.py"])
+def test_disabled_competition_profiles_start_no_processes(filename, tmp_path):
+    from ament_index_python.packages import get_package_share_directory, PackageNotFoundError
+    index = tmp_path / "assets/share/ament_index/resource_index/packages"
+    index.mkdir(parents=True)
+    for package in (ROOT / "src").iterdir():
+        if not (package / "package.xml").is_file():
+            continue
+        try:
+            get_package_share_directory(package.name)
+        except PackageNotFoundError:
+            (index / package.name).touch()
+            (tmp_path / "assets/share" / package.name).symlink_to(package)
+    env = dict(os.environ, AMENT_PREFIX_PATH=str(tmp_path / "assets") + ":" + os.environ["AMENT_PREFIX_PATH"])
+    process = subprocess.Popen(["ros2", "launch", str(ROOT / "src/rm_navigation_bringup/launch" / filename)],
+                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+                               env=env, start_new_session=True)
+    try:
+        output, _ = process.communicate(timeout=10)
+        assert process.returncode == 0, output
+        assert "process started with pid" not in output, output
+    finally:
+        stop(process)

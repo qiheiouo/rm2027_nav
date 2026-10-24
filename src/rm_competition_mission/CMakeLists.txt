@@ -45,6 +45,8 @@ install(DIRECTORY config launch trees DESTINATION share/${PROJECT_NAME})
 
 if(BUILD_TESTING)
   find_package(ament_cmake_pytest REQUIRED)
+  ament_add_pytest_test(test_review_boundaries_runtime
+    test/test_review_boundaries_runtime.py TIMEOUT 90)
   ament_add_pytest_test(
     test_minimal_mission_runtime
     test/test_minimal_mission_runtime.py

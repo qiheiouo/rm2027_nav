@@ -198,10 +198,11 @@ The real install/clock/heading/covariance contract remains unaccepted; see
 
 ## Default single software epoch and GICP cloud (2026-10-24)
 
-The default Phase2A single bundle now selects the existing first-source
+Only the default Phase2A single bundle selects the existing first-source
 reference equation above and disables delayed zero-start rebasing. Destroy and
-restart backend/adapter together for a new epoch. Old-car/dual/custom profiles
-are not promoted by this change.
+restart backend/adapter together for a new epoch. The shared adapter config
+retains its previous mode for dual/async/adaptive and explicit custom selectors;
+their deployment limits remain unchanged.
 Generic GICP uses the backend's IMU-body cloud, not its raw-world registered
 cloud. The explicit backend-local `body` alias resolves to `lio_imu_link`; the
 source-time canonical `odom <- lio_imu_link` transform puts points in the same

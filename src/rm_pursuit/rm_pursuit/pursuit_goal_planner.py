@@ -112,7 +112,13 @@ class PursuitGoalPlanner(Node):
         )
 
     def _handle_track(self, message: TargetTrack) -> None:
+        stamp = message.header.stamp
+        if stamp.sec < 0 or stamp.nanosec >= 1_000_000_000:
+            return
         stamp_ns = rclpy.time.Time.from_msg(message.header.stamp).nanoseconds
+        age = (self.get_clock().now().nanoseconds - stamp_ns) * 1e-9
+        if stamp_ns <= 0 or age < -self._max_track_age_sec or age > self._max_track_age_sec:
+            return
         if self._latest_track is not None:
             previous = rclpy.time.Time.from_msg(self._latest_track.header.stamp).nanoseconds
             if stamp_ns < previous:

@@ -1,5 +1,8 @@
 # Software-only debt closure（2026-10-24）
 
+> 合入前请以 [独立 merge-readiness review](software_debt_merge_review_20261024.md) 为准。
+> 原 fed2cff 仍有集成阻塞，需同时采用 review 分支的边界修正。
+
 阶段 Integration；基于 main/origin-main d37f8d6；分支 codex/software-debt-closure-20261024。
 输入为 historical_debt_round2_20261024 最新未提交对账文件；不修改原工作区。
 不 merge main、不接设备、不修改比赛策略。034/044 上轮修复尚未 main 接受，本轮不重复处理。
