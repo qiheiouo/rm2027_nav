@@ -59,3 +59,13 @@ The old-car profile must not import the old `serial_task` node or restore old
 topic glue such as `/Pose_pub`, `/my_set_goal`, or `/nav_result`.
 
 新车软件入口`new_car_software.launch.py`默认零节点inventory；config/new_car_candidate_manifest.yaml是能力清单而非硬件参数。其余测试模式须显式enable_test，固定无设备。Humble与Jazzy S2分开使用，无硬件运行模式。见[合同](../../docs/contracts/new_car_software_20261012.md)、[复现](../../tests/new_car_integration/README.md)。
+
+### Generic/legacy simulation velocity routing (AUD-055)
+
+`navigation.launch.py` and the legacy `phase1_5_gazebo` simulation base use
+`nav2_velocity_routed.launch.py`. It reuses Humble's non-composed Nav2 launch
+with a node-qualified behavior remap: controller and behavior publish
+`/cmd_vel_nav`, velocity_smoother alone publishes final `/cmd_vel`. Smoother
+parameters, controller selection and competition task strategy are unchanged.
+Other entry points require their own routing evidence; the wrapper is scoped
+to the current non-namespaced, non-composed profiles.

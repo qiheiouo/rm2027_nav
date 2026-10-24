@@ -138,9 +138,9 @@ def generate_launch_description():
         "gimbal_state_adapter_config"
     )
     nav2_launch = PathJoinSubstitution([
-        FindPackageShare("nav2_bringup"),
+        FindPackageShare("rm_navigation_bringup"),
         "launch",
-        "navigation_launch.py",
+        "nav2_velocity_routed.launch.py",
     ])
     default_nav2_params = PathJoinSubstitution([
         FindPackageShare("rm_nav_config"),

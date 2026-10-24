@@ -1,17 +1,35 @@
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
+from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from launch.conditions import IfCondition
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+from launch_ros.parameter_descriptions import ParameterValue
+
+
+def _gimbal_node(context):
+    # An empty CLI value preserves the selected YAML; explicit CLI wins.
+    overrides = {"use_sim_time": ParameterValue(
+        LaunchConfiguration("use_sim_time"), value_type=bool)}
+    use_input = LaunchConfiguration("gimbal_use_input").perform(context).strip()
+    topic = LaunchConfiguration("gimbal_input_topic").perform(context).strip()
+    if use_input:
+        if use_input.lower() not in {"true", "false"}:
+            raise RuntimeError("gimbal_use_input must be empty, true or false")
+        overrides["use_input"] = use_input.lower() == "true"
+    if topic:
+        overrides["input_topic"] = topic
+    return [Node(
+        package="rm_localization_adapters", executable="gimbal_state_adapter",
+        name="gimbal_state_adapter", output="screen",
+        parameters=[LaunchConfiguration("gimbal_state_adapter_config"), overrides],
+    )]
 
 
 def generate_launch_description():
     use_sim_time = LaunchConfiguration("use_sim_time")
     use_map_odom_stub = LaunchConfiguration("use_map_odom_stub")
     raw_odom_topic = LaunchConfiguration("raw_odom_topic")
-    gimbal_use_input = LaunchConfiguration("gimbal_use_input")
-    gimbal_input_topic = LaunchConfiguration("gimbal_input_topic")
     default_lio_adapter_config = PathJoinSubstitution([
         FindPackageShare("rm_localization_adapters"),
         "config",
@@ -46,8 +64,8 @@ def generate_launch_description():
             "gimbal_state_adapter_config",
             default_value=default_gimbal_state_adapter_config,
         ),
-        DeclareLaunchArgument("gimbal_use_input", default_value="false"),
-        DeclareLaunchArgument("gimbal_input_topic", default_value="/gimbal/state"),
+        DeclareLaunchArgument("gimbal_use_input", default_value=""),
+        DeclareLaunchArgument("gimbal_input_topic", default_value=""),
         Node(
             condition=IfCondition(use_map_odom_stub),
             package="rm_localization_adapters",
@@ -69,20 +87,7 @@ def generate_launch_description():
                 },
             ],
         ),
-        Node(
-            package="rm_localization_adapters",
-            executable="gimbal_state_adapter",
-            name="gimbal_state_adapter",
-            output="screen",
-            parameters=[
-                gimbal_state_adapter_config,
-                {
-                    "use_sim_time": use_sim_time,
-                    "use_input": gimbal_use_input,
-                    "input_topic": gimbal_input_topic,
-                },
-            ],
-        ),
+        OpaqueFunction(function=_gimbal_node),
         Node(
             package="rm_localization_adapters",
             executable="imu_frame_adapter",

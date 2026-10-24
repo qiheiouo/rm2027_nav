@@ -80,3 +80,12 @@ remains disabled, backend TF publication remains off, and no additional TF
 owner or motion output is added. Restart backend and adapter together after
 an epoch fault. See `docs/new_car_stage_freeze_20261013.md` for scope/results
 and `tests/final_dual_closure/README.md` for reproducible tests.
+
+### Default single startup epoch (AUD-041)
+
+The default single bundle disables delayed `zero_start_pose`. Its matching
+`lio_adapter_fast_lio_multi.yaml` reuses `first_source_sample`: canonical odom
+is base at the first accepted source-time sample, with the parent mapping
+frozen once. Restart backend and adapter together after an epoch fault. This
+is a coordinate convention, not measured world heading. Old-car/dual/custom
+profiles retain their own contracts; delayed-rebase profiles remain gated.

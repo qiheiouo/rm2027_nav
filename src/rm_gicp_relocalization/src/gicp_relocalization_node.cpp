@@ -91,6 +91,7 @@ public:
       "valid_topic", "/localization/gicp_registration_valid");
     score_topic_ = declare_parameter<std::string>(
       "score_topic", "/localization/gicp_fitness_score");
+    use_fast_lio_body_cloud_ = declare_parameter<bool>("use_fast_lio_body_cloud", false);
     map_frame_ = declare_parameter<std::string>("map_frame", "map");
     odom_frame_ = declare_parameter<std::string>("odom_frame", "odom");
     base_frame_ = declare_parameter<std::string>("base_frame", "base_link");
@@ -256,12 +257,23 @@ private:
         get_logger(), *get_clock(), 2000, "Rejecting cloud with empty frame_id");
       return false;
     }
-    if (message.header.frame_id == odom_frame_) {
+    std::string source_frame = message.header.frame_id;
+    if (use_fast_lio_body_cloud_) {
+      if (source_frame != "body") {
+        RCLCPP_WARN_THROTTLE(
+          get_logger(), *get_clock(), 2000, "FAST-LIO body input requires private frame body");
+        return false;
+      }
+      // The inspected backend converts LiDAR points to its IMU state frame.
+      // Resolve that private alias through canonical source-time TF, never raw odom.
+      source_frame = "lio_imu_link";
+    }
+    if (source_frame == odom_frame_) {
       cloud_in_odom = std::move(raw_cloud);
     } else {
       try {
         const auto transform = tf_buffer_.lookupTransform(
-          odom_frame_, message.header.frame_id, message.header.stamp,
+          odom_frame_, source_frame, message.header.stamp,
           rclcpp::Duration::from_seconds(transform_timeout_sec_));
         const Eigen::Isometry3d odom_to_cloud = tf2::transformToEigen(transform.transform);
         pcl::transformPointCloud(
@@ -447,6 +459,7 @@ private:
   std::string raw_pose_topic_;
   std::string valid_topic_;
   std::string score_topic_;
+  bool use_fast_lio_body_cloud_{false};
   std::string map_frame_;
   std::string odom_frame_;
   std::string base_frame_;

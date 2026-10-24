@@ -13,7 +13,7 @@ from rm_competition_interfaces.msg import ChassisMode, LocalizationStatus, Syste
 from sensor_msgs.msg import LaserScan, PointCloud2
 from std_msgs.msg import Bool
 
-from .readiness import RequirementPolicy, evaluate_readiness
+from .readiness import RequirementPolicy, SourceLease, evaluate_readiness
 
 
 class ReadinessMonitor(Node):
@@ -53,7 +53,9 @@ class ReadinessMonitor(Node):
         ).value
         if self._obstacle_type not in ("pointcloud2", "laserscan"):
             raise ValueError("obstacle_type must be pointcloud2 or laserscan")
-        self._last_odom = None
+        if not math.isfinite(self._timeout_sec) or self._timeout_sec <= 0:
+            raise ValueError("data_timeout_sec must be positive")
+        self._odom_lease = SourceLease(self._timeout_sec)
         self._last_obstacle = None
         self._localization_valid = False
         self._localization_timeout = float(self.declare_parameter(
@@ -144,8 +146,12 @@ class ReadinessMonitor(Node):
             and (current - self._localization_emitted) * 1e-9 <= self._localization_timeout
             and time.monotonic() - self._localization_received <= self._localization_timeout)
 
-    def _on_odom(self, _message):
-        self._last_odom = self.get_clock().now()
+    def _on_odom(self, message):
+        stamp = message.header.stamp
+        source_ns = stamp.sec * 1_000_000_000 + stamp.nanosec
+        if stamp.sec < 0 or stamp.nanosec >= 1_000_000_000:
+            source_ns = 0
+        self._odom_lease.observe(source_ns, self.get_clock().now().nanoseconds, time.monotonic())
 
     def _on_obstacle(self, _message):
         self._last_obstacle = self.get_clock().now()
@@ -181,7 +187,7 @@ class ReadinessMonitor(Node):
 
     def _publish(self):
         available = set()
-        if self._fresh(self._last_odom):
+        if self._odom_lease.fresh(self.get_clock().now().nanoseconds, time.monotonic()):
             available.add("lio")
         if self._fresh(self._last_obstacle):
             available.add("obstacle_input")

@@ -35,3 +35,33 @@ def evaluate_readiness(
     ]
     missing = missing_navigation + missing_mission
     return not missing_navigation, not missing, missing
+
+
+class SourceLease:
+    """Require increasing source stamps and bounded ROS + steady ages."""
+
+    def __init__(self, timeout_sec):
+        self.timeout_ns = int(timeout_sec * 1_000_000_000)
+        self.source_ns = 0
+        self.received = None
+        self.last_clock_ns = 0
+
+    def _clock_valid(self, now_ns):
+        if now_ns < self.last_clock_ns:
+            self.received = None
+            return False
+        self.last_clock_ns = now_ns
+        return True
+
+    def observe(self, source_ns, now_ns, steady_now):
+        if (not self._clock_valid(now_ns) or source_ns <= self.source_ns
+                or source_ns <= 0 or not 0 <= now_ns - source_ns <= self.timeout_ns):
+            self.received = None
+            return False
+        self.source_ns, self.received = source_ns, steady_now
+        return True
+
+    def fresh(self, now_ns, steady_now):
+        return (self._clock_valid(now_ns) and self.received is not None
+                and 0 <= now_ns - self.source_ns <= self.timeout_ns
+                and 0 <= steady_now - self.received <= self.timeout_ns * 1e-9)

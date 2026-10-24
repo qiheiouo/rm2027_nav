@@ -195,3 +195,15 @@ epoch. A rollback blocks output; cached TF does not imply localization health.
 Owner remains lio_adapter for odom->base_link and RSP for mechanical transforms.
 The real install/clock/heading/covariance contract remains unaccepted; see
 [phase conclusion](../new_car_stage_freeze_20261013.md).
+
+## Default single software epoch and GICP cloud (2026-10-24)
+
+The default Phase2A single bundle now selects the existing first-source
+reference equation above and disables delayed zero-start rebasing. Destroy and
+restart backend/adapter together for a new epoch. Old-car/dual/custom profiles
+are not promoted by this change.
+Generic GICP uses the backend's IMU-body cloud, not its raw-world registered
+cloud. The explicit backend-local `body` alias resolves to `lio_imu_link`; the
+source-time canonical `odom <- lio_imu_link` transform puts points in the same
+odom as the canonical base pose. Missing TF drops the scan. TF owners are
+unchanged; no public `body` edge is introduced.

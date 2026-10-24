@@ -95,3 +95,13 @@ limits are checked before matching, so late odometry cannot reopen validity.
 An unconfigured standalone external-pose bridge has no producer heartbeat; each
 new pose provides only a finite 1.0 s lease. A one-shot Phase 2C fake pose now
 expires automatically. For AMCL/GICP use the selected backend status chain.
+
+### Full pose covariance legality (AUD-015)
+
+The common AMCL/GICP pose gate validates all 36 finite values of the ROS
+`[x,y,z,roll,pitch,yaw]` covariance as a symmetric positive-semidefinite 6x6
+matrix, allowing zero unobserved dimensions and rank-deficient valid matrices.
+Numerical symmetry/eigenvalue tolerance is `1e-10 * max(1, max(abs(C)))`.
+Existing x/y/yaw variance limits and pose/time/frame gates are unchanged. This
+checks mathematical legality; it does not calibrate sensor uncertainty or repair
+backend/canonical covariance propagation (AUD-012/013).

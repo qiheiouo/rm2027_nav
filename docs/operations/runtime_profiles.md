@@ -329,3 +329,24 @@ The two `*_source_reference` / `*_stable_epoch_pending` configs in rm_lio_bringu
 are opt-in software fixtures, not a combined hardware navigation profile.
 The existing dual experiment remains default-disabled. The published baseline
 and AUD-003 prohibition are unchanged; see [stage freeze](../new_car_stage_freeze_20261013.md).
+
+### Software debt closure: gimbal configuration
+
+Phase2A forwards optional `gimbal_use_input` and `gimbal_input_topic`. Omitted
+values preserve the selected gimbal YAML; explicit values override it. Derived
+YAML therefore selects the derived joint source without another CLI switch.
+The default YAML remains the placeholder. Full-base alignment and calibration
+still require their existing hardware gates.
+
+The default Phase2A single bundle disables delayed zero-start rebasing and
+uses the existing first-source reference adapter. Generic GICP requires
+`use_lio_backend:=true`, `sensor_mode:=single`, `update_method:=bundle`, and
+`gicp_input_cloud_topic:=/lio/cloud_registered_body`; it enables body-cloud
+publication and transforms through source-time canonical TF. Missing producer,
+dual/async and raw-world topics are rejected before starting nodes. Standalone
+GICP external-cloud and old-car profiles retain their existing boundaries.
+
+Generic navigation and the legacy Gazebo base now share the non-composed
+Humble velocity-routing wrapper. Controller/behavior feed `/cmd_vel_nav`;
+`velocity_smoother` is the sole final `/cmd_vel` publisher. No task policy,
+controller tuning, simulation world or disturbance model is changed.

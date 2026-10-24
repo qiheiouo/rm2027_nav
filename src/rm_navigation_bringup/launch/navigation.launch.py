@@ -38,6 +38,16 @@ def _validate_localization_backend(context, *args, **kwargs):
         raise RuntimeError(
             "a relocalization backend requires use_map_server:=true"
         )
+    if backend == "gicp_3d":
+        # This entry owns a single bundle producer and its exact-time IMU cloud.
+        # Raw world-registered clouds do not share the adapter's frozen parent.
+        if LaunchConfiguration("use_lio_backend").perform(context).lower() not in TRUE_VALUES:
+            raise RuntimeError("generic GICP requires use_lio_backend:=true body-cloud producer")
+        if (LaunchConfiguration("sensor_mode").perform(context) != "single"
+                or LaunchConfiguration("update_method").perform(context) != "bundle"):
+            raise RuntimeError("generic GICP supports only the stable single bundle profile")
+        if LaunchConfiguration("gicp_input_cloud_topic").perform(context) != "/lio/cloud_registered_body":
+            raise RuntimeError("generic GICP requires /lio/cloud_registered_body; raw world cloud is not canonical odom")
     return []
 
 
@@ -76,9 +86,9 @@ def generate_launch_description():
         "phase2c_relocalization_bringup.launch.py",
     ])
     nav2_launch = PathJoinSubstitution([
-        FindPackageShare("nav2_bringup"),
+        FindPackageShare("rm_navigation_bringup"),
         "launch",
-        "navigation_launch.py",
+        "nav2_velocity_routed.launch.py",
     ])
     map_deployment_launch = PathJoinSubstitution([
         FindPackageShare("rm_navigation_bringup"),
@@ -222,7 +232,7 @@ def generate_launch_description():
             "use_relocalization_pointcloud_projection", default_value="false"
         ),
         DeclareLaunchArgument(
-            "gicp_input_cloud_topic", default_value="/lio/cloud_registered"
+            "gicp_input_cloud_topic", default_value="/lio/cloud_registered_body"
         ),
         OpaqueFunction(function=_validate_localization_backend),
         LogInfo(msg=[
@@ -254,6 +264,7 @@ def generate_launch_description():
                 "use_driver": use_driver,
                 "use_lio_backend": use_lio_backend,
                 "update_method": update_method,
+                "scan_bodyframe_pub_en": gicp_3d_enabled,
                 "use_rviz": "false",
                 "use_sim_time": use_sim_time,
             }.items(),
@@ -297,6 +308,7 @@ def generate_launch_description():
                 "allow_test_map": allow_test_map,
                 "map_acceptance_policy": map_acceptance_policy,
                 "input_cloud_topic": gicp_input_cloud_topic,
+                "use_fast_lio_body_cloud": "true",
                 "use_sim_time": use_sim_time,
             }.items(),
         ),

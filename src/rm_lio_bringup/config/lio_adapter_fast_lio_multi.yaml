@@ -12,6 +12,9 @@ lio_adapter:
     use_latest_transform: false
     allow_placeholder_fallback: false
     pose_conversion_mode: sensor_tf
+    # Freeze the existing raw-parent mapping once at a source-time sample.
+    raw_odom_parent_frame_mode: sensor_initial
+    sensor_initial_reference_mode: first_source_sample
     # Exact timestamp lookup is non-blocking. Missing future transforms enter
     # the bounded queue below instead of falling back to latest TF.
     tf_lookup_timeout_sec: 0.0

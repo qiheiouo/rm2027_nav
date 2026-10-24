@@ -68,6 +68,9 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
+        DeclareLaunchArgument("gimbal_use_input", default_value=""),
+        DeclareLaunchArgument("gimbal_input_topic", default_value=""),
+        DeclareLaunchArgument("scan_bodyframe_pub_en", default_value="false"),
         DeclareLaunchArgument("sensor_mode", default_value="single"),
         DeclareLaunchArgument("selected_side", default_value="left"),
         DeclareLaunchArgument("use_driver", default_value="false"),
@@ -115,6 +118,7 @@ def generate_launch_description():
                 "sensor_mode": sensor_mode,
                 "selected_side": selected_side,
                 "update_method": update_method,
+                "scan_bodyframe_pub_en": LaunchConfiguration("scan_bodyframe_pub_en"),
                 "use_sim_time": use_sim_time,
             }.items(),
         ),
@@ -125,6 +129,8 @@ def generate_launch_description():
                 "raw_odom_topic": "/odometry/fast_lio_raw",
                 "lio_adapter_config": lio_adapter_config,
                 "gimbal_state_adapter_config": gimbal_state_adapter_config,
+                "gimbal_use_input": LaunchConfiguration("gimbal_use_input"),
+                "gimbal_input_topic": LaunchConfiguration("gimbal_input_topic"),
                 "use_map_odom_stub": use_map_odom_stub,
             }.items(),
         ),

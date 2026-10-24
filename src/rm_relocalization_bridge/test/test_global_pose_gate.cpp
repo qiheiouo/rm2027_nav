@@ -81,3 +81,43 @@ TEST(GlobalPoseGate, RejectsNonPlanarOrientation)
   message.pose.pose.orientation.w = std::cos(half_roll);
   EXPECT_FALSE(rm_relocalization_bridge::validateGlobalPose(message, kNow, {}));
 }
+
+TEST(GlobalPoseGate, RejectsAsymmetricFullCovariance)
+{
+  auto message = validPose();
+  message.pose.covariance[1] = 0.01;
+  EXPECT_FALSE(rm_relocalization_bridge::validateGlobalPose(message, kNow, {}));
+}
+
+TEST(GlobalPoseGate, RejectsIndefinitePositiveDiagonalCovariance)
+{
+  auto message = validPose();
+  message.pose.covariance[1] = message.pose.covariance[6] = 0.2;
+  EXPECT_FALSE(rm_relocalization_bridge::validateGlobalPose(message, kNow, {}));
+  // Every 2x2 principal block passes, but the 3x3 x/y/yaw block is indefinite.
+  message = validPose();
+  message.pose.covariance[35] = 0.1;
+  message.pose.covariance[1] = message.pose.covariance[6] = 0.08;
+  message.pose.covariance[5] = message.pose.covariance[30] = 0.08;
+  message.pose.covariance[11] = message.pose.covariance[31] = -0.08;
+  EXPECT_FALSE(rm_relocalization_bridge::validateGlobalPose(message, kNow, {}));
+}
+
+TEST(GlobalPoseGate, AcceptsCorrelatedAndRankDeficientCovariance)
+{
+  auto message = validPose();
+  message.pose.covariance[1] = message.pose.covariance[6] = 0.08;
+  EXPECT_TRUE(rm_relocalization_bridge::validateGlobalPose(message, kNow, {}));
+  message.pose.covariance[1] = message.pose.covariance[6] = 0.1;
+  EXPECT_TRUE(rm_relocalization_bridge::validateGlobalPose(message, kNow, {}));
+}
+
+TEST(GlobalPoseGate, ChecksUnobservedDimensionsToo)
+{
+  auto message = validPose();
+  message.pose.covariance[2] = message.pose.covariance[12] = 0.01;
+  EXPECT_FALSE(rm_relocalization_bridge::validateGlobalPose(message, kNow, {}));
+  message = validPose();
+  message.pose.covariance[14] = -0.1;
+  EXPECT_FALSE(rm_relocalization_bridge::validateGlobalPose(message, kNow, {}));
+}

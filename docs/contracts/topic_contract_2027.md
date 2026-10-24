@@ -32,7 +32,7 @@
 | `/localization/global_pose` | `geometry_msgs/msg/PoseWithCovarianceStamped` | selected global localization backend | `map_odom_from_global_pose` | Timestamped global robot pose with `frame_id=map`; backends must not publish canonical TF directly |
 | `/localization/map_to_odom` | `geometry_msgs/msg/TransformStamped` | `map_odom_from_global_pose` | diagnostics, validation | Inspectable copy of the accepted canonical correction; the same node owns dynamic `map -> odom` |
 | `/localization/global_localization_valid` | `std_msgs/msg/Bool` | `map_odom_from_global_pose` | diagnostics, future safety/mission layer | Diagnostic snapshot of bridge validity; Bool alone has no producer-liveness semantics |
-| `/cmd_vel` | `geometry_msgs/msg/Twist` | Nav2 | selected chassis/serial transport | Commanded chassis velocity in `base_link` |
+| `/cmd_vel` | `geometry_msgs/msg/Twist` | Nav2 velocity_smoother in routed profiles | selected chassis/serial transport | Commanded chassis velocity in `base_link` |
 | `/chassis/twist_raw` | `geometry_msgs/msg/TwistWithCovarianceStamped` | `rm_chassis_interface` | diagnostics, slip detection, future low-weight fusion | Chassis feedback velocity, not the main localization source |
 | `/chassis/wheel_states_raw` | `sensor_msgs/msg/JointState` | future `rm_chassis_interface` feedback path | chassis kinematics, diagnostics | Proposed four-wheel raw feedback topic; serial wire layout is not yet confirmed |
 | `/chassis/mode_raw` | `rm_competition_interfaces/msg/ChassisMode` | future lower-controller receive adapter | `chassis_mode_gate` | Untrusted timestamped authority candidate |
@@ -248,3 +248,17 @@ No new motion, serial or TF owner is introduced by this interface.
 ## 新车软件基线补充（2026-10-12）
 
 实际S2 controller/behavior→cmd_vel_nav→velocity_smoother→cmd_vel→模拟车，唯一最终publisher已在定向smoke核对。LocalizationStatus保持完整AUD-001接口；S2不把truth生成该状态。V2 codec测试单独运行，无Nav2/Goal→serial链或硬件授权。候选source、无mode来源和禁用功能见[合同](new_car_software_20261012.md)。
+
+## Software diagnostic and quality checks (2026-10-24)
+
+Readiness of `/odometry/lio` requires increasing source timestamps plus bounded
+ROS-source and steady-receipt ages; callback receipt alone is insufficient.
+The common global-pose gate requires a symmetric PSD full 6x6 pose covariance,
+including cross terms; zero unobserved dimensions remain legal. Existing
+variance thresholds do not change. These checks do not grant motion authority.
+Generic GICP explicitly selects `/lio/cloud_registered_body` under the private
+IMU-frame alias described in the TF contract; raw-world cloud is not canonical.
+
+Generic navigation and the legacy Gazebo base route controller and behavior to
+`/cmd_vel_nav`; only velocity_smoother publishes final `/cmd_vel`. This is scoped
+to the documented non-namespaced, non-composed Humble entries.

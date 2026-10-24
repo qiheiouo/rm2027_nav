@@ -33,7 +33,8 @@
       blind2: 1.0
 
     mapping:
-      zero_start_pose: true
+      # Keep one raw parent epoch for canonical odometry and body-cloud TF.
+      zero_start_pose: false
       zero_start_delay_scans: 40
       cube_side_length: 1000.0
       acc_cov: 0.15

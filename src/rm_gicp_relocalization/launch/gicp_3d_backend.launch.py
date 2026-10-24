@@ -70,6 +70,8 @@ def _launch_backend(context, *args, **kwargs):
                     "prior_pcd_file": bundle["pcd_path"],
                     "map_id": bundle["map_id"],
                     "input_cloud_topic": LaunchConfiguration("input_cloud_topic"),
+                    "use_fast_lio_body_cloud": ParameterValue(
+                        LaunchConfiguration("use_fast_lio_body_cloud"), value_type=bool),
                     "raw_pose_topic": raw_pose_topic,
                 },
             ],
@@ -98,6 +100,7 @@ def generate_launch_description():
         "gicp_3d.yaml",
     ])
     return LaunchDescription([
+        DeclareLaunchArgument("use_fast_lio_body_cloud", default_value="false"),
         DeclareLaunchArgument("enable_backend", default_value="false"),
         DeclareLaunchArgument("params_file", default_value=default_params),
         DeclareLaunchArgument("map_bundle_manifest", default_value=""),

@@ -9,6 +9,8 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(ament_cmake REQUIRED)
+find_package(eigen3_cmake_module REQUIRED)
+find_package(Eigen3 REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rm_competition_interfaces REQUIRED)
 find_package(nav_msgs REQUIRED)
@@ -53,6 +55,7 @@ target_include_directories(global_pose_gate PUBLIC
   $<INSTALL_INTERFACE:include>
 )
 ament_target_dependencies(global_pose_gate geometry_msgs)
+target_link_libraries(global_pose_gate Eigen3::Eigen)
 
 add_executable(global_pose_gate_node src/amcl_pose_gate_node.cpp)
 target_link_libraries(global_pose_gate_node global_pose_gate)

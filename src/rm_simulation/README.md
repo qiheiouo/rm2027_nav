@@ -141,3 +141,8 @@ motion model but enables the built-in PathAngle, Twirling, and PreferForward
 objectives so the base tends to face the local path while moving. The baseline
 remains the default for reproducible A/B runs. See
 `docs/chassis_heading_motion_policy.md` for the validation gate.
+
+Legacy `phase1_5_gazebo` now includes the bringup velocity-routing wrapper
+(AUD-055): behavior and controller share `/cmd_vel_nav`, and the smoother owns
+final `/cmd_vel`. No world, controller tuning or simulation disturbance model
+changes. This is software routing evidence, not physical stopping evidence.

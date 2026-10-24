@@ -71,6 +71,9 @@ def _launch_setup(context, *args, **kwargs):
         "common.publish_tf_results": ParameterValue(
             LaunchConfiguration("publish_tf_results"), value_type=bool
         ),
+        "publish.scan_bodyframe_pub_en": ParameterValue(
+            LaunchConfiguration("scan_bodyframe_pub_en"), value_type=bool
+        ),
         "publish.scan_publish_en": ParameterValue(
             LaunchConfiguration("scan_publish_en"), value_type=bool
         ),
@@ -131,5 +134,6 @@ def generate_launch_description():
                 "navigation and enable explicitly for managed mapping."
             ),
         ),
+        DeclareLaunchArgument("scan_bodyframe_pub_en", default_value="false"),
         OpaqueFunction(function=_launch_setup),
     ])

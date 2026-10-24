@@ -105,3 +105,12 @@ Odometry alone. Use a controlled single producer and destroy the old pipeline
 before restarting. This is a software geometry contract, not DDS identity,
 Full-base heading fusion or full pose-covariance transport. Opt-in parameters:
 `rm_lio_bringup/config/lio_adapter_dual_source_reference.yaml`.
+
+### Gimbal parameter precedence (AUD-060)
+
+`localization_adapters.launch.py` preserves `use_input` and `input_topic` from
+`gimbal_state_adapter_config`. Empty `gimbal_use_input` / `gimbal_input_topic`
+means inherit YAML; explicit CLI values override YAML. Phase2A forwards both
+arguments. The default YAML still selects the zero-yaw software placeholder;
+selecting the derived YAML subscribes to `/gimbal/state_derived`. This does not
+confirm heading-fusion alignment, mechanical calibration or hardware readiness.

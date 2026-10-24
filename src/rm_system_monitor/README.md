@@ -43,3 +43,13 @@ Evidence directories are never overwritten. Each run writes `report.json`,
 `checks.jsonl`, `versions.json`, `probe.log`, and, for observation runs,
 `topic_inventory.json` plus `tf_edges.json`. Exit code 2 means `STOP`; exit code
 0 may still mean `MODIFY` while listed manual checks or candidate gates remain.
+
+### Odometry source lease (AUD-014)
+
+LIO readiness requires a positive, increasing odometry source stamp, source age
+within `data_timeout_sec`, and a steady receipt lease of the same length. Old,
+future, duplicate or malformed samples cannot renew readiness. ROS-clock
+rollback revokes the lease; recovery requires the clock to regain its previous
+high water mark and a newer source sample. Paused ROS time cannot keep a dead
+producer ready. Obstacle/referee/chassis diagnostic inputs retain their existing
+contracts; readiness remains read-only and grants no motion authority.

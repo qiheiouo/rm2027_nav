@@ -6,6 +6,8 @@
 #include <cstdint>
 #include <string>
 
+#include <Eigen/Eigenvalues>
+
 namespace rm_relocalization_bridge
 {
 namespace
@@ -96,6 +98,26 @@ bool validateGlobalPose(
     }))
   {
     return reject(reason, "non-finite covariance");
+  }
+  // ROS PoseWithCovariance is the complete [x,y,z,roll,pitch,yaw] matrix.
+  // Zero unobserved dimensions are legal; arbitrary cross-covariance is not.
+  Eigen::Matrix<double, 6, 6> matrix;
+  for (int row = 0; row < 6; ++row) {
+    for (int col = 0; col < 6; ++col) {
+      matrix(row, col) = covariance[row * 6 + col];
+    }
+    if (matrix(row, row) < 0.0) {
+      return reject(reason, "negative covariance");
+    }
+  }
+  const double tolerance = 1.0e-10 * std::max(1.0, matrix.cwiseAbs().maxCoeff());
+  if ((matrix - matrix.transpose()).cwiseAbs().maxCoeff() > tolerance) {
+    return reject(reason, "asymmetric covariance");
+  }
+  const Eigen::SelfAdjointEigenSolver<Eigen::Matrix<double, 6, 6>> solver(
+    0.5 * (matrix + matrix.transpose()), Eigen::EigenvaluesOnly);
+  if (solver.info() != Eigen::Success || solver.eigenvalues().minCoeff() < -tolerance) {
+    return reject(reason, "non-PSD covariance");
   }
   const double variance_x = covariance[0];
   const double variance_y = covariance[7];
