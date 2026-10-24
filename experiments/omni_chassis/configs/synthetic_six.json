@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "name": "synthetic_six",
+  "parameter_status": "synthetic",
+  "source": "Invented redundant six-wheel layout with mixed drive signs; not the new car.",
+  "frame": "base_link",
+  "wheels": [
+    {"name": "a", "position_xy_m": [0.3, 0], "rolling_direction_xy": [0, 1], "radius_m": 0.05, "drive_per_wheel_ratio": 1, "drive_sign": 1, "speed_bounds_drive_rad_s": [-40, 40]},
+    {"name": "b", "position_xy_m": [0.15, 0.2598076211353316], "rolling_direction_xy": [-0.8660254037844386, 0.5], "radius_m": 0.05, "drive_per_wheel_ratio": 1, "drive_sign": -1, "speed_bounds_drive_rad_s": [-40, 40]},
+    {"name": "c", "position_xy_m": [-0.15, 0.2598076211353316], "rolling_direction_xy": [-0.8660254037844386, -0.5], "radius_m": 0.05, "drive_per_wheel_ratio": 1, "drive_sign": 1, "speed_bounds_drive_rad_s": [-40, 40]},
+    {"name": "d", "position_xy_m": [-0.3, 0], "rolling_direction_xy": [0, -1], "radius_m": 0.05, "drive_per_wheel_ratio": 1, "drive_sign": -1, "speed_bounds_drive_rad_s": [-40, 40]},
+    {"name": "e", "position_xy_m": [-0.15, -0.2598076211353316], "rolling_direction_xy": [0.8660254037844386, -0.5], "radius_m": 0.05, "drive_per_wheel_ratio": 1, "drive_sign": 1, "speed_bounds_drive_rad_s": [-40, 40]},
+    {"name": "f", "position_xy_m": [0.15, -0.2598076211353316], "rolling_direction_xy": [0.8660254037844386, 0.5], "radius_m": 0.05, "drive_per_wheel_ratio": 1, "drive_sign": -1, "speed_bounds_drive_rad_s": [-40, 40]}
+  ],
+  "study": {"velocity_scale": [2, 2, 4], "configured_box_lower": [-2, -2, -4], "configured_box_upper": [2, 2, 4]}
+}

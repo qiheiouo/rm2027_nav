@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "name": "synthetic_symmetric4",
+  "parameter_status": "synthetic",
+  "source": "Invented analytic fixture; no CAD or MCU identification claim.",
+  "frame": "base_link",
+  "wheels": [
+    {"name": "a", "position_xy_m": [0.25, 0.25], "rolling_direction_xy": [0.7071067811865476, -0.7071067811865476], "radius_m": 0.05, "drive_per_wheel_ratio": 1, "drive_sign": 1, "speed_bounds_drive_rad_s": [-40, 40]},
+    {"name": "b", "position_xy_m": [0.25, -0.25], "rolling_direction_xy": [0.7071067811865476, 0.7071067811865476], "radius_m": 0.05, "drive_per_wheel_ratio": 1, "drive_sign": 1, "speed_bounds_drive_rad_s": [-40, 40]},
+    {"name": "c", "position_xy_m": [-0.25, 0.25], "rolling_direction_xy": [0.7071067811865476, 0.7071067811865476], "radius_m": 0.05, "drive_per_wheel_ratio": 1, "drive_sign": 1, "speed_bounds_drive_rad_s": [-40, 40]},
+    {"name": "d", "position_xy_m": [-0.25, -0.25], "rolling_direction_xy": [0.7071067811865476, -0.7071067811865476], "radius_m": 0.05, "drive_per_wheel_ratio": 1, "drive_sign": 1, "speed_bounds_drive_rad_s": [-40, 40]}
+  ],
+  "study": {"velocity_scale": [2, 2, 4], "configured_box_lower": [-2, -2, -4], "configured_box_upper": [2, 2, 4]}
+}

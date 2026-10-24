@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "description": "Synthetic Research protocol; none of these ranges describes or identifies the new car.",
+  "comparison": {"seeds": [11, 23, 47], "samples_per_seed": 1000, "domain_expansion": 1.25, "scaled_metric_weights": [1, 1, 16], "boundary_directions": 64, "boundary_steps": [0.001, 0.000001, 0.000000001]},
+  "runtime": {"seed": 8001, "single_calls": 128, "repeats": 3, "batch_size": 64, "batch_repeats": 16},
+  "sensitivity": {"seed": 8101, "draws_per_family_level": 16, "directions": 256,
+    "levels": [
+      {"radius_relative": 0.01, "position_component_m": 0.001, "angle_rad": 0.008726646259971648, "speed_relative": 0.01},
+      {"radius_relative": 0.05, "position_component_m": 0.005, "angle_rad": 0.03490658503988659, "speed_relative": 0.05},
+      {"radius_relative": 0.10, "position_component_m": 0.010, "angle_rad": 0.08726646259971647, "speed_relative": 0.10}
+    ]},
+  "conditioning": {"exponents": [0, 2, 4, 6, 8, 9, 10, 12, 14], "normalized_drive_noise": 0.000001},
+  "regression": {"seeds": [101, 203, 307, 409, 503], "layouts_per_seed": 200, "commands_per_layout": 64, "oracle_every": 25, "oracle_commands": 4,
+    "ranges": {"wheel_count": [3, 8], "position_component_m": [-0.5, 0.5], "angle_rad": [-3.141592653589793, 3.141592653589793], "radius_m": [0.02, 0.12], "drive_per_wheel_ratio": [1, 30], "speed_capacity_drive_rad_s": [20, 1000]}},
+  "gates": {"projection_relative_violation": 0.00000001, "optimality_residual": 0.000001, "box_log_volume_dual_gap": 0.00001, "oracle_metric_distance": 0.00002, "regular_roundtrip_scaled": 0.00000001}
+}

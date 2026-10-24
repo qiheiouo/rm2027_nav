@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "name": "new_car_mcu_pending",
+  "parameter_status": "unconfirmed",
+  "source": "PENDING: firmware revision, mechanical measurement, wheel ID/order and speed-unit agreement.",
+  "frame": "base_link",
+  "wheels": [
+    {"name": "pending_1", "position_xy_m": [null, null], "rolling_direction_xy": [null, null], "radius_m": null, "drive_per_wheel_ratio": null, "drive_sign": null, "speed_bounds_drive_rad_s": [null, null]},
+    {"name": "pending_2", "position_xy_m": [null, null], "rolling_direction_xy": [null, null], "radius_m": null, "drive_per_wheel_ratio": null, "drive_sign": null, "speed_bounds_drive_rad_s": [null, null]},
+    {"name": "pending_3", "position_xy_m": [null, null], "rolling_direction_xy": [null, null], "radius_m": null, "drive_per_wheel_ratio": null, "drive_sign": null, "speed_bounds_drive_rad_s": [null, null]},
+    {"name": "pending_4", "position_xy_m": [null, null], "rolling_direction_xy": [null, null], "radius_m": null, "drive_per_wheel_ratio": null, "drive_sign": null, "speed_bounds_drive_rad_s": [null, null]}
+  ],
+  "study": {"velocity_scale": [1, 1, 1], "configured_box_lower": [null, null, null], "configured_box_upper": [null, null, null]}
+}

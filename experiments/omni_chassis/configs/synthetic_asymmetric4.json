@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "name": "synthetic_asymmetric4",
+  "parameter_status": "synthetic",
+  "source": "Invented unequal positions, directions, radii, gearing, signs and asymmetric drive limits.",
+  "frame": "base_link",
+  "wheels": [
+    {"name": "left_front", "position_xy_m": [0.23, 0.20], "rolling_direction_xy": [0.8, -0.6], "radius_m": 0.055, "drive_per_wheel_ratio": 12, "drive_sign": -1, "speed_bounds_drive_rad_s": [-500, 440]},
+    {"name": "right_front", "position_xy_m": [0.28, -0.24], "rolling_direction_xy": [0.6, 0.8], "radius_m": 0.060, "drive_per_wheel_ratio": 15, "drive_sign": 1, "speed_bounds_drive_rad_s": [-460, 520]},
+    {"name": "left_rear", "position_xy_m": [-0.21, 0.26], "rolling_direction_xy": [0.8, 0.6], "radius_m": 0.052, "drive_per_wheel_ratio": 9, "drive_sign": -1, "speed_bounds_drive_rad_s": [-350, 330]},
+    {"name": "right_rear", "position_xy_m": [-0.27, -0.19], "rolling_direction_xy": [0.6, -0.8], "radius_m": 0.058, "drive_per_wheel_ratio": 16, "drive_sign": 1, "speed_bounds_drive_rad_s": [-600, 580]}
+  ],
+  "study": {"velocity_scale": [2, 2, 4], "configured_box_lower": [-2, -2, -4], "configured_box_upper": [2, 2, 4]}
+}

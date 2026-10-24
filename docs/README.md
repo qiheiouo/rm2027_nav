@@ -90,6 +90,7 @@ docs/
 
 ## 研究与证据入口
 
+- [参数化全向底盘运动学与可行域 harness](research/omni_chassis_kinematics.md)：FROZEN_WAIT_CHASSIS_PARAMETERS，独立 Research 工具；合成验证不代表新车标定或正式控制器。
 - [动态预测与避障完整研究结论](dynamic_navigation/dynamic_obstacle_prediction_full_history_20261004.md)：R1 至 Temporal MPC 的冻结边界。
 - [critic 观察直径实验](dynamic_obstacle_critic/observation_diameter_consumption_experiment.md)与[冻结验证](dynamic_obstacle_critic/validation.md)：保留失败、未知和默认关闭边界。
 - [NEU 定位/控制二次审计](research/neu_localization_controller_second_audit_20261007.md)、[开源路线调研](research/open_source_research_2027.md)：调研与计划，不是实现或部署接受。

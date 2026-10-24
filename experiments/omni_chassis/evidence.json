@@ -1,0 +1,1230 @@
+{
+  "schema_version": 1,
+  "research_only": true,
+  "hardware_validated": false,
+  "environment": {
+    "python": "3.12.3",
+    "numpy": "1.26.4",
+    "scipy": "1.11.4",
+    "base_revision": "d37f8d6e5ebe53533b7fc62aca8bb84392bee31b",
+    "dirty": true
+  },
+  "experiments": [
+    {
+      "name": "synthetic_asymmetric4",
+      "parameter_status": "synthetic",
+      "gates": {
+        "independent_kinematics": true,
+        "roundtrip": true,
+        "wheel_polytope_agreement": true,
+        "radial_clip": true,
+        "boundaries": true,
+        "inner_box": true
+      },
+      "passed": true,
+      "volume": 68.00397515594756,
+      "vertex_count": 12,
+      "scaled_condition": 1.1419662816763907,
+      "inner_scale": 0.3600782778864971,
+      "monte_carlo": {
+        "samples_per_seed": 20000,
+        "seeds": [
+          11,
+          23,
+          47,
+          71,
+          101
+        ],
+        "total": 100000,
+        "distribution": "uniform in common enclosing box",
+        "domain_lower": [
+          -2.735791893796121,
+          -2.4816718733995695,
+          -5.621137628461197
+        ],
+        "domain_upper": [
+          2.9437223303401727,
+          2.6736769777049396,
+          5.760396394550855
+        ],
+        "feasible": {
+          "count": 20464,
+          "total": 100000,
+          "fraction": 0.20464,
+          "wilson95": [
+            0.2021508773758759,
+            0.20715181401798916
+          ]
+        },
+        "wheel_polytope_disagreements": 0,
+        "max_reference_error_normalized": 1.0931426704001542e-15,
+        "max_roundtrip_error_scaled": 1.3322676295501878e-15,
+        "max_radial_clip_violation_relative": 6.661338147750939e-16,
+        "boxes": {
+          "configured": {
+            "box": {
+              "lower": [
+                -2.0,
+                -2.0,
+                -4.0
+              ],
+              "upper": [
+                2.0,
+                2.0,
+                4.0
+              ],
+              "volume": 128.0
+            },
+            "volume_over_polytope": 1.8822429086898056,
+            "max_corner_wheel_utilization": 2.3217391304347825,
+            "false_accept": {
+              "count": 19955,
+              "total": 38565,
+              "fraction": 0.5174380915337742,
+              "wilson95": [
+                0.512449398686978,
+                0.5224233107107372
+              ]
+            },
+            "false_reject": {
+              "count": 1854,
+              "total": 20464,
+              "fraction": 0.09059812353401095,
+              "wilson95": [
+                0.08674188382342413,
+                0.09460803850661534
+              ]
+            }
+          },
+          "pure_axis": {
+            "box": {
+              "lower": [
+                -2.383333333333333,
+                -2.3000000000000003,
+                -5.0
+              ],
+              "upper": [
+                2.5277777777777777,
+                2.5999999999999996,
+                5.652173913043478
+              ],
+              "volume": 256.3386473429951
+            },
+            "volume_over_polytope": 3.769465634253823,
+            "max_corner_wheel_utilization": 2.777173913043478,
+            "false_accept": {
+              "count": 56657,
+              "total": 76996,
+              "fraction": 0.7358434204374253,
+              "wilson95": [
+                0.7327175748909941,
+                0.7389457339149438
+              ]
+            },
+            "false_reject": {
+              "count": 125,
+              "total": 20464,
+              "fraction": 0.0061082877247849885,
+              "wilson95": [
+                0.005129530654744563,
+                0.007272434610200374
+              ]
+            }
+          },
+          "homothetic_inner": {
+            "box": {
+              "lower": [
+                -0.8581865622961512,
+                -0.8281800391389434,
+                -1.8003913894324854
+              ],
+              "upper": [
+                0.9101978691019788,
+                0.9362035225048924,
+                2.035225048923679
+              ],
+              "volume": 11.96753915067408
+            },
+            "volume_over_polytope": 0.17598293516268676,
+            "max_corner_wheel_utilization": 1.0000000000000002,
+            "false_accept": {
+              "count": 0,
+              "total": 3632,
+              "fraction": 0.0,
+              "wilson95": [
+                0.0,
+                0.0010565528954444906
+              ]
+            },
+            "false_reject": {
+              "count": 16832,
+              "total": 20464,
+              "fraction": 0.8225175918686474,
+              "wilson95": [
+                0.8172223661807299,
+                0.8276917556409149
+              ]
+            }
+          }
+        },
+        "per_seed": [
+          {
+            "seed": 11,
+            "feasible": 4124,
+            "boxes": {
+              "configured": {
+                "accepted": 7705,
+                "false_accept": 3949,
+                "false_reject": 368,
+                "false_accept_fraction": 0.5125243348475016,
+                "false_reject_fraction": 0.0892337536372454
+              },
+              "pure_axis": {
+                "accepted": 15390,
+                "false_accept": 11303,
+                "false_reject": 37,
+                "false_accept_fraction": 0.7344379467186485,
+                "false_reject_fraction": 0.008971871968962172
+              },
+              "homothetic_inner": {
+                "accepted": 715,
+                "false_accept": 0,
+                "false_reject": 3409,
+                "false_accept_fraction": 0.0,
+                "false_reject_fraction": 0.8266246362754607
+              }
+            }
+          },
+          {
+            "seed": 23,
+            "feasible": 4037,
+            "boxes": {
+              "configured": {
+                "accepted": 7745,
+                "false_accept": 4067,
+                "false_reject": 359,
+                "false_accept_fraction": 0.5251129761136217,
+                "false_reject_fraction": 0.08892742135248947
+              },
+              "pure_axis": {
+                "accepted": 15421,
+                "false_accept": 11402,
+                "false_reject": 18,
+                "false_accept_fraction": 0.7393813630763245,
+                "false_reject_fraction": 0.004458756502353232
+              },
+              "homothetic_inner": {
+                "accepted": 734,
+                "false_accept": 0,
+                "false_reject": 3303,
+                "false_accept_fraction": 0.0,
+                "false_reject_fraction": 0.8181818181818182
+              }
+            }
+          },
+          {
+            "seed": 47,
+            "feasible": 4152,
+            "boxes": {
+              "configured": {
+                "accepted": 7717,
+                "false_accept": 3938,
+                "false_reject": 373,
+                "false_accept_fraction": 0.5103019308021252,
+                "false_reject_fraction": 0.08983622350674374
+              },
+              "pure_axis": {
+                "accepted": 15392,
+                "false_accept": 11262,
+                "false_reject": 22,
+                "false_accept_fraction": 0.7316787941787942,
+                "false_reject_fraction": 0.0052986512524084775
+              },
+              "homothetic_inner": {
+                "accepted": 735,
+                "false_accept": 0,
+                "false_reject": 3417,
+                "false_accept_fraction": 0.0,
+                "false_reject_fraction": 0.8229768786127167
+              }
+            }
+          },
+          {
+            "seed": 71,
+            "feasible": 4106,
+            "boxes": {
+              "configured": {
+                "accepted": 7778,
+                "false_accept": 4037,
+                "false_reject": 365,
+                "false_accept_fraction": 0.5190280277706352,
+                "false_reject_fraction": 0.08889430102289332
+              },
+              "pure_axis": {
+                "accepted": 15409,
+                "false_accept": 11322,
+                "false_reject": 19,
+                "false_accept_fraction": 0.7347653968459991,
+                "false_reject_fraction": 0.004627374573794447
+              },
+              "homothetic_inner": {
+                "accepted": 754,
+                "false_accept": 0,
+                "false_reject": 3352,
+                "false_accept_fraction": 0.0,
+                "false_reject_fraction": 0.8163662932294203
+              }
+            }
+          },
+          {
+            "seed": 101,
+            "feasible": 4045,
+            "boxes": {
+              "configured": {
+                "accepted": 7620,
+                "false_accept": 3964,
+                "false_reject": 389,
+                "false_accept_fraction": 0.5202099737532808,
+                "false_reject_fraction": 0.096168108776267
+              },
+              "pure_axis": {
+                "accepted": 15384,
+                "false_accept": 11368,
+                "false_reject": 29,
+                "false_accept_fraction": 0.7389495579823193,
+                "false_reject_fraction": 0.007169344870210136
+              },
+              "homothetic_inner": {
+                "accepted": 694,
+                "false_accept": 0,
+                "false_reject": 3351,
+                "false_accept_fraction": 0.0,
+                "false_reject_fraction": 0.8284301606922126
+              }
+            }
+          }
+        ]
+      },
+      "boundary": {
+        "count": 2066,
+        "max_boundary_residual": 4.372570681600617e-16,
+        "max_vertex_violation": 2.583791766400364e-16,
+        "inward_rejected": 0,
+        "outward_accepted": 0,
+        "inner_box_corners_rejected": 0
+      }
+    },
+    {
+      "name": "synthetic_six",
+      "parameter_status": "synthetic",
+      "gates": {
+        "independent_kinematics": true,
+        "roundtrip": true,
+        "wheel_polytope_agreement": true,
+        "radial_clip": true,
+        "boundaries": true,
+        "inner_box": true
+      },
+      "passed": true,
+      "volume": 61.584028713560095,
+      "vertex_count": 8,
+      "scaled_condition": 1.1785113019775793,
+      "inner_scale": 0.4,
+      "monte_carlo": {
+        "samples_per_seed": 20000,
+        "seeds": [
+          11,
+          23,
+          47,
+          71,
+          101
+        ],
+        "total": 100000,
+        "distribution": "uniform in common enclosing box",
+        "domain_lower": [
+          -2.3094010767585034,
+          -2.0,
+          -6.666666666666666
+        ],
+        "domain_upper": [
+          2.3094010767585034,
+          2.0,
+          6.666666666666666
+        ],
+        "feasible": {
+          "count": 25191,
+          "total": 100000,
+          "fraction": 0.25191,
+          "wilson95": [
+            0.24922897349524728,
+            0.2546100863229543
+          ]
+        },
+        "wheel_polytope_disagreements": 0,
+        "max_reference_error_normalized": 7.105427357601002e-16,
+        "max_roundtrip_error_scaled": 8.881784197001252e-16,
+        "max_radial_clip_violation_relative": 4.440892098500626e-16,
+        "boxes": {
+          "configured": {
+            "box": {
+              "lower": [
+                -2.0,
+                -2.0,
+                -4.0
+              ],
+              "upper": [
+                2.0,
+                2.0,
+                4.0
+              ],
+              "volume": 128.0
+            },
+            "volume_over_polytope": 2.078460969082652,
+            "max_corner_wheel_utilization": 1.9660254037844382,
+            "false_accept": {
+              "count": 28429,
+              "total": 51971,
+              "fraction": 0.5470166054145581,
+              "wilson95": [
+                0.5427336302915952,
+                0.5512926305460052
+              ]
+            },
+            "false_reject": {
+              "count": 1649,
+              "total": 25191,
+              "fraction": 0.06545988646738915,
+              "wilson95": [
+                0.062471353048552176,
+                0.06858092859478883
+              ]
+            }
+          },
+          "pure_axis": {
+            "box": {
+              "lower": [
+                -2.3094010767585034,
+                -2.0,
+                -6.666666666666667
+              ],
+              "upper": [
+                2.3094010767585034,
+                2.0,
+                6.666666666666667
+              ],
+              "volume": 246.33611485424038
+            },
+            "volume_over_polytope": 4.0,
+            "max_corner_wheel_utilization": 2.5000000000000004,
+            "false_accept": {
+              "count": 74809,
+              "total": 100000,
+              "fraction": 0.74809,
+              "wilson95": [
+                0.7453899136770458,
+                0.7507710265047528
+              ]
+            },
+            "false_reject": {
+              "count": 0,
+              "total": 25191,
+              "fraction": 0.0,
+              "wilson95": [
+                0.0,
+                0.00015247005332312712
+              ]
+            }
+          },
+          "homothetic_inner": {
+            "box": {
+              "lower": [
+                -0.9237604307034014,
+                -0.8,
+                -2.666666666666667
+              ],
+              "upper": [
+                0.9237604307034014,
+                0.8,
+                2.666666666666667
+              ],
+              "volume": 15.765511350671385
+            },
+            "volume_over_polytope": 0.256,
+            "max_corner_wheel_utilization": 1.0,
+            "false_accept": {
+              "count": 0,
+              "total": 6414,
+              "fraction": 0.0,
+              "wilson95": [
+                0.0,
+                0.0005985593201923705
+              ]
+            },
+            "false_reject": {
+              "count": 18777,
+              "total": 25191,
+              "fraction": 0.7453852566392759,
+              "wilson95": [
+                0.7399684289296606,
+                0.7507272565425622
+              ]
+            }
+          }
+        },
+        "per_seed": [
+          {
+            "seed": 11,
+            "feasible": 5047,
+            "boxes": {
+              "configured": {
+                "accepted": 10464,
+                "false_accept": 5750,
+                "false_reject": 333,
+                "false_accept_fraction": 0.5495030581039755,
+                "false_reject_fraction": 0.06597978997424213
+              },
+              "pure_axis": {
+                "accepted": 20000,
+                "false_accept": 14953,
+                "false_reject": 0,
+                "false_accept_fraction": 0.74765,
+                "false_reject_fraction": 0.0
+              },
+              "homothetic_inner": {
+                "accepted": 1251,
+                "false_accept": 0,
+                "false_reject": 3796,
+                "false_accept_fraction": 0.0,
+                "false_reject_fraction": 0.7521299782048742
+              }
+            }
+          },
+          {
+            "seed": 23,
+            "feasible": 4967,
+            "boxes": {
+              "configured": {
+                "accepted": 10494,
+                "false_accept": 5836,
+                "false_reject": 309,
+                "false_accept_fraction": 0.556127310844292,
+                "false_reject_fraction": 0.062210589893295754
+              },
+              "pure_axis": {
+                "accepted": 20000,
+                "false_accept": 15033,
+                "false_reject": 0,
+                "false_accept_fraction": 0.75165,
+                "false_reject_fraction": 0.0
+              },
+              "homothetic_inner": {
+                "accepted": 1288,
+                "false_accept": 0,
+                "false_reject": 3679,
+                "false_accept_fraction": 0.0,
+                "false_reject_fraction": 0.7406885443929938
+              }
+            }
+          },
+          {
+            "seed": 47,
+            "feasible": 5123,
+            "boxes": {
+              "configured": {
+                "accepted": 10366,
+                "false_accept": 5573,
+                "false_reject": 330,
+                "false_accept_fraction": 0.537622998263554,
+                "false_reject_fraction": 0.06441538161233652
+              },
+              "pure_axis": {
+                "accepted": 20000,
+                "false_accept": 14877,
+                "false_reject": 0,
+                "false_accept_fraction": 0.74385,
+                "false_reject_fraction": 0.0
+              },
+              "homothetic_inner": {
+                "accepted": 1329,
+                "false_accept": 0,
+                "false_reject": 3794,
+                "false_accept_fraction": 0.0,
+                "false_reject_fraction": 0.740581690415772
+              }
+            }
+          },
+          {
+            "seed": 71,
+            "feasible": 5064,
+            "boxes": {
+              "configured": {
+                "accepted": 10384,
+                "false_accept": 5661,
+                "false_reject": 341,
+                "false_accept_fraction": 0.5451656394453005,
+                "false_reject_fraction": 0.06733807266982622
+              },
+              "pure_axis": {
+                "accepted": 20000,
+                "false_accept": 14936,
+                "false_reject": 0,
+                "false_accept_fraction": 0.7468,
+                "false_reject_fraction": 0.0
+              },
+              "homothetic_inner": {
+                "accepted": 1325,
+                "false_accept": 0,
+                "false_reject": 3739,
+                "false_accept_fraction": 0.0,
+                "false_reject_fraction": 0.738349131121643
+              }
+            }
+          },
+          {
+            "seed": 101,
+            "feasible": 4990,
+            "boxes": {
+              "configured": {
+                "accepted": 10263,
+                "false_accept": 5609,
+                "false_reject": 336,
+                "false_accept_fraction": 0.5465263568157459,
+                "false_reject_fraction": 0.06733466933867735
+              },
+              "pure_axis": {
+                "accepted": 20000,
+                "false_accept": 15010,
+                "false_reject": 0,
+                "false_accept_fraction": 0.7505,
+                "false_reject_fraction": 0.0
+              },
+              "homothetic_inner": {
+                "accepted": 1221,
+                "false_accept": 0,
+                "false_reject": 3769,
+                "false_accept_fraction": 0.0,
+                "false_reject_fraction": 0.7553106212424849
+              }
+            }
+          }
+        ]
+      },
+      "boundary": {
+        "count": 2062,
+        "max_boundary_residual": 5.329070518200751e-16,
+        "max_vertex_violation": -0.0,
+        "inward_rejected": 0,
+        "outward_accepted": 0,
+        "inner_box_corners_rejected": 0
+      }
+    },
+    {
+      "name": "synthetic_symmetric4",
+      "parameter_status": "synthetic",
+      "gates": {
+        "independent_kinematics": true,
+        "roundtrip": true,
+        "wheel_polytope_agreement": true,
+        "radial_clip": true,
+        "boundaries": true,
+        "inner_box": true
+      },
+      "passed": true,
+      "volume": 60.339778661252055,
+      "vertex_count": 6,
+      "scaled_condition": 1.0000000000000002,
+      "inner_scale": 0.3333333333333333,
+      "monte_carlo": {
+        "samples_per_seed": 20000,
+        "seeds": [
+          11,
+          23,
+          47,
+          71,
+          101
+        ],
+        "total": 100000,
+        "distribution": "uniform in common enclosing box",
+        "domain_lower": [
+          -2.82842712474619,
+          -2.82842712474619,
+          -5.65685424949238
+        ],
+        "domain_upper": [
+          2.82842712474619,
+          2.82842712474619,
+          5.65685424949238
+        ],
+        "feasible": {
+          "count": 16750,
+          "total": 100000,
+          "fraction": 0.1675,
+          "wilson95": [
+            0.16519833255710262,
+            0.1698272121627651
+          ]
+        },
+        "wheel_polytope_disagreements": 0,
+        "max_reference_error_normalized": 1.0658141036401502e-15,
+        "max_roundtrip_error_scaled": 8.881784197001252e-16,
+        "max_radial_clip_violation_relative": 4.440892098500626e-16,
+        "boxes": {
+          "configured": {
+            "box": {
+              "lower": [
+                -2.0,
+                -2.0,
+                -4.0
+              ],
+              "upper": [
+                2.0,
+                2.0,
+                4.0
+              ],
+              "volume": 128.0
+            },
+            "volume_over_polytope": 2.1213203435596424,
+            "max_corner_wheel_utilization": 2.121320343559643,
+            "false_accept": {
+              "count": 19891,
+              "total": 35325,
+              "fraction": 0.5630856334041048,
+              "wilson95": [
+                0.5579066470559914,
+                0.5682509006007889
+              ]
+            },
+            "false_reject": {
+              "count": 1316,
+              "total": 16750,
+              "fraction": 0.07856716417910448,
+              "wilson95": [
+                0.07458843933524999,
+                0.08273914820933402
+              ]
+            }
+          },
+          "pure_axis": {
+            "box": {
+              "lower": [
+                -2.82842712474619,
+                -2.82842712474619,
+                -5.65685424949238
+              ],
+              "upper": [
+                2.82842712474619,
+                2.82842712474619,
+                5.65685424949238
+              ],
+              "volume": 362.03867196751224
+            },
+            "volume_over_polytope": 5.999999999999998,
+            "max_corner_wheel_utilization": 3.0,
+            "false_accept": {
+              "count": 83250,
+              "total": 100000,
+              "fraction": 0.8325,
+              "wilson95": [
+                0.830172787837235,
+                0.8348016674428974
+              ]
+            },
+            "false_reject": {
+              "count": 0,
+              "total": 16750,
+              "fraction": 0.0,
+              "wilson95": [
+                0.0,
+                0.0002292882399619249
+              ]
+            }
+          },
+          "homothetic_inner": {
+            "box": {
+              "lower": [
+                -0.9428090415820632,
+                -0.9428090415820632,
+                -1.8856180831641265
+              ],
+              "upper": [
+                0.9428090415820632,
+                0.9428090415820632,
+                1.8856180831641265
+              ],
+              "volume": 13.408839702500451
+            },
+            "volume_over_polytope": 0.22222222222222213,
+            "max_corner_wheel_utilization": 1.0,
+            "false_accept": {
+              "count": 0,
+              "total": 3711,
+              "fraction": 0.0,
+              "wilson95": [
+                0.0,
+                0.0010340841899383847
+              ]
+            },
+            "false_reject": {
+              "count": 13039,
+              "total": 16750,
+              "fraction": 0.7784477611940298,
+              "wilson95": [
+                0.7720951410522331,
+                0.7846726917416554
+              ]
+            }
+          }
+        },
+        "per_seed": [
+          {
+            "seed": 11,
+            "feasible": 3305,
+            "boxes": {
+              "configured": {
+                "accepted": 7042,
+                "false_accept": 4005,
+                "false_reject": 268,
+                "false_accept_fraction": 0.5687304742970747,
+                "false_reject_fraction": 0.081089258698941
+              },
+              "pure_axis": {
+                "accepted": 20000,
+                "false_accept": 16695,
+                "false_reject": 0,
+                "false_accept_fraction": 0.83475,
+                "false_reject_fraction": 0.0
+              },
+              "homothetic_inner": {
+                "accepted": 729,
+                "false_accept": 0,
+                "false_reject": 2576,
+                "false_accept_fraction": 0.0,
+                "false_reject_fraction": 0.7794251134644478
+              }
+            }
+          },
+          {
+            "seed": 23,
+            "feasible": 3331,
+            "boxes": {
+              "configured": {
+                "accepted": 7068,
+                "false_accept": 3983,
+                "false_reject": 246,
+                "false_accept_fraction": 0.5635257498585172,
+                "false_reject_fraction": 0.07385169618733113
+              },
+              "pure_axis": {
+                "accepted": 20000,
+                "false_accept": 16669,
+                "false_reject": 0,
+                "false_accept_fraction": 0.83345,
+                "false_reject_fraction": 0.0
+              },
+              "homothetic_inner": {
+                "accepted": 744,
+                "false_accept": 0,
+                "false_reject": 2587,
+                "false_accept_fraction": 0.0,
+                "false_reject_fraction": 0.7766436505553888
+              }
+            }
+          },
+          {
+            "seed": 47,
+            "feasible": 3427,
+            "boxes": {
+              "configured": {
+                "accepted": 7110,
+                "false_accept": 3945,
+                "false_reject": 262,
+                "false_accept_fraction": 0.5548523206751055,
+                "false_reject_fraction": 0.07645170703238985
+              },
+              "pure_axis": {
+                "accepted": 20000,
+                "false_accept": 16573,
+                "false_reject": 0,
+                "false_accept_fraction": 0.82865,
+                "false_reject_fraction": 0.0
+              },
+              "homothetic_inner": {
+                "accepted": 763,
+                "false_accept": 0,
+                "false_reject": 2664,
+                "false_accept_fraction": 0.0,
+                "false_reject_fraction": 0.7773562882988037
+              }
+            }
+          },
+          {
+            "seed": 71,
+            "feasible": 3394,
+            "boxes": {
+              "configured": {
+                "accepted": 7116,
+                "false_accept": 3989,
+                "false_reject": 267,
+                "false_accept_fraction": 0.5605677346824058,
+                "false_reject_fraction": 0.07866823806717738
+              },
+              "pure_axis": {
+                "accepted": 20000,
+                "false_accept": 16606,
+                "false_reject": 0,
+                "false_accept_fraction": 0.8303,
+                "false_reject_fraction": 0.0
+              },
+              "homothetic_inner": {
+                "accepted": 760,
+                "false_accept": 0,
+                "false_reject": 2634,
+                "false_accept_fraction": 0.0,
+                "false_reject_fraction": 0.7760754272245138
+              }
+            }
+          },
+          {
+            "seed": 101,
+            "feasible": 3293,
+            "boxes": {
+              "configured": {
+                "accepted": 6989,
+                "false_accept": 3969,
+                "false_reject": 273,
+                "false_accept_fraction": 0.5678924023465446,
+                "false_reject_fraction": 0.08290312784694807
+              },
+              "pure_axis": {
+                "accepted": 20000,
+                "false_accept": 16707,
+                "false_reject": 0,
+                "false_accept_fraction": 0.83535,
+                "false_reject_fraction": 0.0
+              },
+              "homothetic_inner": {
+                "accepted": 715,
+                "false_accept": 0,
+                "false_reject": 2578,
+                "false_accept_fraction": 0.0,
+                "false_reject_fraction": 0.7828727604008503
+              }
+            }
+          }
+        ]
+      },
+      "boundary": {
+        "count": 2060,
+        "max_boundary_residual": 3.552713678800501e-16,
+        "max_vertex_violation": -0.0,
+        "inward_rejected": 0,
+        "outward_accepted": 0,
+        "inner_box_corners_rejected": 0
+      }
+    },
+    {
+      "name": "synthetic_three",
+      "parameter_status": "synthetic",
+      "gates": {
+        "independent_kinematics": true,
+        "roundtrip": true,
+        "wheel_polytope_agreement": true,
+        "radial_clip": true,
+        "boundaries": true,
+        "inner_box": true
+      },
+      "passed": true,
+      "volume": 47.30006230365922,
+      "vertex_count": 8,
+      "scaled_condition": 1.2438500062368338,
+      "inner_scale": 0.4125,
+      "monte_carlo": {
+        "samples_per_seed": 20000,
+        "seeds": [
+          11,
+          23,
+          47,
+          71,
+          101
+        ],
+        "total": 100000,
+        "distribution": "uniform in common enclosing box",
+        "domain_lower": [
+          -2.0,
+          -2.233333333333334,
+          -5.555555555555556
+        ],
+        "domain_upper": [
+          2.0,
+          2.1333333333333333,
+          5.555555555555556
+        ],
+        "feasible": {
+          "count": 24486,
+          "total": 100000,
+          "fraction": 0.24486,
+          "wilson95": [
+            0.2422046894471217,
+            0.24753491199596717
+          ]
+        },
+        "wheel_polytope_disagreements": 0,
+        "max_reference_error_normalized": 7.105427357601002e-16,
+        "max_roundtrip_error_scaled": 8.881784197001252e-16,
+        "max_radial_clip_violation_relative": 4.440892098500626e-16,
+        "boxes": {
+          "configured": {
+            "box": {
+              "lower": [
+                -2.0,
+                -2.0,
+                -4.0
+              ],
+              "upper": [
+                2.0,
+                2.0,
+                4.0
+              ],
+              "volume": 128.0
+            },
+            "volume_over_polytope": 2.706127513707264,
+            "max_corner_wheel_utilization": 2.383061095496289,
+            "false_accept": {
+              "count": 42312,
+              "total": 66178,
+              "fraction": 0.639366556861797,
+              "wilson95": [
+                0.6357000969685351,
+                0.6430168379701424
+              ]
+            },
+            "false_reject": {
+              "count": 620,
+              "total": 24486,
+              "fraction": 0.025320591358327208,
+              "wilson95": [
+                0.023426103807043942,
+                0.02736399464713328
+              ]
+            }
+          },
+          "pure_axis": {
+            "box": {
+              "lower": [
+                -1.9629909152447276,
+                -1.6,
+                -5.333333333333333
+              ],
+              "upper": [
+                1.905255888325765,
+                1.5,
+                5.0
+              ],
+              "volume": 123.91283927437478
+            },
+            "volume_over_polytope": 2.619718309859153,
+            "max_corner_wheel_utilization": 2.4242424242424243,
+            "false_accept": {
+              "count": 40268,
+              "total": 63936,
+              "fraction": 0.6298173173173173,
+              "wilson95": [
+                0.6260668732510478,
+                0.6335521627249942
+              ]
+            },
+            "false_reject": {
+              "count": 818,
+              "total": 24486,
+              "fraction": 0.033406844727599444,
+              "wilson95": [
+                0.031228263213920228,
+                0.03573180517109007
+              ]
+            }
+          },
+          "homothetic_inner": {
+            "box": {
+              "lower": [
+                -0.80973375253845,
+                -0.66,
+                -2.1999999999999997
+              ],
+              "upper": [
+                0.7859180539343781,
+                0.6187499999999999,
+                2.0625
+              ],
+              "volume": 8.697374423834386
+            },
+            "volume_over_polytope": 0.18387659551056323,
+            "max_corner_wheel_utilization": 1.0,
+            "false_accept": {
+              "count": 0,
+              "total": 4495,
+              "fraction": 0.0,
+              "wilson95": [
+                0.0,
+                0.0008538773495034669
+              ]
+            },
+            "false_reject": {
+              "count": 19991,
+              "total": 24486,
+              "fraction": 0.8164257126521277,
+              "wilson95": [
+                0.8115271907036853,
+                0.8212249659836618
+              ]
+            }
+          }
+        },
+        "per_seed": [
+          {
+            "seed": 11,
+            "feasible": 4991,
+            "boxes": {
+              "configured": {
+                "accepted": 13230,
+                "false_accept": 8371,
+                "false_reject": 132,
+                "false_accept_fraction": 0.6327286470143613,
+                "false_reject_fraction": 0.026447605690242435
+              },
+              "pure_axis": {
+                "accepted": 12756,
+                "false_accept": 7952,
+                "false_reject": 187,
+                "false_accept_fraction": 0.623392913138915,
+                "false_reject_fraction": 0.037467441394510116
+              },
+              "homothetic_inner": {
+                "accepted": 882,
+                "false_accept": 0,
+                "false_reject": 4109,
+                "false_accept_fraction": 0.0,
+                "false_reject_fraction": 0.82328190743338
+              }
+            }
+          },
+          {
+            "seed": 23,
+            "feasible": 4857,
+            "boxes": {
+              "configured": {
+                "accepted": 13298,
+                "false_accept": 8557,
+                "false_reject": 116,
+                "false_accept_fraction": 0.6434802225898631,
+                "false_reject_fraction": 0.02388305538398188
+              },
+              "pure_axis": {
+                "accepted": 12796,
+                "false_accept": 8108,
+                "false_reject": 169,
+                "false_accept_fraction": 0.6336355110972178,
+                "false_reject_fraction": 0.03479514103355981
+              },
+              "homothetic_inner": {
+                "accepted": 902,
+                "false_accept": 0,
+                "false_reject": 3955,
+                "false_accept_fraction": 0.0,
+                "false_reject_fraction": 0.8142886555486926
+              }
+            }
+          },
+          {
+            "seed": 47,
+            "feasible": 4943,
+            "boxes": {
+              "configured": {
+                "accepted": 13260,
+                "false_accept": 8438,
+                "false_reject": 121,
+                "false_accept_fraction": 0.6363499245852187,
+                "false_reject_fraction": 0.024479061298806393
+              },
+              "pure_axis": {
+                "accepted": 12834,
+                "false_accept": 8039,
+                "false_reject": 148,
+                "false_accept_fraction": 0.6263830450366215,
+                "false_reject_fraction": 0.029941331175399554
+              },
+              "homothetic_inner": {
+                "accepted": 907,
+                "false_accept": 0,
+                "false_reject": 4036,
+                "false_accept_fraction": 0.0,
+                "false_reject_fraction": 0.8165081934048148
+              }
+            }
+          },
+          {
+            "seed": 71,
+            "feasible": 4884,
+            "boxes": {
+              "configured": {
+                "accepted": 13234,
+                "false_accept": 8477,
+                "false_reject": 127,
+                "false_accept_fraction": 0.6405470757140698,
+                "false_reject_fraction": 0.026003276003276003
+              },
+              "pure_axis": {
+                "accepted": 12718,
+                "false_accept": 7990,
+                "false_reject": 156,
+                "false_accept_fraction": 0.6282434345022803,
+                "false_reject_fraction": 0.03194103194103194
+              },
+              "homothetic_inner": {
+                "accepted": 925,
+                "false_accept": 0,
+                "false_reject": 3959,
+                "false_accept_fraction": 0.0,
+                "false_reject_fraction": 0.8106060606060606
+              }
+            }
+          },
+          {
+            "seed": 101,
+            "feasible": 4811,
+            "boxes": {
+              "configured": {
+                "accepted": 13156,
+                "false_accept": 8469,
+                "false_reject": 124,
+                "false_accept_fraction": 0.6437366980845242,
+                "false_reject_fraction": 0.025774267304094784
+              },
+              "pure_axis": {
+                "accepted": 12832,
+                "false_accept": 8179,
+                "false_reject": 158,
+                "false_accept_fraction": 0.637390897755611,
+                "false_reject_fraction": 0.03284140511328206
+              },
+              "homothetic_inner": {
+                "accepted": 879,
+                "false_accept": 0,
+                "false_reject": 3932,
+                "false_accept_fraction": 0.0,
+                "false_reject_fraction": 0.81729370193307
+              }
+            }
+          }
+        ]
+      },
+      "boundary": {
+        "count": 2062,
+        "max_boundary_residual": 3.789561257387201e-16,
+        "max_vertex_violation": 4.736951571734001e-16,
+        "inward_rejected": 0,
+        "outward_accepted": 0,
+        "inner_box_corners_rejected": 0
+      }
+    }
+  ]
+}
