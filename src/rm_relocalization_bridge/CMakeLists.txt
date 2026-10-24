@@ -109,6 +109,9 @@ if(BUILD_TESTING)
     test/test_spin_candidate_profiles.py
     APPEND_ENV "RM_RELOCALIZATION_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}"
   )
+  ament_add_pytest_test(test_producer_exit_runtime
+    test/test_producer_exit_runtime.py TIMEOUT 35)
+  set_tests_properties(test_producer_exit_runtime PROPERTIES RUN_SERIAL TRUE)
 endif()
 
 ament_package()

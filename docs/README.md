@@ -104,3 +104,5 @@ docs/
 
 - [2026-10-24 software-only debt closure](validation/software_debt_closure_20261024.md)：
   当前main/候选依赖、限定AUD整改、仲裁先于最小Mission的实际验收与未闭合门。
+- [Needs-Evidence Closure Campaign](validation/needs_evidence_closure_20261024.md)：
+  7项历史证据重新裁决、定向软件诊断与61项状态重计；不等于缺陷全部修复。
