@@ -101,3 +101,6 @@ docs/
 仍有效的地图合同、建图/重定位/比赛操作、任务结构已迁到 Current 目录，无需以 Phase 文件名找当前规则。
 选择性迁移未携带的代码、图和原始数据仍需从旧仓固定 SHA 或外部证据 manifest 恢复；
 历史计划中的恢复动作、期限和验证矩阵不自动授权今天执行。
+
+- [Z-Localization / ZLIO upstream parity audit 与完整迁移矩阵](zlocalization_upstream_parity_20261024.md)：
+  独立 Integration 分支的软件补齐、排除项及新车 bag 合入门槛；不是 Hardware Go。

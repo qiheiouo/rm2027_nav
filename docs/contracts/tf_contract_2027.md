@@ -201,3 +201,11 @@ epoch. A rollback blocks output; cached TF does not imply localization health.
 Owner remains lio_adapter for odom->base_link and RSP for mechanical transforms.
 The real install/clock/heading/covariance contract remains unaccepted; see
 [phase conclusion](../new_car_stage_freeze_20261013.md).
+
+### ZLIO parity 分支补充（2026-10-24）
+
+显式原生候选保持原 canonical owner；`zlio_odom` 仅是原生私有 sensor-initial basis。
+shadow 没有 canonical owner，上游 map→zlio_odom 只进入私有 TF quarantine。
+原生换代在 canonical 边界锁定，完整组重启前不继续发布可信 correction；shadow reset
+不具有重置 canonical/full-base reference 的权限。详见
+[增量接口合同](../zlocalization_interface_contract_20261023.md#2026-10-24-parity-分支增量合同)。

@@ -157,3 +157,32 @@ IMU identity，绝不代表 base_link。若使用 A 路自定义 SC 参数，也
 这已超过“只增加一个启动文件即可等价接入”的范围，本轮只记录，不实现 native adapter、
 新状态机或 reset wrapper。将来同一原始 bag/独立 prior、外参、时钟、动态几何和评价口径
 就绪后，分别完整重启 A/B 做受限验证；本轮没有精度比较或任何 ZLIO 优越性结论。
+
+## 2026-10-24 parity 分支增量合同
+
+以上 future-entry / freeze 文字描述 10-23 基线；本分支的实际增量以
+[parity audit](zlocalization_upstream_parity_20261024.md)和 package README 为准。
+两个入口新增 `enabled=false`，默认无节点。`frontend=legacy` 保留原接线；
+`frontend=zlio` 使用 `/zlocalization/frontend/{frame,session}` 原子消息，
+private parent=`zlio_odom`、sensor=`lio_imu_link`。同步原生输入通过
+`/zlocalization/zlio_raw` 交给唯一的既有 canonical owner；无 IMU twist→base 的重命名。
+原生协方差在 atomic/upstream 输出保留；交给现 canonical owner 的 pose covariance
+标记 missing，避免把未变换的 sensor-initial covariance 当 canonical 信息。
+
+原生 instance/epoch/sequence、reset_required、failed 在 canonical 边界 fail closed；
+任何换代需要整组重启。native shadow 的原生协调 reset 可完整运行，但它不管理 canonical
+startup/home reference。legacy/backend/pose/cloud 的可见 publisher 更换同样锁定。
+同步 pose patch 扩为 legacy/native；canonical 模式均不接独立 prediction，避免版本混配。
+
+`zlio_shadow.launch.py` 不含任何 canonical adapter/bridge。所有原生输出和服务位于
+`/zlocalization/shadow`，前端不发布 TF，后端 TF 仅进该前缀的 `_quarantine`。
+不增加任何公共 TF、Nav2 或 command owner。
+
+新增只读 `/zlocalization[/shadow]/diagnostics` 为 `diagnostic_msgs/DiagnosticArray`，
+包括上游五态、epoch/generation/revision、故障计数/原因、源年龄与 RM adapter 快照。
+它使用 steady-time 观测输入失联，旧心跳不能刷新源证据。正式 localization consumer 仍用
+既有 LocalizationStatus，不消费诊断 marker/String/Bool 作为运动许可。
+
+loop、descriptor、世界云、显示输出均由显式 launch 参数选择，默认保持旧配置；
+loop 只允许 mapping。UWB 和旧机器人兼容输出强制关闭，sensor body transform 强制
+IMU identity；任何 overlay 不能改变这些 owner 边界。真实动态机械 TF 仍为前置条件。

@@ -81,3 +81,9 @@ Laptop tested 明确区分构建、接口 smoke 和真实算法效果；本机�
 production code/config/launch，没有增加子模块 patch。完成最低验证后状态为
 **FROZEN_WAIT_HARDWARE_DATA**，新车/真实数据到来前不继续扩展。DO NOT MERGE。
 后续冻结提交与当前隔离分支的 push 按用户授权执行，不改变上述能力与验证结论。
+
+## 后续 parity audit
+
+本页是冻结基础迁移的历史能力表。2026-10-24 用户明确授权在独立分支继续 upstream
+parity audit 和安全软件补齐；详见[完整迁移矩阵](zlocalization_upstream_parity_20261024.md)。
+本分支新增原生入口、软件 gates 和诊断，不改变本页原始硬件/数据验证结论，也不合并 main。

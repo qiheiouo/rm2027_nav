@@ -12,6 +12,7 @@ import numpy as np
 import rclpy
 from geometry_msgs.msg import PoseWithCovarianceStamped
 from nav_msgs.msg import Odometry
+from localization_interfaces.msg import FrontendFrame, FrontendSession
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, DurabilityPolicy, qos_profile_sensor_data
 from rclpy.time import Time
@@ -36,6 +37,11 @@ def pose_matrix(pose):
 class CandidateAdapter(Node):
     def __init__(self):
         super().__init__('zlocalization_adapter')
+        self.frontend = self.declare_parameter('frontend', 'legacy').value
+        if self.frontend not in ('legacy', 'zlio'):
+            raise ValueError('frontend must be legacy or zlio')
+        self.native_identity = None
+        self.native_sequence = 0
         self.sensor = self.declare_parameter('sensor_frame', 'lio_imu_link').value
         self.raw_frame = self.declare_parameter('raw_frame', 'odom').value
         self.raw_child = self.declare_parameter('raw_child', 'body').value
@@ -55,21 +61,32 @@ class CandidateAdapter(Node):
         self.listener = TransformListener(self.tf, self)
         self.odom_pub = self.create_publisher(Odometry, '/zlocalization/fastlio_odom', 50)
         self.cloud_pub = self.create_publisher(PointCloud2, '/zlocalization/cloud_registered', 10)
+        self.native_raw_pub = self.create_publisher(Odometry, '/zlocalization/zlio_raw', 50)
         self.status_pub = self.create_publisher(
             LocalizationStatus, '/localization/zlocalization_backend_valid/status', 1)
         self.subscriptions_owned = [
-            self.create_subscription(Odometry, '/odometry/fast_lio_raw', self.raw, qos_profile_sensor_data),
-            self.create_subscription(PointCloud2, '/lio/cloud_registered', self.cloud, qos_profile_sensor_data),
             self.create_subscription(PoseWithCovarianceStamped, '/zlocalization/sensor_pose', self.pose, 20),
             self.create_subscription(String, '/zlocalization/state', self.state,
                 QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL)),
         ]
+        if self.frontend == 'legacy':
+            self.subscriptions_owned.extend([
+                self.create_subscription(Odometry, '/odometry/fast_lio_raw', self.raw, qos_profile_sensor_data),
+                self.create_subscription(PointCloud2, '/lio/cloud_registered', self.cloud, qos_profile_sensor_data),
+            ])
+        else:
+            self.subscriptions_owned.extend([
+                self.create_subscription(FrontendFrame, '/zlocalization/frontend/frame', self.native_frame, 50),
+                self.create_subscription(FrontendSession, '/zlocalization/frontend/session', self.native_session,
+                    QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL)),
+            ])
         self.reset_service = self.create_service(Trigger, '/zlocalization/invalidate', self.invalidate)
         self.timer = self.create_timer(.05, self.tick)
 
     def block(self, reason):
         if not self.blocked:
-            self.get_logger().error(reason + '; restart FAST-LIO, canonical adapter and candidate together')
+            frontend_name = 'ZLIO' if self.frontend == 'zlio' else 'FAST-LIO'
+            self.get_logger().error(reason + '; restart ' + frontend_name + ', canonical adapter and candidate together')
         self.blocked = True
         self.trusted = False
         self.states.clear()
@@ -111,8 +128,50 @@ class CandidateAdapter(Node):
         output.pose.covariance = [0.] * 36
         self.odom_pub.publish(output)
 
+    def native_session(self, message):
+        if not self.observe_publisher('ZLIO session', '/zlocalization/frontend/session'):
+            return
+        identity = (message.instance_id, message.epoch)
+        if message.failed or message.reset_required:
+            self.block('ZLIO failed or requested a coordinated reset')
+        elif self.native_identity is not None and identity != self.native_identity:
+            self.block('ZLIO instance/epoch changed; canonical startup reference must restart')
+        elif message.instance_id:
+            self.native_identity = identity
+
+    def native_frame(self, message):
+        if self.blocked or self.native_identity is None:
+            return
+        if not self.observe_publisher('ZLIO frames', '/zlocalization/frontend/frame'):
+            return
+        if (message.instance_id, message.epoch) != self.native_identity:
+            self.block('ZLIO observation crossed the canonical session boundary')
+            return
+        odom = message.odometry
+        ns = stamp_ns(odom.header.stamp)
+        if (message.sequence <= self.native_sequence or ns <= self.last_raw_ns):
+            self.block('ZLIO observation sequence or source time did not increase')
+            return
+        if (odom.header.frame_id != self.raw_frame or odom.child_frame_id != self.sensor or
+                message.cloud.header.frame_id != self.sensor or
+                message.cloud.header.stamp != odom.header.stamp):
+            self.block('ZLIO atomic frame geometry or timestamp mismatch')
+            return
+        self.native_sequence = message.sequence
+        self.last_raw_ns = ns
+        # Preserve model covariance on the original atomic/native outputs.
+        # The existing canonical adapter does not propagate pose covariance
+        # through its startup basis and moving lever arm. Mark that separate
+        # canonical input covariance missing rather than relabeling it.
+        output = copy.deepcopy(odom)
+        output.pose.covariance = [0.] * 36
+        # IMU-frame twist is not chassis twist; lio_adapter derives the latter.
+        self.native_raw_pub.publish(output)
+
     def cloud(self, message):
         if self.blocked:
+            return
+        if not self.observe_publisher('FAST-LIO cloud', '/lio/cloud_registered'):
             return
         if message.header.frame_id != self.raw_frame:
             self.block('registered cloud is not in the raw odometry basis')
@@ -125,22 +184,30 @@ class CandidateAdapter(Node):
         if not self.observe_publisher('Z-Localization', '/zlocalization/state'):
             return
         fields = dict(item.split('=', 1) for item in message.data.split(';') if '=' in item)
-        if int(fields.get('epoch', '0')) != 0:
+        try:
+            epoch = int(fields['epoch'])
+            ns = int(fields['stamp_ns'])
+        except (KeyError, ValueError):
+            self.block('malformed backend state')
+            return
+        if epoch != 0:
             self.block('backend reset epoch changed without a FAST-LIO reset protocol')
             return
-        self.trusted = fields.get('pose_trusted') == 'true'
+        self.trusted = (fields.get('pose_trusted') == 'true' and
+                        fields.get('status') in ('NORMAL', 'OBS_DEGRADED'))
         if not self.trusted:
             self.states.clear()
             self.poses.clear()
             self.last_pose = PoseWithCovarianceStamped()
             self.publish_status()
             return
-        ns = int(fields.get('stamp_ns', '0'))
         if ns > 0 and fields.get('tf_published') == 'true':
             self.states[ns] = fields
             self.drain()
 
     def pose(self, message):
+        if not self.observe_publisher('Z-Localization pose', '/zlocalization/sensor_pose'):
+            return
         if not self.blocked and message.header.frame_id == 'map':
             self.poses[stamp_ns(message.header.stamp)] = message
             self.drain()
@@ -186,6 +253,7 @@ class CandidateAdapter(Node):
         ns = stamp_ns(self.last_pose.header.stamp)
         deadline = ns + int(self.lease * 1.e9)
         valid = (not self.blocked and self.trusted and ns > 0 and
+            (self.frontend == 'legacy' or self.native_identity is not None) and
             ns <= now.nanoseconds + 100000000 and now.nanoseconds < deadline and
             time.monotonic() - self.last_pose_received < self.lease)
         self.sequence += 1
