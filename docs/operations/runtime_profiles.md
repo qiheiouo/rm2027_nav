@@ -358,3 +358,17 @@ and AUD-003 prohibition are unchanged; see [stage freeze](../new_car_stage_freez
 canonical native 换代后锁定，必须整组重启；shadow 原生 reset 不会重置 RM canonical。
 同域只运行一个定位组合；A/B 使用分别重启的独立域，并排除 bag 内已录 canonical TF。
 见[完整矩阵与 bag 合入门槛](../zlocalization_upstream_parity_20261024.md)。
+
+
+### F14 native canonical transaction opt-in
+
+Only the isolated Z candidate may set `frontend=zlio canonical_session_transactions=true`.
+It requires the managed existing `lio_adapter`; gate=false retains the previous latch contract.
+Backend atomic session frame → candidate schema translation → same canonical owner →
+atomic canonical frame → same map/odom bridge. No extra TF/command owner or hardware IO.
+Ordered epochs invalidate pending work and reanchor without restarting owners; process source
+replacement is an explicit UUID selection. Clock rollback remains a time/epoch barrier.
+All affected consumers must use the rebuilt interfaces overlay. The public status now exposes
+session_id/session_epoch; consumers clear cross-session state/TF interpolation history.
+See [contract](../zlocalization_interface_contract_20261023.md#f14-versioned-canonical-transaction2026-10-24显式-opt-in)
+and [usage](../../src/rm_zlocalization_candidate/README.md#f14-transactional-native-canonical-explicit-opt-in).

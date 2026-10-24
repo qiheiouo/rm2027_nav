@@ -1,0 +1,7 @@
+# Explicit producer selection; UUIDs have no implicit chronological ordering.
+string producer_id
+uint64 minimum_epoch
+---
+bool success
+uint64 canonical_epoch
+string message

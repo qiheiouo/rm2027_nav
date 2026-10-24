@@ -41,6 +41,7 @@ def setup(context):
                          ('/tf_static', prefix + '/_quarantine/tf_static'),
                          ('~/localization_pose', prefix + '/sensor_pose'),
                          ('~/localization_state', prefix + '/state'),
+                         ('~/session_frame', prefix + '/backend_session_frame'),
                          ('/localization/odometry', prefix + '/sensor_odometry')]),
         Node(package='rm_zlocalization_candidate', executable='runtime_diagnostics.py',
              name='zlio_shadow_diagnostics', parameters=[{'use_sim_time': sim,

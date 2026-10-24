@@ -189,7 +189,8 @@ IMU identity；任何 overlay 不能改变这些 owner 边界。真实动态机�
 
 ## 2026-10-24 canonical 会话状态机（本轮先定合同，再实现）
 
-本节是 parity 分支的正式 reset/time/loss 语义。**不承诺跨 rebase 的物理 pose 连续**。
+本节保留为 `canonical_session_transactions=false` 的正式 reset/time/loss 语义；
+原生 gate=true 的可恢复事务见后续 F14 扩展，九类事件全部保留。**不承诺跨 rebase 的物理 pose 连续**。
 一次 canonical 定位会话是 frontend + lio_adapter startup reference + backend/prior +
 candidate + bridge 的完整进程组。现有 plain Odometry 没有 epoch；本轮不扩大公共消息协议。
 因此换坐标基准的事件必须显式撤销并锁定，重启整组才可建立下一会话。
@@ -237,3 +238,61 @@ LATCHED --停止旧进程组，启动新进程组--> 新 WAITING（新 producer_
   本 adapter 不发布公共 TF；reset/loss 后不再向 bridge 提交可信 pose；bridge 租期撤销有效性。
 - pure mapping 下 NORMAL 表示相对 gauge 下可信，不代表已配准 Nav2 prior。真实 prior↔Nav2
   坐标接受是独立门槛。任何软件状态机都不能证明实际坐标正确。
+
+## F14 versioned canonical transaction（2026-10-24，显式 opt-in）
+
+适用于 `frontend=zlio + canonical_session_transactions=true`；legacy 和 gate=false 保留上节
+锁定策略。本节在同一九类事件合同上补充可恢复事务，不新增 TF owner，不承诺物理连续。
+
+### 事务与消息
+
+新增 upstream 私有 `LocalizationFrame`：backend process UUID、backend epoch、严格递增的
+output sequence、generation/revision、同一 scan 的 raw odometry + map sensor pose/covariance、
+has_odometry/valid。状态通知与观测由**同一 publisher、同一发布锁**全序发送；已过期的
+projection 在发布前复核。String、裸 pose、裸 odometry 不进入这个 opt-in canonical 路径。
+backend 的既有 ResetFrontend 幂等事务是唯一 frontend reset owner；RM 不伪造成功回执。
+
+```text
+ACTIVE --backend LOST/reset pending--> REVOKED（pose清空，旧 source 水位撤销）
+REVOKED --同 epoch 严格新观测+可信状态+同刻 TF--> ACTIVE（保留 odom reference）
+任意态 --已确认 backend epoch advance / 显式选择新 backend--> PREPARED
+PREPARED: 清 reference、pending TF、twist history；canonical epoch++；输出 invalid barrier
+PREPARED --新 session 第一条合格 raw+source-time TF--> PRIMED（锚定新 basis，不伪造速度）
+PRIMED --严格新 scan，可用 finite-difference twist+同刻全局 pose--> ACTIVE
+任意态 --clock backwards--> TIME_BARRIER（清 pending；invalid；等待 backend 新 epoch）
+TIME_BARRIER --新 epoch 且 ROS/source time越过旧时钟水位+新 TF--> PREPARED/PRIMED
+```
+
+- 每一级 producer_id 是进程 UUID，sequence 在进程内永不因 reset 归零。canonical epoch
+  单调递增；source backend epoch 与 canonical epoch 是不同域。每一级的 generation/revision 也属于该 producer；
+  canonical 转发重新生成自身有序版本，不能将新 backend 的小计数接到旧版本后比较。新 producer 不可用 UUID 排序：
+  owner pin 首个 producer；backend process replacement 通过显式 select-source 服务指定 UUID
+  和 minimum_epoch，退役旧 UUID；迟到旧 producer/epoch/sequence 不触发回滚或新会话。
+  select_source.success 仅确认 owner 已 PREPARED；端到端 COMMITTED 以新 epoch 的有效
+  `/localization/status` 为准，不能把服务 ACK 当定位有效。
+- Backend frontend instance/epoch 的换代由上游确认后映射成 backend epoch。IN_PROGRESS 不
+  放行；REJECTED 保持旧 epoch，须新 source 才恢复；COMPLETED/INDETERMINATE 推进 epoch，
+  只有新的可信 global evidence 才 valid。reset 中旧 work ticket 和 TF 等待任务全部失效。
+- canonical owner 是既有 lio_adapter。它先发 invalid boundary，再用新 raw+同刻机械 TF
+  重建 reference。新 odom 原点允许跳变；不拼接旧末端 pose 伪造物理连续。
+  raw→canonical pose covariance 继续 missing；map→base covariance 与 pose 使用同一 TF
+  和完整杆臂 Jacobian。第一帧/不合格 twist 不发布假造的零速度。
+- Bridge 接收 owner 发出的**单个原子 canonical frame**：version、odom、map→base pose/covariance
+  和 validity，不跨话题按相同 timestamp 猜配。boundary 原子撤销并清旧 pose/cache；
+  source stamp + lease 决定有效期，steady receipt lease 同时适用，心跳不能续 source 租期。
+  opt-in map→odom TF 使用接受 pose 的源 stamp，每个源观测最多发布一次；不以 timer now 伪装新证据。
+  `/localization/status` 暴露 session_id/session_epoch；status sequence 仍全进程递增。
+- delayed/reordered input 或异步 callback 只有当前 ticket 可提交。emission time 必须在
+  当前进程启动水位之后且满足 0.5s 新鲜度；过期 callback 不得推进 epoch/sequence 或取消新 work。版本/源时间/源序列不递增
+  的 sample 丢弃，不得重新标旧 pose valid。LOST/expiry 建立 source 撤销水位；正常恢复必须更晚。
+- TF 本身无 epoch；不许用 cached TF 代替 validity。公共消费者见 session_epoch 变化需撤销旧
+  状态、清跨会话 TF 插值/路径历史，再接纳新会话 source-time odom/map pose；map→odom 和
+  odom→base 的唯一 owner 不变。bridge 的发布与边界撤销共用锁，旧 TF callback 不越过边界。
+- ROS pause：steady lease 到期后 invalid，resume 要求新 source。backwards（含回零）：取消
+  所有旧 ticket，保留旧 time high-water；新 epoch 的 source 还须严格晚于该边界的 ROS time；即使 reset 已完成，也不得使用与旧时间重叠的
+  dynamic mechanical TF。必须新 backend epoch且 clock/source 越过高水位才可重新准入；
+  这是 clock barrier，不需要整组重启来处理普通 reset。清 TF buffer不等于证明旧 TF producer
+  已换时钟域。clock jump期间保持 invalid，不能伪造新 stamp规避。
+- 其余九事件保持：relocalization 同会话可真实跳变；map reload/prior change仍是 immutable
+  产物的显式新进程/新 producer选择事务；process restart取得新UUID，不能自动混用旧观测。
+  localization loss/recovery保持新 source 水位，机械 home/heading来源变化仍须其自身接受合同。

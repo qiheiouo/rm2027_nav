@@ -25,6 +25,8 @@
 #include "tf2_ros/transform_broadcaster.h"
 #include "tf2_ros/transform_listener.h"
 
+#include "session_canonical_input.hpp"
+
 class LioAdapter : public rclcpp::Node
 {
 public:
@@ -222,6 +224,16 @@ public:
     tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
     tf_buffer_ = std::make_unique<tf2_ros::Buffer>(get_clock());
     tf_listener_ = std::make_unique<tf2_ros::TransformListener>(*tf_buffer_);
+    if (declare_parameter<bool>("canonical_session_transactions", false)) {
+      if (sensor_initial_reference_mode_ != "first_source_sample" || !twist_estimator_ ||
+        pose_conversion_mode_ != "sensor_tf") {
+        throw std::invalid_argument("session transactions require first_source_sample + sensor_tf + finite_difference");
+      }
+      session_input_ = std::make_unique<SessionCanonicalInput>(*this, *tf_buffer_, *tf_broadcaster_,
+        odom_pub_, *twist_estimator_, expected_input_odom_frame_, input_sensor_frame_, base_frame_,
+        odom_frame_, publish_tf_, tf_queue_max_wait_sec_, twist_variance_diagonal_);
+      return;
+    }
     odom_sub_ = create_subscription<nav_msgs::msg::Odometry>(
       raw_odom_topic_, 10,
       std::bind(&LioAdapter::handleRawOdometry, this, std::placeholders::_1));
@@ -858,6 +870,7 @@ private:
   std::unique_ptr<tf2_ros::TransformListener> tf_listener_;
   std::deque<PendingOdometry> pending_odometry_;
   rclcpp::TimerBase::SharedPtr tf_retry_timer_;
+  std::unique_ptr<SessionCanonicalInput> session_input_;
 };
 
 int main(int argc, char ** argv)

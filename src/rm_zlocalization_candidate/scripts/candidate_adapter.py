@@ -43,6 +43,17 @@ class CandidateAdapter(Node):
         self.frontend = self.declare_parameter('frontend', 'legacy').value
         if self.frontend not in ('legacy', 'zlio'):
             raise ValueError('frontend must be legacy or zlio')
+        self.session_transactions = self.declare_parameter('canonical_session_transactions', False).value
+        if self.session_transactions:
+            if self.frontend != 'zlio':
+                raise ValueError('canonical transactions require native ZLIO')
+            from localization_interfaces.msg import LocalizationFrame as NativeFrame
+            from rm_competition_interfaces.msg import LocalizationFrame as CanonicalFrame
+            self.session_frame_type = CanonicalFrame
+            self.session_pub = self.create_publisher(CanonicalFrame, '/zlocalization/session_input', 100)
+            self.session_sub = self.create_subscription(NativeFrame, '/zlocalization/backend_session_frame',
+                                                        self.session_frame, 100)
+            return
         self.native_identity = None
         self.native_sequence = 0
         self.sensor = self.declare_parameter('sensor_frame', 'lio_imu_link').value
@@ -86,6 +97,14 @@ class CandidateAdapter(Node):
             ])
         self.reset_service = self.create_service(Trigger, '/zlocalization/invalidate', self.invalidate)
         self.timer = self.create_timer(.05, self.tick, clock=Clock(clock_type=ClockType.STEADY_TIME))
+
+    def session_frame(self, message):
+        # Exact atomic schema translation. Canonical owner performs admission;
+        # no String/pose/stamp pairing or invented heartbeat/version here.
+        output = self.session_frame_type()
+        for name in output.get_fields_and_field_types():
+            setattr(output, name, copy.deepcopy(getattr(message, name)))
+        self.session_pub.publish(output)
 
     def revoke(self):
         self.window.revoke()

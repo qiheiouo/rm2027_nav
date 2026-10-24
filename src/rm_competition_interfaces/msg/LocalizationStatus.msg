@@ -11,3 +11,7 @@ bool valid
 builtin_interfaces/Time valid_until
 # Last gate-accepted map->base pose (may be retained while valid=false).
 geometry_msgs/PoseWithCovarianceStamped pose
+# Optional versioned canonical transaction identity; empty/0 for legacy producers.
+# Consumers revoke old evidence/TF history when this identity changes.
+string session_id
+uint64 session_epoch
