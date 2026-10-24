@@ -1,0 +1,124 @@
+# TEST ONLY / NOT PHYSICAL / NOT COMPETITION CALIBRATION
+kind: test
+calibration: NOT_PHYSICAL
+revision: TEST_ONLY_NOT_COMPETITION_CALIBRATION
+profiles:
+  mobile:
+    max_velocity:
+    - 0.1
+    - 0.1
+    - 0.2
+    min_velocity:
+    - -0.1
+    - -0.1
+    - -0.2
+    max_accel:
+    - 0.6
+    - 0.6
+    - 1.0
+    max_decel:
+    - -0.6
+    - -0.6
+    - -1.0
+  attack:
+    max_velocity:
+    - 0.125
+    - 0.125
+    - 0.25
+    min_velocity:
+    - -0.125
+    - -0.125
+    - -0.25
+    max_accel:
+    - 0.6
+    - 0.6
+    - 1.0
+    max_decel:
+    - -0.6
+    - -0.6
+    - -1.0
+  defense:
+    max_velocity:
+    - 0.15
+    - 0.15
+    - 0.3
+    min_velocity:
+    - -0.15
+    - -0.15
+    - -0.3
+    max_accel:
+    - 0.6
+    - 0.6
+    - 1.0
+    max_decel:
+    - -0.6
+    - -0.6
+    - -1.0
+  enhanced_mobile:
+    max_velocity:
+    - 0.175
+    - 0.175
+    - 0.35
+    min_velocity:
+    - -0.175
+    - -0.175
+    - -0.35
+    max_accel:
+    - 0.6
+    - 0.6
+    - 1.0
+    max_decel:
+    - -0.6
+    - -0.6
+    - -1.0
+  enhanced_attack:
+    max_velocity:
+    - 0.2
+    - 0.2
+    - 0.4
+    min_velocity:
+    - -0.2
+    - -0.2
+    - -0.4
+    max_accel:
+    - 0.6
+    - 0.6
+    - 1.0
+    max_decel:
+    - -0.6
+    - -0.6
+    - -1.0
+  enhanced_defense:
+    max_velocity:
+    - 0.225
+    - 0.225
+    - 0.45
+    min_velocity:
+    - -0.225
+    - -0.225
+    - -0.45
+    max_accel:
+    - 0.6
+    - 0.6
+    - 1.0
+    max_decel:
+    - -0.6
+    - -0.6
+    - -1.0
+  fallback:
+    max_velocity:
+    - 0.05
+    - 0.05
+    - 0.1
+    min_velocity:
+    - -0.05
+    - -0.05
+    - -0.1
+    max_accel:
+    - 0.4
+    - 0.4
+    - 0.8
+    max_decel:
+    - -0.4
+    - -0.4
+    - -0.8

@@ -153,3 +153,14 @@ Select `legacy_v1_no_crc` or `hpm_crc_v1`; neither profile instantiates the v2
 transport. Set `gimbal_state_adapter.use_input=false` to restore documented
 placeholder behavior in profiles that intentionally use a fixed gimbal. No
 automatic fallback exists.
+
+## Effective posture for upper motion profiles
+
+The opt-in profile consumer uses `posture_actual`, with valid/online and no
+transition/fault, independently of the requested posture, ACK or `completed`.
+Native MOVE and ENHANCED_MOVE remain distinct and map to MOBILE and
+ENHANCED_MOBILE profile names. Ordinary recovery after an enhanced state must
+be reported explicitly by the lower posture system; navigation has no lifecycle
+timer. PostureState has a host receipt stamp and validity but no per-posture
+ROS sequence or MCU sample time. See the
+[profile contract](contracts/posture_motion_constraints_2027.md).

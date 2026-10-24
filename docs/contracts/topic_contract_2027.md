@@ -43,6 +43,7 @@
 | `/referee/state_valid` | `std_msgs/msg/Bool` | `referee_state_gate` | mission/BT, diagnostics | Latched referee freshness and validation result |
 | `/operator/navigation_target_raw` | `rm_competition_interfaces/msg/OperatorNavigationTarget` | optional serial feedback adapter | future coordinate/command gate, diagnostics | Raw untrusted target coordinates with explicit coordinate-system enum. It is not a Nav2 goal and grants no motion authority |
 | `/robot/posture/request` | `rm_competition_interfaces/msg/PostureRequest` | future mission/posture task | `competition_v2_transport_node` | Desired one-of-six posture with command ID; independent of `/cmd_vel` |
+| `/posture_motion/status` | `diagnostic_msgs/msg/DiagnosticArray` | opt-in posture profile selector | diagnostics, validation | Effective posture, source freshness, selected/applied motion profile, generation/revision and fallback/error reason; no authority |
 | `/robot/posture/state` | `rm_competition_interfaces/msg/PostureState` | `competition_v2_transport_node` | future mission/posture task, diagnostics | Target/actual posture, current-session ACK match, completion, transition and fault state |
 | `/serial/connection_state` | `rm_competition_interfaces/msg/SerialConnectionState` | `competition_v2_transport_node` | readiness, diagnostics | Heartbeat freshness, compatibility, peer boot/capabilities and parser counters |
 | `/perception/target_track` | `rm_competition_interfaces/msg/TargetTrack` | armor/target perception adapter | pursuit boundary | Timestamped target estimate with frame, covariance, velocity, confidence and validity |
@@ -248,3 +249,11 @@ No new motion, serial or TF owner is introduced by this interface.
 ## 新车软件基线补充（2026-10-12）
 
 实际S2 controller/behavior→cmd_vel_nav→velocity_smoother→cmd_vel→模拟车，唯一最终publisher已在定向smoke核对。LocalizationStatus保持完整AUD-001接口；S2不把truth生成该状态。V2 codec测试单独运行，无Nav2/Goal→serial链或硬件授权。候选source、无mode来源和禁用功能见[合同](new_car_software_20261012.md)。
+
+## Posture-dependent upper motion profiles
+
+The opt-in [posture motion contract](posture_motion_constraints_2027.md) consumes
+`PostureState.posture_actual` with an independent freshness lease. It preserves
+all six native values and does not consume ACK/target as effective posture.
+The selector changes only smoother/MPPI limits and diagnostics, never a goal,
+Twist, TF or final authority. Physical profiles remain hardware-TBD.

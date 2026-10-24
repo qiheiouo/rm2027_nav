@@ -73,3 +73,11 @@ including an unresolved shutdown timeout, burst timing and hardware inputs.
 AUD-003, MCU mode/stopping and physical safety acceptance remain open.
 No hardware positive authorization or default profile change follows from
 these local results. See [stage conclusion](../new_car_stage_freeze_20261013.md).
+
+## 2026-10-24 posture motion profile candidate
+
+The opt-in six-state upper-profile infrastructure is independent of the target
+arbitration feature. Production inherits the selected existing MPPI/smoother
+baseline; physical six-profile calibration remains HARDWARE_BLOCKED. MCU retains
+final hard clamping and the selector cannot grant motion authority. Controlled
+results are recorded in [the scoped report](posture_motion_constraints_20261024.md).

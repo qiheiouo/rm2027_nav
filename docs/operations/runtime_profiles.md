@@ -329,3 +329,14 @@ The two `*_source_reference` / `*_stable_epoch_pending` configs in rm_lio_bringu
 are opt-in software fixtures, not a combined hardware navigation profile.
 The existing dual experiment remains default-disabled. The published baseline
 and AUD-003 prohibition are unchanged; see [stage freeze](../new_car_stage_freeze_20261013.md).
+
+## Posture-aware upper motion profiles (2026-10-24 candidate)
+
+`ros2 launch rm_posture_motion posture_motion.launch.py` is disabled by default.
+Explicit `enable_posture_constraints:=true` starts only the selector, with real
+V2 posture input and production baseline-inheritance slots. Pass the same
+`nav2_params` used by the active MPPI/smoother; live mismatch prevents all writes.
+It starts no mock, Nav2, driver or authority source. The six physical profiles
+remain HARDWARE_TBD; final MCU clamp and AUD-003 authorization remain independent.
+See [contract](../contracts/posture_motion_constraints_2027.md) and
+[software evidence](../validation/posture_motion_constraints_20261024.md).

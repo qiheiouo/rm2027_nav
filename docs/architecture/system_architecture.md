@@ -221,3 +221,13 @@ the selected [research conclusion](../dynamic_navigation/dynamic_obstacle_predic
 The [stage-one evidence](../dynamic_obstacle_critic/validation.md) documents the
 failed geometry/liveness gates; omitted branch-only sources remain recoverable
 through the migration provenance.
+
+## 2027 Posture-Aware Upper Motion Profiles
+
+The opt-in `rm_posture_motion` package consumes the existing V2 effective
+posture, preserves all six states and selects independent upper motion slots.
+It synchronizes only smoother velocity/acceleration limits and MPPI velocity
+bounds. Mission/goal ownership, final host authorization and MCU hard clamping
+remain separate. Production slots inherit the selected baseline and remain
+hardware-TBD; no power-to-motion mapping or posture strategy is introduced.
+See [contract](../contracts/posture_motion_constraints_2027.md).

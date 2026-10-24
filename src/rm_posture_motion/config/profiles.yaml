@@ -1,0 +1,13 @@
+# No physical values have been calibrated. Every slot inherits the selected
+# existing Nav2 baseline exactly; no power multiplier is converted to motion.
+kind: production
+calibration: HARDWARE_TBD
+revision: six_posture_baseline_v1
+profiles:
+  mobile: {inherit: baseline}
+  attack: {inherit: baseline}
+  defense: {inherit: baseline}
+  enhanced_mobile: {inherit: baseline}
+  enhanced_attack: {inherit: baseline}
+  enhanced_defense: {inherit: baseline}
+  fallback: {inherit: baseline}
