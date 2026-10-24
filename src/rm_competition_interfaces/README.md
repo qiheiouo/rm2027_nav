@@ -28,3 +28,7 @@ protocol.
   freshness and parser counters without granting mission authority.
 - `SetMissionMode` is the explicit enable/mode gate for competition mission
   execution.
+
+- `SetTemporaryMission` is a trusted Mission command for one bounded
+  supply/recovery/special navigation task, with ID, sequence, deadline and
+  cancellation. It grants neither Nav2 ownership nor motion authority.

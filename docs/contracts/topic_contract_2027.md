@@ -268,3 +268,13 @@ IMU-frame alias described in the TF contract; raw-world cloud is not canonical.
 Generic navigation and the legacy Gazebo base route controller and behavior to
 `/cmd_vel_nav`; only velocity_smoother publishes final `/cmd_vel`. This is scoped
 to the documented non-namespaced, non-composed Humble entries.
+
+## Minimal competition Mission command
+
+`/mission/set_temporary` uses `rm_competition_interfaces/srv/SetTemporaryMission`.
+The existing Mission is its sole consumer and remains the only task-level
+Nav2 owner. Supply/recovery use reviewed configured poses; special carries a
+validated map-frame target. The command never changes enable/authority and
+must not be exposed as an arbitrary teammate tactical channel. Lifetime,
+priority and home/temporary resume rules are defined in the
+[minimal Mission contract](minimal_competition_mission_2027.md).

@@ -9,6 +9,10 @@
             <ShouldReturnHome/>
             <SelectHome/>
           </Sequence>
+          <Sequence name="explicit_temporary_mission">
+            <HasTemporaryMission/>
+            <SelectTemporaryMission/>
+          </Sequence>
           <Sequence name="three_point_patrol_with_spin">
             <CanPatrol/>
             <SelectPatrolWithSpin/>

@@ -367,3 +367,13 @@ Input boundaries and cancellation/resumption semantics are in the
 [target arbitration contract](../contracts/navigation_target_arbitration_2027.md).
 Real radar ingress and Mission-to-AUD-003 positive owner-session integration
 remain absent; this composition is not a deployment entry point.
+
+## Minimal competition Mission extension
+
+The existing opt-in Mission compositions now expose one trusted local
+`/mission/set_temporary` command. Optional `supply_pose` and `recovery_pose`
+remain unset in safe configuration; no field coordinates or automatic triggers
+are enabled. Both shipped trees place explicit tasks below home and above
+pursuit/patrol. Return-home now holds after arrival until explicit mode release.
+All hardware, startup-disabled and guard defaults remain unchanged. See
+[contract](../contracts/minimal_competition_mission_2027.md).

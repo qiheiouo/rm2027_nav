@@ -14,12 +14,15 @@ Nav2 自己的 BT 调用 controller 的 `FollowPath`；本仓任务层不直接�
    或已接入的 V2 guard 非 PERMITTED/过期。取消导航和 Spin，不产生替代目标。
 2. **RETURN_HOME**：新鲜有效 referee HP `<= retreat_hp_threshold` 或显式 `home`。
    未配置 home 时 `hold_missing_home`，不得降级为 pursuit/patrol。
-3. **PURSUIT**：`allow_pursuit=true`，模式为 `auto|pursuit`，且候选有效。
-4. **PATROL**：模式为 `auto|patrol`，且有 waypoint。沿用 `patrol_index_`。
-5. **IDLE/HOLD**：没有可选目标。
+3. **EXPLICIT_MISSION**：未过期的 supply/recovery/special，三者同级，最新合法任务替换。
+4. **PURSUIT**：`allow_pursuit=true`，模式为 `auto|pursuit`，且候选有效。
+5. **PATROL**：模式为 `auto|patrol`，且有 waypoint。沿用 `patrol_index_`。
+6. **IDLE/HOLD**：没有可选目标。
 
-没有现成的 SPECIAL_MISSION 坐标入口，本轮不新增占位 task planner。显式 home 已包含在
-RETURN_HOME；`SetMissionMode` 和 YAML 属于启动/调试配置，不是队友 tactical 输入。
+最小比赛 Mission 扩展新增了一个显式临时槽和受信任 `/mission/set_temporary` 入口，
+详见[任务合同](minimal_competition_mission_2027.md)。RETURN_HOME 首次选择后持续到显式
+SetMissionMode 释放，到达后保持；不会自动回旧 pursuit 或临时任务。
+`SetMissionMode`、显式任务命令和 YAML 都不是任意队友 tactical 输入。
 显式 `patrol` 继续禁止 pursuit；需要“平时巡逻、雷达出现就追踪”时使用 `auto`。
 
 ## Action 交接

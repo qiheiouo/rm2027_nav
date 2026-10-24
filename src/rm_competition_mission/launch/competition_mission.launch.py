@@ -43,7 +43,7 @@ def _launch_mission(context, *args, **kwargs):
 
     # ROS 2 Humble loses the element type of an empty YAML sequence. These
     # arrays are optional, so omit only empty values and retain typed defaults.
-    for optional_array in ("home_pose", "patrol_waypoints"):
+    for optional_array in ("home_pose", "patrol_waypoints", "supply_pose", "recovery_pose"):
         if mission_parameters.get(optional_array) == []:
             mission_parameters.pop(optional_array)
 

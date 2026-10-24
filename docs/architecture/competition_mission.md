@@ -56,3 +56,12 @@ handover. Explicit hold/disable and safety precede home; missing home holds.
 Referee/chassis/observed V2 guard now expire independently in Mission.
 [Controlled software evidence](../validation/navigation_target_arbitration_20261024.md)
 does not promote the historical field results or authorize hardware.
+
+## Minimal explicit competition missions
+
+The [minimal Mission contract](../contracts/minimal_competition_mission_2027.md)
+adds one temporary supply/recovery/special slot between home and pursuit.
+It reuses the existing action owner and terminal-result arbitration, not new
+Nav2 clients. Temporary completion/cancel/expiry recomputes the long-term mode;
+return home stays latched until explicit release. No tactical trigger, posture
+or terrain-reward strategy is added.
