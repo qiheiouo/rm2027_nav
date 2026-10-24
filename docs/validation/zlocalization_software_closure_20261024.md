@@ -66,3 +66,33 @@ worktree `build/closure/phase1/*/summary.json`（ignored，不作为长期日志
   最终 peer 以 signal flag 停止 spin，再同步销毁 node/context；没有任意异常吞掉逻辑。
 - 无 SIGSEGV/UAF/double-free/race 根因证据可提交最小生产修复；本阶段只保留复现工具与证据。
   关闭 S03 仍需原故障可复现 + 根因修复/回归，或独立可复核的原故障归因排除。
+
+## Phase 2 — canonical session / reset
+
+先在 [接口合同](../zlocalization_interface_contract_20261023.md#2026-10-24-canonical-会话状态机本轮先定合同再实现)
+确定九类事件、状态机及 consumer 行为，再修改代码。连续性选择是：
+**保留同会话 odom basis；暴露真实 map correction 跳变；换 basis 锁定并整组重启。**
+
+明确根因（高置信度）：基线 adapter 在 LOST 时清 pose，但没有撤销 source 水位；同 stamp
+的延迟 pose + 恢复状态会重新组成可信输出。对 `474572e` 原方法的 deterministic 复核得到
+`baseline_old_pose_resurrected=true, stale_pose_x=99.0`。这不是物理新观测。
+
+修复：新增小型 `SessionWindow`（水位/版本/时钟准入，不做 rebase）；旧 generation/revision
+状态丢弃；loss/steady expiry 记录已见 source 水位并清 pose；恢复必须严格新 source。
+ROS rollback、非零初始 frontend epoch 锁定；用 steady timer 保持 paused/latch 下 invalid 心跳。
+源 stamp、covariance 杆臂传播、唯一 TF owner、默认 feature gate 均保持原合同。
+
+自动跨 reset 继续输出仍不能在现有 plain Odometry 和固定 startup reference 下安全完成。
+**F14 仍 Partial**；本轮关闭的是旧证据复活/时钟准入缺陷及语义歧义，不将安全锁定冒充
+reset continuity。完成该能力还需 versioned canonical input 和完整 owner reset 事务，
+属于明确软件缺口；新车 bag 本身不能弥补。没有新增 public reset wrapper 或 owner。
+
+验证结果：候选 pytest **38/38**（含 13 项新 deterministic session cases）；
+3 个直接相关 package 构建通过；canonical CTest 1/1（15 gtests），bridge CTest 3/3
+（5 math + 7 global-gate gtests + 4 profile cases）。
+实际 adapter DDS/TF clock smoke 通过 pause expiry、invalid heartbeat、fresh resume、
+backwards latch 与同刻 covariance/pose；无 estimator/真实地图效果声明。
+实际 backend → candidate → lio_adapter → bridge 的 native epoch 和 legacy publisher-restart
+smoke 均通过；动态 TF correction 最大矩阵误差 `1.1102230246251565e-16`；
+源失联撤销有效性并停止刷新 correction TF；新 epoch/换 publisher 后保持锁定；子进程 clean exit。
+测试 share symlink 配置错误的首轮在 launch 前失败，修正后两条真实链路重跑通过，未改被测逻辑。

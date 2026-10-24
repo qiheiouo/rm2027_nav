@@ -14,6 +14,7 @@ from geometry_msgs.msg import PoseWithCovarianceStamped
 from nav_msgs.msg import Odometry
 from localization_interfaces.msg import FrontendFrame, FrontendSession
 from rclpy.node import Node
+from rclpy.clock import Clock, ClockType
 from rclpy.qos import QoSProfile, DurabilityPolicy, qos_profile_sensor_data
 from rclpy.time import Time
 from rm_competition_interfaces.msg import LocalizationStatus
@@ -23,6 +24,8 @@ from std_srvs.srv import Trigger
 from tf2_ros import Buffer, TransformListener, TransformException
 
 from geometry import matrix, quaternion, body_pose
+from diagnostic_health import parse_state
+from session_window import SessionWindow
 
 
 def stamp_ns(stamp):
@@ -48,6 +51,7 @@ class CandidateAdapter(Node):
         self.lease = self.declare_parameter('source_timeout_sec', .5).value
         self.started = self.get_clock().now()
         self.identity = str(uuid.uuid4())
+        self.window = SessionWindow(self.started.nanoseconds)
         self.sequence = 0
         self.blocked = False
         self.gids = {}
@@ -81,19 +85,32 @@ class CandidateAdapter(Node):
                     QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL)),
             ])
         self.reset_service = self.create_service(Trigger, '/zlocalization/invalidate', self.invalidate)
-        self.timer = self.create_timer(.05, self.tick)
+        self.timer = self.create_timer(.05, self.tick, clock=Clock(clock_type=ClockType.STEADY_TIME))
+
+    def revoke(self):
+        self.window.revoke()
+        self.trusted = False
+        self.states.clear()
+        self.poses.clear()
+        self.last_pose = PoseWithCovarianceStamped()
+
+    def check_clock(self):
+        if not self.window.observe_clock(self.get_clock().now().nanoseconds):
+            self.block('ROS time moved backwards')
+            return False
+        return not self.blocked
 
     def block(self, reason):
         if not self.blocked:
             frontend_name = 'ZLIO' if self.frontend == 'zlio' else 'FAST-LIO'
             self.get_logger().error(reason + '; restart ' + frontend_name + ', canonical adapter and candidate together')
         self.blocked = True
-        self.trusted = False
-        self.states.clear()
-        self.poses.clear()
+        self.revoke()
         self.publish_status()
 
     def observe_publisher(self, name, topic):
+        if not self.check_clock():
+            return False
         # This Humble rclpy exposes endpoint GIDs, not per-callback MessageInfo.
         publishers = self.get_publishers_info_by_topic(topic)
         if len(publishers) > 1:
@@ -132,7 +149,7 @@ class CandidateAdapter(Node):
         if not self.observe_publisher('ZLIO session', '/zlocalization/frontend/session'):
             return
         identity = (message.instance_id, message.epoch)
-        if message.failed or message.reset_required:
+        if message.failed or message.reset_required or message.epoch != 0:
             self.block('ZLIO failed or requested a coordinated reset')
         elif self.native_identity is not None and identity != self.native_identity:
             self.block('ZLIO instance/epoch changed; canonical startup reference must restart')
@@ -183,25 +200,27 @@ class CandidateAdapter(Node):
     def state(self, message):
         if not self.observe_publisher('Z-Localization', '/zlocalization/state'):
             return
-        fields = dict(item.split('=', 1) for item in message.data.split(';') if '=' in item)
         try:
-            epoch = int(fields['epoch'])
-            ns = int(fields['stamp_ns'])
+            fields = parse_state(message.data)
+            epoch, ns = int(fields['epoch']), int(fields['stamp_ns'])
+            generation, revision = int(fields['generation']), int(fields['pose_revision'])
         except (KeyError, ValueError):
             self.block('malformed backend state')
             return
         if epoch != 0:
-            self.block('backend reset epoch changed without a FAST-LIO reset protocol')
+            self.block('backend epoch changed without a canonical reset transaction')
             return
-        self.trusted = (fields.get('pose_trusted') == 'true' and
-                        fields.get('status') in ('NORMAL', 'OBS_DEGRADED'))
-        if not self.trusted:
+        previous_version = self.window.version
+        if not self.window.observe_state(generation, revision, ns):
+            return
+        if self.window.version != previous_version:
             self.states.clear()
-            self.poses.clear()
-            self.last_pose = PoseWithCovarianceStamped()
+        self.trusted = (fields['pose_trusted'] == 'true' and fields['tf_frozen'] == 'false')
+        if not self.trusted:
+            self.revoke()
             self.publish_status()
             return
-        if ns > 0 and fields.get('tf_published') == 'true':
+        if ns > 0 and fields['tf_published'] == 'true' and self.window.fresh(ns):
             self.states[ns] = fields
             self.drain()
 
@@ -209,21 +228,31 @@ class CandidateAdapter(Node):
         if not self.observe_publisher('Z-Localization pose', '/zlocalization/sensor_pose'):
             return
         if not self.blocked and message.header.frame_id == 'map':
-            self.poses[stamp_ns(message.header.stamp)] = message
+            ns = stamp_ns(message.header.stamp)
+            self.window.observe_source(ns)
+            if not self.window.fresh(ns):
+                return
+            self.poses[ns] = message
             self.drain()
 
     def drain(self):
+        if not self.check_clock():
+            return
+        if (stamp_ns(self.last_pose.header.stamp) > 0 and
+                time.monotonic() - self.last_pose_received >= self.lease):
+            self.revoke()
         now_ns = self.get_clock().now().nanoseconds
         for cache in (self.states, self.poses):
             for ns in list(cache):
-                if ns <= now_ns - int(self.lease * 1.e9) or ns < self.started.nanoseconds:
+                if ns <= now_ns - int(self.lease * 1.e9) or not self.window.fresh(ns):
                     del cache[ns]
             while len(cache) > 50:
                 del cache[min(cache)]
         if self.blocked or not self.trusted:
             return
         for ns in sorted(self.states.keys() & self.poses.keys()):
-            if ns <= stamp_ns(self.last_pose.header.stamp) or ns > now_ns + 100000000:
+            if (not self.window.fresh(ns) or ns <= stamp_ns(self.last_pose.header.stamp) or
+                    ns > now_ns + 100000000):
                 continue
             message = self.poses[ns]
             try:
@@ -270,6 +299,7 @@ class CandidateAdapter(Node):
 
     def tick(self):
         self.drain()
+        self.publish_status()
 
     def invalidate(self, request, response):
         self.block('candidate explicitly invalidated')

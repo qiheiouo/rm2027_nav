@@ -67,3 +67,21 @@ asynchronous SIGINT shutdown itself failed in this environment. The fixture does
 not catch arbitrary exceptions. Startup/readiness/exit deadlines and every return
 code are checked; timed-out processes are killed and marked failed. Workload timing
 varies the signal point; no shutdown grace sleep, retry-to-pass or ignored failure.
+
+## Canonical session regression (phase 2)
+
+`test_session_contract.py` calls the actual candidate callbacks with deterministic
+ROS and steady clocks and exact source-time TF. It covers single/repeated/rapid
+resets, delayed and reordered evidence, stale session, process startup, loss /
+recovery and paused/backwards time. The LOST → delayed old pose counterexample
+was reproduced on `474572e` before verifying the fix.
+
+```bash
+python3 -m pytest -q src/rm_zlocalization_candidate/test
+python3 tests/zlocalization/session_clock_smoke.py --output build/session/clock1
+```
+
+The second command starts the real adapter and DDS/TF with a paused/resumed/
+backwards `/clock`. Native/legacy full-chain smoke remains `laptop_smoke.py`
+above. No fixture proves cross-reset automatic canonical rebase: it remains
+unsupported and latched, pending an owner-level versioned reset transaction.

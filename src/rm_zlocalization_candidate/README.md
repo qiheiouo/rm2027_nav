@@ -120,3 +120,12 @@ The [offline map workflow](../../docs/zlocalization_offline_workflow_20261023.md
 uses the same map tools; add `enabled:=true` to its older candidate launch examples.
 See [software reproduction](../../tests/zlocalization/README.md) and the
 [new-car merge gates](../../docs/zlocalization_upstream_parity_20261024.md#新车-bag-到来后的合入门槛).
+
+The formal [canonical session state machine](../../docs/zlocalization_interface_contract_20261023.md#2026-10-24-canonical-会话状态机本轮先定合同再实现)
+separates recoverable localization loss from a change of coordinate basis.
+Loss/steady-time expiry revokes all sources at or before the highest observed
+source stamp; delayed poses and old generation/revision states cannot renew that
+lease. A new trusted, strictly newer observation may recover with a real map-pose
+jump. ROS clock rollback and a nonzero initial frontend epoch latch invalid.
+The steady timer continues invalid status heartbeats during a paused clock or a
+latched session. Reset/map/prior changes still require restarting the whole group.
