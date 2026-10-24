@@ -101,3 +101,6 @@ docs/
 仍有效的地图合同、建图/重定位/比赛操作、任务结构已迁到 Current 目录，无需以 Phase 文件名找当前规则。
 选择性迁移未携带的代码、图和原始数据仍需从旧仓固定 SHA 或外部证据 manifest 恢复；
 历史计划中的恢复动作、期限和验证矩阵不自动授权今天执行。
+
+- [2026-10-24 software-only debt closure](validation/software_debt_closure_20261024.md)：
+  当前main/候选依赖、限定AUD整改、仲裁先于最小Mission的实际验收与未闭合门。

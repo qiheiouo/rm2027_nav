@@ -91,3 +91,10 @@ single action owner. Arrival/cancel/expiry resume the current long-term mode;
 home preempts and stays persistent. Safe configuration still has no field
 supply/recovery coordinates, tactical triggers remain deferred and hardware
 acceptance is unchanged. See [scoped software evidence](minimal_competition_mission_20261024.md).
+
+## 2026-10-24 software debt closure integration
+
+本轮隔离分支按仲裁→最小Mission依赖顺序迁入既有候选，不代表main已采用。
+最新软件范围、AUD逐项证据、残留门及合入建议见
+[software debt closure](software_debt_closure_20261024.md)。真实雷达、Mission-to-V2
+正授权owner/session、标定和物理停车门保持；没有比赛部署结论。
