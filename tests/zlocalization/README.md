@@ -37,3 +37,33 @@ source stamp, and verifies steady-time expiry, malformed-state reporting and cle
 exit. The known upstream `bringup` composition case `driver=true` expects the
 bundled driver launch and is excluded in RM; record its exclusion explicitly.
 Do not report the full upstream composition target as passing in this overlay.
+
+## Shutdown investigation (phase 1, not a fix)
+
+`build_shutdown_probe.sh baseline|asan|tsan BUILD_DIR GTSAM_PREFIX` builds the
+pinned backend only. Source ROS and the interfaces overlay, apply the existing
+scan-end patch, and use GCC 11 / GTSAM 4.2 (system Eigen). The ASan build explicitly
+matches Eigen's allocation ABI with the uninstrumented GTSAM/PCL libraries;
+third-party library internals are outside sanitizer coverage. No suppressions.
+
+```bash
+bash tests/zlocalization/build_shutdown_probe.sh asan build/shutdown/asan "$GTSAM_PREFIX"
+ASAN_OPTIONS=abort_on_error=1:detect_leaks=1 UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1 \
+python3 tests/zlocalization/shutdown_stress.py --backend-share "$BACKEND_SHARE" \
+  --executable build/shutdown/asan/backend_node --output build/shutdown/run1 --runs 100 --prediction
+```
+
+`BACKEND_SHARE` must be the installed backend share (both config/backend.yaml and
+launch/backend.launch.py), or an equivalent private symlink tree pointing to the
+pinned source; the upstream source package alone lacks config/backend.yaml.
+
+Run inside an isolated ROS domain/container with no hardware or network access.
+`mixed` cycles idle, scan, large clouds/world visualization, loop/maintenance.
+Each non-idle trial must observe an actual backend projection before SIGINT.
+`--peer-exit --scenario stream` additionally stops a subscriber immediately before
+the backend; `--prediction` activates the high-rate callback separately. The peer
+stops its spin loop synchronously before destroying its context: default rclpy
+asynchronous SIGINT shutdown itself failed in this environment. The fixture does
+not catch arbitrary exceptions. Startup/readiness/exit deadlines and every return
+code are checked; timed-out processes are killed and marked failed. Workload timing
+varies the signal point; no shutdown grace sleep, retry-to-pass or ignored failure.

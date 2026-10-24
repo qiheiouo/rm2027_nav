@@ -1,0 +1,83 @@
+{
+  "base": "474572e",
+  "upstream": "76e126328b670adc92981d9b4900cc059a6f2343",
+  "reproduced": false,
+  "production_lifecycle_changes": false,
+  "total_valid_runs": 250,
+  "trials": [
+    {
+      "label": "baseline mixed + prediction",
+      "runs": 100,
+      "scenario_counts": {
+        "heavy": 25,
+        "idle": 25,
+        "loop": 25,
+        "stream": 25
+      },
+      "returncodes": {
+        "0": 100
+      },
+      "timeouts": 0,
+      "sanitizer_findings": [],
+      "max_shutdown_seconds": 0.16069284900004277,
+      "raw_summary": "build/closure/phase1/baseline_stress_run1/summary.json"
+    },
+    {
+      "label": "baseline scan-end + peer exit",
+      "runs": 30,
+      "scenario_counts": {
+        "stream": 30
+      },
+      "returncodes": {
+        "0": 30
+      },
+      "timeouts": 0,
+      "sanitizer_findings": [],
+      "max_shutdown_seconds": 0.18318340299992997,
+      "raw_summary": "build/closure/phase1/peer_stress_v3/summary.json"
+    },
+    {
+      "label": "ASan+UBSan mixed + prediction",
+      "runs": 100,
+      "scenario_counts": {
+        "heavy": 25,
+        "idle": 25,
+        "loop": 25,
+        "stream": 25
+      },
+      "returncodes": {
+        "0": 100
+      },
+      "timeouts": 0,
+      "sanitizer_findings": [],
+      "max_shutdown_seconds": 0.40745626900024945,
+      "raw_summary": "build/closure/phase1/asan_stress/summary.json"
+    },
+    {
+      "label": "ASan+UBSan scan-end + peer exit",
+      "runs": 20,
+      "scenario_counts": {
+        "stream": 20
+      },
+      "returncodes": {
+        "0": 20
+      },
+      "timeouts": 0,
+      "sanitizer_findings": [],
+      "max_shutdown_seconds": 0.22448848900012308,
+      "raw_summary": "build/closure/phase1/asan_peer_valid/summary.json"
+    }
+  ],
+  "tsan": {
+    "status": "unavailable before main",
+    "backend_exit": 66,
+    "message": "FATAL: ThreadSanitizer: unexpected memory mapping",
+    "empty_control_exits": [
+      -11,
+      66,
+      66,
+      66
+    ]
+  },
+  "blocker_closed": false
+}
