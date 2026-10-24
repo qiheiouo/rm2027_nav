@@ -29,6 +29,11 @@ Only one profile should run in a ROS domain at a time.
 
 ## Navigation
 
+Nav2 Humble 1.1.20 的 AUD-016 修复需要先构建并 source
+[固定版本 overlay](../../dependencies/nav2_humble/README.md)。仅 checkout 项目不会修复
+系统安装的 Nav2。原 action/topic、默认参数和运动授权边界保持不变；
+软件回归不替代目标机负载、末端停车和 MCU 验收。
+
 ```bash
 ros2 launch rm_navigation_bringup navigation.launch.py
 ```
