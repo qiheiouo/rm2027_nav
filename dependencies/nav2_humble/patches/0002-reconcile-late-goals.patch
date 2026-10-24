@@ -1,0 +1,329 @@
+--- a/nav2_behavior_tree/include/nav2_behavior_tree/bt_action_node.hpp
++++ b/nav2_behavior_tree/include/nav2_behavior_tree/bt_action_node.hpp
+@@ -18,6 +18,10 @@
+ #include <memory>
+ #include <string>
+ #include <chrono>
++#include <atomic>
++#include <thread>
++#include <vector>
++#include <future>
+ 
+ #include "behaviortree_cpp_v3/action_node.h"
+ #include "nav2_util/node_utils.hpp"
+@@ -85,6 +89,7 @@
+ 
+   virtual ~BtActionNode()
+   {
++    begin_goal_cleanup();
+   }
+ 
+   /**
+@@ -191,6 +196,15 @@
+    */
+   BT::NodeStatus tick() override
+   {
++    // Unknown ownership is a barrier, including retries after halt/timeout.
++    if (cleanup_pending_) {
++      if (cleanup_pending_->load()) {
++        return BT::NodeStatus::FAILURE;
++      }
++      callback_group_executor_.add_callback_group(callback_group_, node_->get_node_base_interface());
++      cleanup_pending_.reset();
++      setStatus(BT::NodeStatus::IDLE);
++    }
+     // first step to be done only at the beginning of the Action
+     if (status() == BT::NodeStatus::IDLE) {
+       // setting the status to RUNNING to notify the BT Loggers (if any)
+@@ -224,7 +238,7 @@
+             node_->get_logger(),
+             "Timed out while waiting for action server to acknowledge goal request for %s",
+             action_name_.c_str());
+-          future_goal_handle_.reset();
++          begin_goal_cleanup();
+           return BT::NodeStatus::FAILURE;
+         }
+       }
+@@ -253,7 +267,7 @@
+               node_->get_logger(),
+               "Timed out while waiting for action server to acknowledge goal request for %s",
+               action_name_.c_str());
+-            future_goal_handle_.reset();
++            begin_goal_cleanup();
+             return BT::NodeStatus::FAILURE;
+           }
+         }
+@@ -270,7 +284,8 @@
+       if (e.what() == std::string("send_goal failed") ||
+         e.what() == std::string("Goal was rejected by the action server"))
+       {
+-        // Action related failure that should not fail the tree, but the node
++        // Rejected updates may still have an older executing goal.
++        begin_goal_cleanup();
+         return BT::NodeStatus::FAILURE;
+       } else {
+         // Internal exception to propagate to the tree
+@@ -297,6 +312,7 @@
+     }
+ 
+     goal_handle_.reset();
++    goal_callback_guard_.reset();
+     return status;
+   }
+ 
+@@ -306,28 +322,24 @@
+    */
+   void halt() override
+   {
+-    if (should_cancel_goal()) {
++    // Retire outputs before spinning callbacks. Normal accepted-goal cancellation
++    // retains its bounded wait; an incomplete cancellation transfers ownership.
++    goal_callback_guard_.reset();
++    if (!future_goal_handle_ && should_cancel_goal()) {
+       auto future_result = action_client_->async_get_result(goal_handle_);
+       auto future_cancel = action_client_->async_cancel_goal(goal_handle_);
+-      if (callback_group_executor_.spin_until_future_complete(future_cancel, server_timeout_) !=
++      callback_group_executor_.spin_until_future_complete(future_cancel, server_timeout_);
++      if (callback_group_executor_.spin_until_future_complete(future_result, server_timeout_) ==
+         rclcpp::FutureReturnCode::SUCCESS)
+       {
+-        RCLCPP_ERROR(
+-          node_->get_logger(),
+-          "Failed to cancel action server for %s", action_name_.c_str());
++        result_ = future_result.get();
++        if (result_.code == rclcpp_action::ResultCode::CANCELED) {
++          on_cancelled();
++        }
++        goal_handle_.reset();
+       }
+-
+-      if (callback_group_executor_.spin_until_future_complete(future_result, server_timeout_) !=
+-        rclcpp::FutureReturnCode::SUCCESS)
+-      {
+-        RCLCPP_ERROR(
+-          node_->get_logger(),
+-          "Failed to get result for %s in node halt!", action_name_.c_str());
+-      }
+-
+-      on_cancelled();
+-    }
+-
++    }
++    begin_goal_cleanup();
+     setStatus(BT::NodeStatus::IDLE);
+   }
+ 
+@@ -338,11 +350,6 @@
+    */
+   bool should_cancel_goal()
+   {
+-    // Shut the node down if it is currently running
+-    if (status() != BT::NodeStatus::RUNNING) {
+-      return false;
+-    }
+-
+     // No need to cancel the goal if goal handle is invalid
+     if (!goal_handle_) {
+       return false;
+@@ -356,15 +363,151 @@
+            status == action_msgs::msg::GoalStatus::STATUS_EXECUTING;
+   }
+ 
++  // Transfer this callback group to a finite cleanup operation. Its shared captures
++  // outlive a destroyed BT node; no cleanup callback may dereference that node.
++  // No deadline declares an unknown request safe: rejection or a terminal result
++  // is required before the group can return to normal BT execution.
++  void begin_goal_cleanup()
++  {
++    goal_callback_guard_.reset();
++    if (cleanup_pending_ || (!future_goal_handle_ && !goal_handle_)) {
++      return;
++    }
++    if (!rclcpp::ok(node_->get_node_base_interface()->get_context())) {
++      return;
++    }
++    callback_group_executor_.remove_callback_group(callback_group_);
++    cleanup_pending_ = std::make_shared<std::atomic<bool>>(true);
++    auto pending = future_goal_handle_;
++    auto active = goal_handle_;
++    future_goal_handle_.reset();
++    goal_handle_.reset();
++    feedback_.reset();
++    goal_result_available_ = false;
++    auto context = node_->get_node_base_interface()->get_context();
++    rclcpp::ExecutorOptions options;
++    options.context = context;
++    auto executor = std::make_shared<rclcpp::executors::SingleThreadedExecutor>(options);
++    auto stopped = std::make_shared<std::atomic<bool>>(false);
++    auto finished = std::make_shared<std::promise<void>>();
++    auto finished_future = finished->get_future().share();
++    std::weak_ptr<rclcpp::executors::SingleThreadedExecutor> weak_executor = executor;
++    auto shutdown_handle = context->add_pre_shutdown_callback(
++      [weak_executor, stopped, finished_future]() {
++        stopped->store(true);
++        // Cancellation may precede entry into spin; repeat the interrupt until
++        // resource teardown is complete, rather than racing context shutdown.
++        while (finished_future.wait_for(0s) != std::future_status::ready) {
++          if (auto cleanup_executor = weak_executor.lock()) {
++            cleanup_executor->cancel();
++          }
++          std::this_thread::yield();
++        }
++      });
++    std::weak_ptr<rclcpp::Context> weak_context = context;
++    std::thread([node = node_, client = action_client_, group = callback_group_,
++      pending, active, barrier = cleanup_pending_, name = action_name_, executor,
++      stopped, finished, weak_context, shutdown_handle]() mutable {
++        bool attached = false;
++        bool complete = true;
++        try {
++          executor->add_callback_group(group, node->get_node_base_interface());
++          attached = true;
++          using GoalHandle = rclcpp_action::ClientGoalHandle<ActionT>;
++          std::vector<std::shared_future<typename GoalHandle::WrappedResult>> results;
++          auto cancel_and_track = [&](typename GoalHandle::SharedPtr handle) {
++              if (!handle) {
++                return;  // Explicit goal rejection.
++              }
++              auto status = handle->get_status();
++              if (status == action_msgs::msg::GoalStatus::STATUS_SUCCEEDED ||
++                status == action_msgs::msg::GoalStatus::STATUS_ABORTED ||
++                status == action_msgs::msg::GoalStatus::STATUS_CANCELED)
++              {
++                return;
++              }
++              try {
++                results.push_back(client->async_get_result(handle));
++                if (status != action_msgs::msg::GoalStatus::STATUS_CANCELING) {
++                  client->async_cancel_goal(handle);
++                }
++              } catch (const rclcpp_action::exceptions::UnknownGoalHandleError &) {
++                status = handle->get_status();
++                if (status != action_msgs::msg::GoalStatus::STATUS_SUCCEEDED &&
++                  status != action_msgs::msg::GoalStatus::STATUS_ABORTED &&
++                  status != action_msgs::msg::GoalStatus::STATUS_CANCELED)
++                {
++                  throw;
++                }
++              }
++            };
++          // Cancel an executing old goal before awaiting an updated goal response.
++          cancel_and_track(active);
++          if (pending) {
++            if (!stopped->load() &&
++              executor->spin_until_future_complete(*pending) == rclcpp::FutureReturnCode::SUCCESS)
++            {
++              auto accepted = pending->get();
++              if (!active || !accepted || active->get_goal_id() != accepted->get_goal_id()) {
++                cancel_and_track(accepted);
++              }
++            } else {
++              complete = false;
++            }
++          }
++          for (auto & result : results) {
++            if (stopped->load() ||
++              executor->spin_until_future_complete(result) != rclcpp::FutureReturnCode::SUCCESS)
++            {
++              complete = false;
++            } else {
++              const auto code = result.get().code;
++              if (code != rclcpp_action::ResultCode::SUCCEEDED &&
++                code != rclcpp_action::ResultCode::ABORTED &&
++                code != rclcpp_action::ResultCode::CANCELED)
++              {
++                complete = false;
++              }
++            }
++          }
++        } catch (const std::exception & e) {
++          RCLCPP_ERROR(node->get_logger(), "Goal cleanup for %s failed: %s", name.c_str(), e.what());
++          complete = false;
++        }
++        if (attached) {
++          executor->remove_callback_group(group);
++        }
++        // Release all DDS entities before allowing Context::shutdown to proceed.
++        pending.reset();
++        active.reset();
++        executor.reset();
++        client.reset();
++        group.reset();
++        node.reset();
++        finished->set_value();
++        if (complete && !stopped->load()) {
++          barrier->store(false);
++        }
++        if (auto context = weak_context.lock()) {
++          context->remove_pre_shutdown_callback(shutdown_handle);
++        }
++      }).detach();
++  }
++
+   /**
+    * @brief Function to send new goal to action server
+    */
+   void send_new_goal()
+   {
+     goal_result_available_ = false;
++    goal_callback_guard_ = std::make_shared<int>(0);
++    std::weak_ptr<int> callback_guard = goal_callback_guard_;
+     auto send_goal_options = typename rclcpp_action::Client<ActionT>::SendGoalOptions();
+     send_goal_options.result_callback =
+-      [this](const typename rclcpp_action::ClientGoalHandle<ActionT>::WrappedResult & result) {
++      [this, callback_guard](const typename rclcpp_action::ClientGoalHandle<ActionT>::WrappedResult & result) {
++        if (callback_guard.expired()) {
++          return;
++        }
+         if (future_goal_handle_) {
+           RCLCPP_DEBUG(
+             node_->get_logger(),
+@@ -376,15 +519,20 @@
+         // TODO(#1652): a work around until rcl_action interface is updated
+         // if goal ids are not matched, the older goal call this callback so ignore the result
+         // if matched, it must be processed (including aborted)
+-        if (this->goal_handle_->get_goal_id() == result.goal_id) {
++        if (goal_handle_ && goal_handle_->get_goal_id() == result.goal_id) {
+           goal_result_available_ = true;
+           result_ = result;
+         }
+       };
+     send_goal_options.feedback_callback =
+-      [this](typename rclcpp_action::ClientGoalHandle<ActionT>::SharedPtr,
++      [this, callback_guard](typename rclcpp_action::ClientGoalHandle<ActionT>::SharedPtr handle,
+         const std::shared_ptr<const typename ActionT::Feedback> feedback) {
+-        feedback_ = feedback;
++        if (callback_guard.expired()) {
++          return;
++        }
++        if (goal_handle_ && handle->get_goal_id() == goal_handle_->get_goal_id()) {
++          feedback_ = feedback;
++        }
+       };
+ 
+     future_goal_handle_ = std::make_shared<
+@@ -405,7 +553,6 @@
+ 
+     // server has already timed out, no need to sleep
+     if (remaining <= std::chrono::milliseconds(0)) {
+-      future_goal_handle_.reset();
+       return false;
+     }
+ 
+@@ -415,7 +562,6 @@
+     elapsed += timeout;
+ 
+     if (result == rclcpp::FutureReturnCode::INTERRUPTED) {
+-      future_goal_handle_.reset();
+       throw std::runtime_error("send_goal failed");
+     }
+ 
+@@ -474,6 +620,8 @@
+   std::shared_ptr<std::shared_future<typename rclcpp_action::ClientGoalHandle<ActionT>::SharedPtr>>
+   future_goal_handle_;
+   rclcpp::Time time_goal_sent_;
++  std::shared_ptr<int> goal_callback_guard_;
++  std::shared_ptr<std::atomic<bool>> cleanup_pending_;
+ 
+   // Can be set in on_tick or on_wait_for_result to indicate if a goal should be sent.
+   bool should_send_goal_;

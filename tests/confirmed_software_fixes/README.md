@@ -27,3 +27,14 @@ AUD-052：配置同一测试目录时加 `-DFASTLIO_SOURCE=/absolute/path/to/src
 source 既有 `livox_ros_driver2` 消息依赖。真实 ESKF + 完整共享 ImuProcess，无理想 predict
 替代。`aud052_deskew` 验证单雷达1/2、双雷达，零/正 offset、50ms 浮点边界、单点、
 重复/乱序、空云及匀速旋转；对每点断言三维解析误差 <1e-6m，并检查帧末状态。
+
+AUD-056：`aud056_*` 使用真实 ROS client、完整 BtActionNode 和事件闸门服务器，
+不使用 sleep 排序。覆盖接受超时、接受前 halt、迟到拒绝、拒绝取消、对象销毁、
+已接受目标停止、更新目标超时、成功与取消交错；要求旧请求归属持续、终态前不重发、
+旧成功/反馈不写回，新请求可恢复；还覆盖终态结果故意缺失时的 context 退出。`on_cancelled` 检查收到有效取消结果。
+要验证真正安装的 Spin 插件，加
+`-DNAV2_SPIN_PLUGIN=/absolute/overlay/lib/libnav2_spin_action_bt_node.so`。
+`NAV2_BT_SOURCE` 仅用于开发时对原/修复 header 做 A/B；最终验收不用该覆盖，
+直接通过修复 `nav2_behavior_tree` 安装包编译并加载实际插件。若用手动 CMake 安装，
+还需显式传入 `-Dnav2_behavior_tree_DIR=/absolute/overlay/share/nav2_behavior_tree/cmake`，
+确认配置输出为该安装目录，避免下游仍选中 apt header。

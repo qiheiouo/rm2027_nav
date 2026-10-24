@@ -204,6 +204,11 @@ The standard navigation action is:
 nav2_msgs/action/NavigateToPose
 ```
 
+Nav2 Humble 的取消 ACK 只表示接受取消请求，不能代替 action 终态或物理停车。
+本项目[固定 overlay](../../dependencies/nav2_humble/README.md)使 costmap 等待可取消，
+并保留 BT 超时/停止请求到拒绝或终态；迟到接受后取消，旧回调不得写回 BT 输出。
+同一 BT node 的未知请求未闭合时禁止重发；这不赋予任何硬件运动授权。
+
 Phase 1 may send goals manually or through test tools. Phase 1 does not connect competition BT.
 
 Phase 3 mission or BT may call navigation only through standard Nav2 action interfaces.

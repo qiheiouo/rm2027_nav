@@ -7,7 +7,7 @@ import shutil
 import subprocess
 
 PIN = 'a097086719c88f781aa59788eca29ac6ca5e56db'
-PACKAGES = ('nav2_planner', 'nav2_controller')
+PACKAGES = ('nav2_planner', 'nav2_controller', 'nav2_behavior_tree')
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('source', type=Path)
 parser.add_argument('output', type=Path)
