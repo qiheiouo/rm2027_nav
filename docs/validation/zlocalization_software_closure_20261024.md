@@ -96,3 +96,30 @@ backwards latch 与同刻 covariance/pose；无 estimator/真实地图效果声�
 smoke 均通过；动态 TF correction 最大矩阵误差 `1.1102230246251565e-16`；
 源失联撤销有效性并停止刷新 correction TF；新 epoch/换 publisher 后保持锁定；子进程 clean exit。
 测试 share symlink 配置错误的首轮在 launch 前失败，修正后两条真实链路重跑通过，未改被测逻辑。
+
+## Phase 3 — prior / Nav2 坐标
+
+先更新 [地图坐标合同](../contracts/map_bundle.md#z-localization-prior--nav2-坐标合同parity-候选2026-10-24)，
+再实现 `rm_map_tools check_zlocalization_coordinates`。现有 runtime 要求整个 prior 已在 Nav2
+map 下；不增加 runtime TF 或修改已有 owner。严格区分 PCD frame、mapping gauge、raster
+origin/yaw 和像素中心/行翻转，记录 CloudCompare shift/scale 与完整 bundle 变换链。
+
+Checker 接受 prior PCD（ASCII/常见 PCL binary）、map.yaml、可显式指定的 PGM、transform
+metadata，验证文件绑定、SE(3)/frame/单位、预期 origin/orientation/resolution、旋转栅格下
+bounds overlap、height-band points、独立非共线 landmark（map/pixel/PCD 支持/可选 mapping 链）
+及 deterministic occupied sample correspondence。输出每项原因和 JSON，成功 0 / 失败 2。
+未烘焙非 identity prior→map 即使几何可对齐也失败。未支持压缩 PCD/其他图像模式明确报错。
+没有自动 map alignment、产物写回或批准开关。随包提供不可直接通过的 metadata 模板。
+
+验证：checker 新增 **25/25** synthetic tests；rm_map_tools 全部局部回归 **63 passed / 1 skipped**。
+唯一 skip 是仓库未打包的真实 field baseline，不计作已验证真实地图。
+宿主完整包测试因未安装 ROS sensor_msgs 无法收集，改在现有 Humble 环境重跑得到以上结果；
+无新依赖。package 安装通过，实际 `ros2 run` entry 对非零 origin + yaw + 非对称图像 synthetic
+fixture 输出 consistency=true、real_map_accepted=false、hardware_go=false。
+测试包含坐标/单位/scale/reflection、变换方向/未烘焙、错行像素、地标缺失/共线/错位/PCD 无支持、
+错 mapping 链、unknown/free cells、negate/等阈值、文件/图像绑定、binary extra/vector 字段与截断。
+
+**M11 软件合同/checker 已就绪；真实地图接受仍 Partial。** 新车 acquisition/acceptance 流程
+在坐标合同中维护：独立 mapping/query bag、完整 raw/final bundle、PGM/YAML 与变换来源、
+至少三处分布良好的独立实测地标和匹配 hashes → 结构/几何 checker → 人工空间复核 →
+query bag 定位/恢复/动态机械/同刻 TF 评价。synthetic 结果不填作真实地标或真实 prior 验收。

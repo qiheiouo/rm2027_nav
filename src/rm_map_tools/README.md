@@ -113,3 +113,36 @@ ros2 run rm_map_tools verify_map_server /path/to/map.bundle.yaml --timeout 10
 This command is read-only. A successful comparison proves serialization and
 reload consistency; it does not prove obstacle truth, localization quality, or
 approval readiness.
+
+## Z prior / Nav2 coordinate consistency (manual, opt-in)
+
+`check_zlocalization_coordinates` adds geometric checks to artifact validation:
+origin/yaw/resolution, SE(3)/frame and baked-transform requirements, raster-local
+bounds overlap, independent noncollinear landmarks (including PCD support and
+pixel coordinates/class), and deterministic height-band occupied-cell samples.
+It changes no map, launch, TF or approval flag.
+
+```bash
+ros2 run rm_map_tools check_zlocalization_coordinates \
+  --prior-pcd /assets/prior/map.pcd --map-yaml /assets/nav2/map.yaml \
+  --occupancy-image /assets/nav2/map.pgm --transform-metadata /assets/coordinates.yaml
+```
+
+JSON stdout includes every failed check and reason; exit 0 means input
+consistency, exit 2 means failure. `real_map_accepted` and `hardware_go` are always
+false. The metadata [template](config/zlocalization_coordinates.example.yaml)
+requires replacement of all geometry, hashes, independent annotations and
+predeclared acceptance thresholds; it intentionally cannot pass unfilled.
+No example threshold is a new-car acceptance threshold.
+
+Supports PCL ASCII/uncompressed binary PCD (extra/vector fields allowed), P2/P5
+8-bit PGM, trinary negate/threshold semantics. Unsupported binary_compressed PCD,
+image formats or modes fail explicitly; use existing PCL/image tools to convert
+and bind the new bytes. No automatic alignment or guessed transform is applied.
+A nonidentity prior→map transform may be evaluated but fails the current runtime
+gate: bake it into the whole prior bundle first. YAML origin applies to raster
+coordinates only, never a second time to Z localization poses.
+
+The [coordinate contract and real acquisition/acceptance flow](../../docs/contracts/map_bundle.md#z-localization-prior--nav2-坐标合同parity-候选2026-10-24)
+are authoritative. Synthetic tests verify checker behavior and cannot validate
+an actual prior/map or grant Hardware Go.

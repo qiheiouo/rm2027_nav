@@ -18,6 +18,7 @@ setup(
             "share/" + package_name + "/config",
             [
                 "config/map_quality_labels.example.yaml",
+                "config/zlocalization_coordinates.example.yaml",
                 "config/mapping_octomap.yaml",
             ],
         ),
@@ -50,6 +51,7 @@ setup(
             "sweep_map_projection = rm_map_tools.sweep_map_projection:main",
             "validate_map_bundle = rm_map_tools.validate_map_bundle:main",
             "verify_map_server = rm_map_tools.verify_map_server:main",
+            "check_zlocalization_coordinates = rm_map_tools.coordinate_consistency:main",
         ],
     },
 )
