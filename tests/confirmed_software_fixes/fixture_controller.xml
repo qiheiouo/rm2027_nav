@@ -1,0 +1,1 @@
+<library path="cancel_wait_fixture"><class type="fixture::Controller" base_class_type="nav2_core::Controller"><description>Counts actual controller calls; no hardware.</description></class></library>

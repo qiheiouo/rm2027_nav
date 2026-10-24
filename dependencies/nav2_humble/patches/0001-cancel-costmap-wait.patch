@@ -1,0 +1,101 @@
+diff --git a/nav2_controller/src/controller_server.cpp b/nav2_controller/src/controller_server.cpp
+index 2504114..2db388f 100644
+--- a/nav2_controller/src/controller_server.cpp
++++ b/nav2_controller/src/controller_server.cpp
+@@ -398,11 +398,24 @@ void ControllerServer::computeControl()
+       }
+ 
+       // Don't compute a trajectory until costmap is valid (after clear costmap)
+-      rclcpp::Rate r(100);
+-      while (!costmap_ros_->isCurrent()) {
++      rclcpp::WallRate r(100);
++      while (rclcpp::ok() && action_server_->is_server_active() &&
++        !action_server_->is_cancel_requested() && !costmap_ros_->isCurrent())
++      {
+         r.sleep();
+       }
+ 
++      // Never resume the old goal when a canceled costmap wait is released.
++      if (action_server_->is_cancel_requested()) {
++        publishZeroVelocity();
++        action_server_->terminate_all();
++        return;
++      }
++      if (!rclcpp::ok() || !action_server_->is_server_active()) {
++        publishZeroVelocity();
++        return;
++      }
++
+       updateGlobalPath();
+ 
+       computeAndPublishVelocity();
+diff --git a/nav2_planner/include/nav2_planner/planner_server.hpp b/nav2_planner/include/nav2_planner/planner_server.hpp
+index b6323e1..5731cd2 100644
+--- a/nav2_planner/include/nav2_planner/planner_server.hpp
++++ b/nav2_planner/include/nav2_planner/planner_server.hpp
+@@ -129,9 +129,10 @@ protected:
+ 
+   /**
+    * @brief Wait for costmap to be valid with updated sensor data or repopulate after a
+-   * clearing recovery. Blocks until true without timeout.
++   * clearing recovery. Cancellation and server shutdown interrupt the wait.
+    */
+-  void waitForCostmap();
++  template<typename T>
++  bool waitForCostmap(std::unique_ptr<nav2_util::SimpleActionServer<T>> & action_server);
+ 
+   /**
+    * @brief Check if an action server has a preemption request and replaces the goal
+diff --git a/nav2_planner/src/planner_server.cpp b/nav2_planner/src/planner_server.cpp
+index d274c43..e7ac8ed 100644
+--- a/nav2_planner/src/planner_server.cpp
++++ b/nav2_planner/src/planner_server.cpp
+@@ -271,13 +271,22 @@ bool PlannerServer::isServerInactive(
+   return false;
+ }
+ 
+-void PlannerServer::waitForCostmap()
++template<typename T>
++bool PlannerServer::waitForCostmap(
++  std::unique_ptr<nav2_util::SimpleActionServer<T>> & action_server)
+ {
+-  // Don't compute a plan until costmap is valid (after clear costmap)
+-  rclcpp::Rate r(100);
+-  while (!costmap_ros_->isCurrent()) {
++  // Check cancellation before currentness, including the map-restoration iteration.
++  rclcpp::WallRate r(100);
++  while (rclcpp::ok()) {
++    if (isServerInactive(action_server) || isCancelRequested(action_server)) {
++      return false;
++    }
++    if (costmap_ros_->isCurrent()) {
++      return true;
++    }
+     r.sleep();
+   }
++  return false;
+ }
+ 
+ template<typename T>
+@@ -379,7 +388,9 @@ PlannerServer::computePlanThroughPoses()
+       return;
+     }
+ 
+-    waitForCostmap();
++    if (!waitForCostmap(action_server_poses_)) {
++      return;
++    }
+ 
+     getPreemptedGoalIfRequested(action_server_poses_, goal);
+ 
+@@ -470,7 +481,9 @@ PlannerServer::computePlan()
+       return;
+     }
+ 
+-    waitForCostmap();
++    if (!waitForCostmap(action_server_pose_)) {
++      return;
++    }
+ 
+     getPreemptedGoalIfRequested(action_server_pose_, goal);
+ 

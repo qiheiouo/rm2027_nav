@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>confirmed_software_fixes</name><version>0.0.1</version>
+  <description>Isolated no-hardware defect regressions.</description>
+  <maintainer email="maintainer@example.com">RM navigation maintainers</maintainer>
+  <license>Apache-2.0</license>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>nav2_core</depend><depend>nav2_costmap_2d</depend><depend>pluginlib</depend>
+  <depend>std_msgs</depend><depend>std_srvs</depend>
+</package>
