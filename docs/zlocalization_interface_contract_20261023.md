@@ -186,3 +186,54 @@ startup/home reference。legacy/backend/pose/cloud 的可见 publisher 更换同
 loop、descriptor、世界云、显示输出均由显式 launch 参数选择，默认保持旧配置；
 loop 只允许 mapping。UWB 和旧机器人兼容输出强制关闭，sensor body transform 强制
 IMU identity；任何 overlay 不能改变这些 owner 边界。真实动态机械 TF 仍为前置条件。
+
+## 2026-10-24 canonical 会话状态机（本轮先定合同，再实现）
+
+本节是 parity 分支的正式 reset/time/loss 语义。**不承诺跨 rebase 的物理 pose 连续**。
+一次 canonical 定位会话是 frontend + lio_adapter startup reference + backend/prior +
+candidate + bridge 的完整进程组。现有 plain Odometry 没有 epoch；本轮不扩大公共消息协议。
+因此换坐标基准的事件必须显式撤销并锁定，重启整组才可建立下一会话。
+同进程自动跨 reset 接续仍是 F14 未实现部分，不能靠放开 epoch 或 timestamp 检查实现。
+
+```text
+WAITING --同会话可信且新鲜的 pose/state + source-time TF--> TRACKING
+TRACKING --SUSPECT/LOST/证据到期--> INVALID
+INVALID --严格晚于撤销水位的新 pose/state + source-time TF--> TRACKING
+WAITING/TRACKING/INVALID --reset/identity/clock basis boundary--> LATCHED
+LATCHED --任何输入、重复 reset、恢复 NORMAL--> LATCHED
+LATCHED --停止旧进程组，启动新进程组--> 新 WAITING（新 producer_id）
+```
+
+| 事件 | pose / continuity | timestamp、epoch、sequence / 接续条件 |
+|---|---|---|
+| backend reset | 立即 invalid + LATCHED，不允许把新 odom basis 当旧 basis | backend epoch≠0 锁定；本进程 status sequence 继续递增，producer_id 不变；整组重启 |
+| relocalization | 允许 map pose / map→odom 跳变，不做连续化或伪造插值 | 处于 LOST 时 invalid；新 generation/revision 和严格新 source stamp 成对后恢复；odom basis 不变 |
+| map reload | 当前 upstream prior 仅启动时加载；运行中换地图不支持 | 停止旧组；验证新地图合同后启动新组，新 producer_id；旧组消息隔离 |
+| process restart | 新会话，canonical odom 原点可以变化 | 新 UUID producer_id、新 started_at、sequence 从 1；frontend instance 新值；bridge 同组重启清 cache |
+| ROS time pause/resume | 暂停不能保持无限 valid；恢复不补造观测 | steady timer 继续报告；ROS source deadline + steady receipt lease 均满足才 valid；超时后必须新 source stamp |
+| ROS time backwards jump | 视为时钟基准换代，LATCHED，不能等时钟追上自动复活 | 含回到 0；整组重启/重放建立新会话；status emission time可回退但 valid=false，sequence仍递增 |
+| frontend session change / reset_required / failed | LATCHED，禁止送新 raw 到旧 canonical reference | instance/epoch 变化、sequence/stamp 不递增、GID 变化都锁定；旧 session 不可解锁 |
+| prior change | 必须和地图坐标、descriptor、prior identity 一同验收，再整组重启 | 不允许热替换文件；运行目录视为 immutable；新进程组代表新 prior/session |
+| localization loss/recovery | invalid 时清除可用 pose；恢复可跳变，且保留真实新测量 | 记撤销水位=max 已见 source stamp；旧 generation/revision 丢弃；新证据必须 > 水位，心跳不恢复 |
+
+### 消费者与一致性
+
+- `LocalizationStatus.producer_id` 是进程身份，`started_at` 是该进程 ROS 起始时刻；
+  status `sequence` 每次发送严格递增，和 frontend frame sequence、backend epoch/generation/revision
+  分属不同域。session 边界不静默重置任一计数；没有新进程组就没有自动新 canonical session。
+- 既有 bridge 是唯一 map→odom owner；consumer 使用它的有租期 `/localization/status`，
+  同时检查 producer/started_at/sequence、source stamp、ROS deadline 和 steady receipt age。
+  UUID 不能排序；拒绝旧 producer/旧序列；不能用 Bool、TF cache 或 status header 当新测量。
+  TF 自身没有 validity 字段；TF buffer 可保留最后变换，invalid 后不得据此继续运动。
+- 同一源 stamp 的 pose + covariance +可信 state 才能进入 map→base。backend generation/revision
+  回退的状态丢弃；新 version 清旧 state 配对，未配对 pose 仍受严格 source 水位约束；loss/expiry 清 pose 并建立撤销水位。
+  单独延迟/重排 pose 不能改变信任或恢复旧 lease。原始 pose 消息没有 epoch/version，
+  所以不允许在 reset 后复用相同 stamp 并自动接续；此限制是 LATCHED 必需的原因。
+- 旧 session 的 native frame/session、旧 publisher 或 backend reset 通知均不能解除锁定。
+  新组在接纳任一非零新 frontend epoch 前仍 fail closed；禁止旧进程和新进程重叠发布。
+  单调时钟重放下拒绝进程启动前的 pose；时钟倒退重放需销毁旧 ROS graph 后整组重启。
+- map→base covariance 始终与同刻 pose 一起杆臂传播；无 TF 则等待到 lease 到期；
+  native→canonical raw covariance 仍为 missing，不伪装成估计连续性的证据。
+  本 adapter 不发布公共 TF；reset/loss 后不再向 bridge 提交可信 pose；bridge 租期撤销有效性。
+- pure mapping 下 NORMAL 表示相对 gauge 下可信，不代表已配准 Nav2 prior。真实 prior↔Nav2
+  坐标接受是独立门槛。任何软件状态机都不能证明实际坐标正确。
