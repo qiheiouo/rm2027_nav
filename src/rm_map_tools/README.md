@@ -146,3 +146,7 @@ coordinates only, never a second time to Z localization poses.
 The [coordinate contract and real acquisition/acceptance flow](../../docs/contracts/map_bundle.md#z-localization-prior--nav2-坐标合同parity-候选2026-10-24)
 are authoritative. Synthetic tests verify checker behavior and cannot validate
 an actual prior/map or grant Hardware Go.
+
+For machine parsing, call the installed `lib/rm_map_tools/check_zlocalization_coordinates`
+executable directly: the checker itself writes only JSON. The `ros2 run` wrapper
+may append its own failure footer when exit=2; that footer is not checker JSON.
