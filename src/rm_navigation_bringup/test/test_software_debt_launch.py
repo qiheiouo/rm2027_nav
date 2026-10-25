@@ -291,6 +291,12 @@ def test_fast_lio_body_request_enables_upstream_master_publish_gate(body, world,
     from launch_ros.utilities import evaluate_parameters, normalize_parameters
     module = load_launch("src/rm_lio_bringup/launch/fast_lio_multi_phase2a.launch.py")
     context = LaunchContext()
+    # Load the actual launch defaults before overriding the publication flags.
+    # Z's zero_start_pose argument is also declared by this composed entry.
+    from launch.actions import DeclareLaunchArgument
+    for action in module.generate_launch_description().entities:
+        if isinstance(action, DeclareLaunchArgument):
+            action.execute(context)
     context.launch_configurations.update(
         use_backend="true", sensor_mode="single", selected_side="left", update_method="bundle",
         config_file="", use_sim_time="false", publish_tf_results="false",

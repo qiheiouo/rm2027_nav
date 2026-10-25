@@ -1,0 +1,380 @@
+{
+  "completed_date": "2026-10-25",
+  "runtime_checkpoint": "d74948c06c8ef633c084567e079443da54488d42",
+  "staging_tests": {
+    "rm_localization_adapters": [
+      {
+        "file": "test_canonical_odometry.gtest.xml",
+        "cases": 15,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0
+      },
+      {
+        "file": "test_localization_session.gtest.xml",
+        "cases": 7,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0
+      }
+    ],
+    "rm_relocalization_bridge": [
+      {
+        "file": "test_global_pose_gate.gtest.xml",
+        "cases": 12,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0
+      },
+      {
+        "file": "test_relocalization_math.gtest.xml",
+        "cases": 5,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0
+      },
+      {
+        "file": "test_spin_candidate_profiles.xunit.xml",
+        "cases": 4,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0
+      }
+    ],
+    "rm_navigation_bringup": [
+      {
+        "file": "test_software_debt_launch.xunit.xml",
+        "cases": 17,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0
+      }
+    ],
+    "rm_competition_mission": [
+      {
+        "file": "test_minimal_mission_runtime.xunit.xml",
+        "cases": 1,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0
+      },
+      {
+        "file": "test_navigation_arbitration_runtime.xunit.xml",
+        "cases": 1,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0
+      },
+      {
+        "file": "test_review_boundaries_runtime.xunit.xml",
+        "cases": 6,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0
+      },
+      {
+        "file": "test_three_point_spin_profile.xunit.xml",
+        "cases": 6,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0
+      },
+      {
+        "file": "test_three_point_spin_runtime.xunit.xml",
+        "cases": 1,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0
+      }
+    ]
+  },
+  "ab_tests": {
+    "rm_localization_adapters": [
+      {
+        "file": "test_canonical_odometry.gtest.xml",
+        "cases": 15,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0
+      }
+    ],
+    "rm_relocalization_bridge": [
+      {
+        "file": "test_global_pose_gate.gtest.xml",
+        "cases": 12,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0
+      },
+      {
+        "file": "test_relocalization_math.gtest.xml",
+        "cases": 5,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0
+      },
+      {
+        "file": "test_spin_candidate_profiles.xunit.xml",
+        "cases": 4,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0
+      }
+    ],
+    "rm_navigation_bringup": [
+      {
+        "file": "test_software_debt_launch.xunit.xml",
+        "cases": 17,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0
+      }
+    ],
+    "rm_competition_mission": [
+      {
+        "file": "test_minimal_mission_runtime.xunit.xml",
+        "cases": 1,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0
+      },
+      {
+        "file": "test_navigation_arbitration_runtime.xunit.xml",
+        "cases": 1,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0
+      },
+      {
+        "file": "test_review_boundaries_runtime.xunit.xml",
+        "cases": 6,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0
+      },
+      {
+        "file": "test_three_point_spin_profile.xunit.xml",
+        "cases": 6,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0
+      },
+      {
+        "file": "test_three_point_spin_runtime.xunit.xml",
+        "cases": 1,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0
+      }
+    ]
+  },
+  "python": {
+    "cases": 109,
+    "failures": 0,
+    "errors": 0,
+    "skips": 1
+  },
+  "combination": {
+    "cases": 4,
+    "failures": 1,
+    "errors": 0,
+    "skips": 0
+  },
+  "mission_session": {
+    "cases": 2,
+    "failures": 2,
+    "errors": 0,
+    "skips": 0
+  },
+  "upstream_session_unit": {
+    "cases": 17,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0
+  },
+  "upstream_session_flow": {
+    "cases": 18,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0
+  },
+  "wire": {
+    "expired_callback_cannot_advance_epoch": true,
+    "reset_pending_tf_and_old_epoch_rejected": true,
+    "rapid_100_resets_recovered": true,
+    "loss_old_pose_not_resurrected": true,
+    "reordered_callback_rejected": true,
+    "revision_notice_requires_fresh_observation": true,
+    "pause_resume_fresh_source": true,
+    "new_producer_selected_old_retired": true,
+    "time_jump_new_epoch_and_highwater_recovery": true,
+    "status_messages": 549,
+    "canonical_odometry": 8,
+    "scope": "synthetic ROS transaction, no hardware claim"
+  },
+  "rpc": {
+    "actual_backend_reset_recovered": 10,
+    "canonical_epochs": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ],
+    "frontend_process_replacement_recovered": true,
+    "old_frontend_messages_rejected": true,
+    "reset_rpc_calls": 22,
+    "in_progress_same_transaction_retry": true,
+    "max_atomic_pose_transfer_error": 2.220446049250313e-16,
+    "max_covariance_transfer_error": 5.421010862427522e-20,
+    "scope": "actual backend + deterministic frontend RPC + synthetic prior; no hardware/map acceptance"
+  },
+  "shadow": {
+    "sensor_frames": 20,
+    "map_sensor_odometry": 181,
+    "native_epoch_after_reset": 1,
+    "public_tf_publishers": 0,
+    "canonical_or_command_publishers": 0,
+    "scope": "synthetic stationary room; native software functionality only; no accuracy or Hardware Go"
+  },
+  "clock": {
+    "paused_clock_expiry": true,
+    "invalid_heartbeat_continues": true,
+    "fresh_resume": true,
+    "backwards_latched": true,
+    "covariance_pose_tf_consistent": true,
+    "messages": 2605,
+    "scope": "adapter DDS/TF fixture only; no real sensor/map evidence"
+  },
+  "diagnostics": {
+    "paused_clock_expiry": true,
+    "malformed_state_error": true,
+    "diagnostic_only": true,
+    "messages": 10
+  },
+  "velocity": {
+    "terminal_status": 5,
+    "final_publishers": [
+      "velocity_smoother"
+    ],
+    "observed_terminal_to_zero_sec": 0.09359227400273085,
+    "old_compute_after_restore": 0,
+    "nonzero_after_observed_zero": 0,
+    "scope": "software smoother deceleration and action retirement; no physical stop SLA"
+  },
+  "covariance": {
+    "positive_psd_accepted": true,
+    "indefinite_valid_statuses": 585,
+    "bad_2x2_determinant": -3.0,
+    "accepted_covariance": [
+      1.0,
+      2.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      2.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  },
+  "session_failures": [
+    {
+      "boundary": "epoch",
+      "new_session": {
+        "id": "canonical-A",
+        "epoch": 2,
+        "valid": false
+      },
+      "session_canceled": false,
+      "invalid_status_canceled": true,
+      "requests": [
+        [
+          203.498253344,
+          1.0
+        ]
+      ],
+      "cancels": [
+        204.597446493
+      ],
+      "new_session_statuses": 42,
+      "max_active": 1
+    },
+    {
+      "boundary": "source",
+      "new_session": {
+        "id": "canonical-B",
+        "epoch": 2,
+        "valid": false
+      },
+      "session_canceled": false,
+      "invalid_status_canceled": true,
+      "requests": [
+        [
+          205.486674296,
+          1.0
+        ]
+      ],
+      "cancels": [
+        206.536633313
+      ],
+      "new_session_statuses": 42,
+      "max_active": 1
+    }
+  ],
+  "shutdown": {
+    "z_shutdown": {
+      "runs": 12,
+      "exit_zero": 12,
+      "timeouts": 0,
+      "sanitizer_findings": 0
+    },
+    "z_shutdown_peer": {
+      "runs": 3,
+      "exit_zero": 3,
+      "timeouts": 0,
+      "sanitizer_findings": 0
+    },
+    "z_asan_shutdown": {
+      "runs": 8,
+      "exit_zero": 8,
+      "timeouts": 0,
+      "sanitizer_findings": 0
+    }
+  },
+  "hardware_go": false,
+  "deployment_go": false,
+  "main_merge_performed": false
+}
