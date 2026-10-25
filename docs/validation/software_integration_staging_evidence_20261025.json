@@ -376,5 +376,245 @@
   },
   "hardware_go": false,
   "deployment_go": false,
-  "main_merge_performed": false
+  "main_merge_performed": false,
+  "repair_20261025": {
+    "baseline": "965b97edc0f24b68cd81c2e1dd50bd5097d4d393",
+    "p1_commit": "e89c5967883f735914aa1f098ab434cba39a494a",
+    "runtime_commit": "a2525784e40ff0dd071f3bc2dd35c22016f09def",
+    "p1_status": "software closed in staging",
+    "p2_status": "software closed in staging",
+    "C_status": "Software Modify; S03 unresolved and M11 real prior/map acceptance unchanged",
+    "package_core": {
+      "rm_localization_adapters": {
+        "cases": 22,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0
+      },
+      "rm_relocalization_bridge": {
+        "cases": 23,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0
+      },
+      "rm_competition_mission": {
+        "cases": 15,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0
+      },
+      "rm_navigation_bringup": {
+        "cases": 17,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0
+      }
+    },
+    "original6": {
+      "cases": 6,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0
+    },
+    "final_combination_and_handoff": {
+      "cases": 12,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0
+    },
+    "covariance_entries": {
+      "cases": 4,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0
+    },
+    "fresh_heartbeat_same_source": {
+      "cases": 1,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0
+    },
+    "covariance_scenarios": [
+      {
+        "entry": "atomic_bridge",
+        "scenarios": 14,
+        "accepted_compatible": 7,
+        "rejected_and_recovered": 7
+      },
+      {
+        "entry": "canonical_bridge",
+        "scenarios": 14,
+        "accepted_compatible": 7,
+        "rejected_and_recovered": 7
+      },
+      {
+        "entry": "legacy_bridge",
+        "scenarios": 14,
+        "accepted_compatible": 7,
+        "rejected_and_recovered": 7
+      },
+      {
+        "entry": "legacy_status_bridge",
+        "scenarios": 14,
+        "accepted_compatible": 7,
+        "rejected_and_recovered": 7
+      }
+    ],
+    "candidate_readiness_pursuit": {
+      "cases": 45,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0
+    },
+    "B_ctest": {
+      "targets": 14,
+      "failures": 0,
+      "note": "same pinned repaired Nav2 plugins; includes 51 AUD-052 numerical scenarios"
+    },
+    "upstream_unit": {
+      "cases": 17,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0
+    },
+    "upstream_flow": {
+      "cases": 18,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0
+    },
+    "sanitizer_global_pose_gate": {
+      "cases": 14,
+      "failures": 0,
+      "errors": 0,
+      "findings": 0
+    },
+    "z_smokes": {
+      "z_wire": {
+        "expired_callback_cannot_advance_epoch": true,
+        "reset_pending_tf_and_old_epoch_rejected": true,
+        "rapid_100_resets_recovered": true,
+        "loss_old_pose_not_resurrected": true,
+        "reordered_callback_rejected": true,
+        "revision_notice_requires_fresh_observation": true,
+        "pause_resume_fresh_source": true,
+        "new_producer_selected_old_retired": true,
+        "time_jump_new_epoch_and_highwater_recovery": true,
+        "status_messages": 554,
+        "canonical_odometry": 8,
+        "scope": "synthetic ROS transaction, no hardware claim"
+      },
+      "z_rpc": {
+        "actual_backend_reset_recovered": 10,
+        "canonical_epochs": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "frontend_process_replacement_recovered": true,
+        "old_frontend_messages_rejected": true,
+        "reset_rpc_calls": 22,
+        "in_progress_same_transaction_retry": true,
+        "max_atomic_pose_transfer_error": 2.220446049250313e-16,
+        "max_covariance_transfer_error": 5.421010862427522e-20,
+        "scope": "actual backend + deterministic frontend RPC + synthetic prior; no hardware/map acceptance"
+      },
+      "z_gate_false_native": {
+        "startup_untrusted": true,
+        "max_correction_matrix_error": 0.0015501431633714036,
+        "input_frames_times_covariance": true,
+        "public_tf_publishers": [
+          "zlocalization_laptop_observer",
+          "map_odom_from_global_pose",
+          "lio_adapter"
+        ],
+        "diagnostics_expired_on_source_loss": true,
+        "input_loss_invalid_and_tf_stopped": true,
+        "epoch_latched": true,
+        "state_messages": 35,
+        "canonical_odometry_messages": 30,
+        "scope": "deterministic ROS fixture; no real sensor or localization performance evidence"
+      },
+      "z_gate_false_legacy": {
+        "startup_untrusted": true,
+        "max_correction_matrix_error": 1.1102230246251565e-16,
+        "input_frames_times_covariance": true,
+        "public_tf_publishers": [
+          "zlocalization_laptop_observer",
+          "map_odom_from_global_pose",
+          "lio_adapter"
+        ],
+        "diagnostics_expired_on_source_loss": true,
+        "input_loss_invalid_and_tf_stopped": true,
+        "restart_latched": true,
+        "state_messages": 35,
+        "canonical_odometry_messages": 36,
+        "scope": "deterministic ROS fixture; no real sensor or localization performance evidence"
+      },
+      "z_shadow": {
+        "sensor_frames": 20,
+        "map_sensor_odometry": 179,
+        "native_epoch_after_reset": 1,
+        "public_tf_publishers": 0,
+        "canonical_or_command_publishers": 0,
+        "scope": "synthetic stationary room; native software functionality only; no accuracy or Hardware Go"
+      },
+      "z_clock": {
+        "paused_clock_expiry": true,
+        "invalid_heartbeat_continues": true,
+        "fresh_resume": true,
+        "backwards_latched": true,
+        "covariance_pose_tf_consistent": true,
+        "messages": 2352,
+        "scope": "adapter DDS/TF fixture only; no real sensor/map evidence"
+      }
+    },
+    "hardware_go": false,
+    "main_merge_performed": false,
+    "push_performed": false,
+    "handoff_scenarios": [
+      {
+        "boundary": "epoch",
+        "cancel_count": 1,
+        "max_active": 1,
+        "latest_epoch": 2,
+        "retired_success_advanced_patrol": false
+      },
+      {
+        "boundary": "source",
+        "cancel_count": 1,
+        "max_active": 1,
+        "latest_epoch": 2,
+        "retired_success_advanced_patrol": false
+      },
+      {
+        "boundary": "lost",
+        "cancel_count": 1,
+        "max_active": 1,
+        "latest_epoch": 1,
+        "retired_success_advanced_patrol": false
+      },
+      {
+        "boundary": "rapid",
+        "cancel_count": 1,
+        "max_active": 1,
+        "latest_epoch": 102,
+        "retired_success_advanced_patrol": false
+      },
+      {
+        "boundary": "pending",
+        "cancel_count": 1,
+        "max_active": 1,
+        "latest_epoch": 2,
+        "retired_success_advanced_patrol": false
+      }
+    ]
+  }
 }

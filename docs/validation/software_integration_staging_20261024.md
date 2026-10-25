@@ -1,5 +1,35 @@
 # RM2027 Software Integration Staging（2026-10-24）
 
+## 当前结果：两项 staging 缺陷已闭合（2026-10-25）
+
+从 `codex/rm2027-software-integration-staging-20261024@965b97e` 继续，只处理本 staging 新发现的 P1/P2。**P1、P2 均 Software Closed；C 总体仍为 Software Modify**。没有重新审计全仓、开发新功能或处理硬件；main 保持 `d37f8d6`，未 merge/push。
+
+- P1：`e89c596`（修复：绑定任务动作与定位会话屏障）。先补 arbitration 合同，再把 NavigateToPose/Spin 绑定发送时的定位 generation。新 producer/session/epoch 或失效在 callback 内立即请求 cancel，保留原 pending/active handle 到 rejection/terminal；旧 success 只释放旧屏障，不推进巡逻、触发 Spin 或完成临时任务。清跨会话 completed/failed/pursuit 缓存；LOST 恢复还要求新于 COMMITTED 的 pursuit，防止 invalid 间隙沿用 cached TF 的候选。比赛优先级、持久目标、取消 ACK/终态语义不变。
+- P2：`a252578`（修复：统一定位协方差准入与撤销）。把 AUD-015 原 finite/symmetry/PSD 代码提为共用 `pose_covariance.hpp`，用于 A gate、Z canonical 输入及杆臂传播输出、bridge atomic 与 legacy/direct 入口。保留 per-dimension normalization、`1e-10` tolerance、zero/missing、rank-deficient 与原 variance/profile 限值。新增的是现有 Eigen 的声明/导出，不安装新工具链。坏矩阵不 clamp/补值；立即 invalid、清 held pose/pending work、撤销 source，严格更新的合法观测才恢复。
+
+| 本轮复验 | 最终结果 |
+| --- | --- |
+| 受影响 interfaces/Mission/canonical/bridge | 4 包构建、安装/头文件导出通过；使用现有固定 Humble/Nav2/Livox/GTSAM 依赖。没有重建无关模块 |
+| 原 `3 passed / 3 failed` 组合检查 | **6/6 passed**；原两个 P1 边界和 covariance failure 全转为通过，原断言未删除/改为 xfail/skip |
+| P1 事件控制回归 | **6/6 passed**：active epoch/source、pending acceptance、cancel 与迟到 SUCCEEDED、LOST/recovery/间隙缓存、100 次追加快速 epoch、退役 source/epoch 不回滚、Spin 旧成功不推进；终态前无替代请求，max active navigation=1 |
+| P2 四条实际 ROS 入口 | **4/4 passed，56 scenarios**：atomic bridge、canonical→bridge、direct legacy pose、Z legacy embedded status；每条 7 类合法兼容 + 7 类非法矩阵。负特征值/非对称/NaN/Inf/负方差/tolerance 外均立即 invalid 且清 pose；同 source 修订/新 emission heartbeat 不恢复，严格新 PSD source 可恢复 |
+| A/staging 原核心 | 原 **75 个内部用例全部通过**，另新增 2 个 covariance 边界 GTest；当前四包合计 **77 passed**。Mission/arbitration 15 项在最后缓存修正后完整复跑通过 |
+| B 关键定向 | **14/14 CTest passed**，包含 AUD-016 实际 server cancel、AUD-052 51 个数值场景、AUD-056 9 类调度及重建 Spin plugin；固定 overlay/依赖没有改变 |
+| Z/readiness/pursuit | **45 passed**（Z 38 + readiness/pursuit 7），没有重跑未修改的地图研究/硬件工作 |
+| Z canonical/reset/session | wire 100 快速 barrier、pending TF/reset/旧 epoch/旧 pose/重排/clock high-water 通过；真实 backend 10 reset + frontend replacement/22 RPC 通过；35 个直接相关 upstream session/reset/warm/cold 用例通过 |
+| gate off / shadow / clock | native epoch latch、legacy publisher restart、两个默认关闭入口、actual ZLIO shadow 和 paused/backwards clock smoke 均通过；没有新公共 TF/cmd_vel owner，默认 gates 仍 false |
+| 定向 sanitizer | 共享 covariance/A gate **14 GTest ASan+UBSan passed**，无 findings/suppression；不据此声称第三方库、S03 或 race-free 已验收 |
+
+测试夹具首轮有一次 Spin 未启动：top-level composition 按既有策略覆盖了 YAML 的 tree 选择。改为实际 Mission executable 显式选择仓库原 Spin 树后，6 项事件检查通过；未修改 production launch/BT/比赛策略。所有事件 deadline 仅用于测试失败与回收，生产实现无新增 sleep、取消超时解锁或以 ACK 代替终态。
+
+最新运行代码 checkpoint 为 `a2525784e40ff0dd071f3bc2dd35c22016f09def`；后续报告/evidence/测试说明提交不改变运行逻辑。原始失败证据保留在 [聚合 JSON](software_integration_staging_evidence_20261025.json) 的原字段，最新有效结果位于 `repair_20261025`。完整本地日志集中在主工作区 `build/software_integration_staging_results_20261024/repair_20261025/`，不进入 Git。
+
+**C 没有升级为 Software Go，也没有新增 main 合入建议。** 本轮只关闭 staging 消费端/输入合法性两个缺口；S03 历史 shutdown -11 的软件 blocker 仍 unresolved，M11 真实 prior/map/landmarks 接受仍未完成。feature gate、F14 native opt-in 支持边界和全部原硬件门继续保留。A/B 原软件结论不变，B 的依赖发布/加载条件也未在本轮处理；不合 main，不声称 Hardware Go。
+
+## 965b97e 首轮组合记录（历史）
+
+以下保留初轮实际提交、依赖、冲突和失败证据；其中 P1/P2 的 open 状态、`3 failed` 与合入决定中相应缺口已由上节覆盖。S03/M11、B 依赖发布及硬件门没有被覆盖。
+
 开始于 2026-10-24，完成于 2026-10-25（Asia/Shanghai）。阶段：Integration；只作组合软件结论。main 未合并、未推送；不接设备，不作 Deployment Go / Hardware Go。
 
 ## 基线与分支
