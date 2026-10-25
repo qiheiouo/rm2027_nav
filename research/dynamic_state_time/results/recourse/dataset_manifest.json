@@ -1,0 +1,118 @@
+{
+  "dataset_id": "rm2027-terminal-recourse-fixture-20261025",
+  "root": "/home/qihei/.codex/visualizations/2026/10/25/01a1708d-d064-7252-86b0-5e92a75657dc/dynamic_terminal_recourse_data_20261025",
+  "filename_convention": "<fixture_01|fixture_confirmation>/fixture_<search|recourse>.{json,jsonl.gz,log}; fixed_input.json and gate.json",
+  "origin": "local independent C++/Python harness; g++ 13.3.0 -O3 -DNDEBUG C++17, i9-13900HX, one logical CPU",
+  "purpose": "decisive frozen fixture and one unchanged algorithm confirmation; no 36-episode study",
+  "generated_or_real": "generated ideal CV",
+  "required_experiment": "run_recourse.sh; baseline fixture is already versioned, not re-archived",
+  "files": [
+    {
+      "path": "fixture_01/fixed_input.json",
+      "size": 4234,
+      "sha256": "e72388de4fa9863027539e9bc5361304b12e7f12ea376b15ee830961bbd9c901"
+    },
+    {
+      "path": "fixture_01/fixture_recourse.json",
+      "size": 3389,
+      "sha256": "6432e510c758376ed1764f30e4d2953a152aa7738b5a53e673e2e35259030915"
+    },
+    {
+      "path": "fixture_01/fixture_recourse.jsonl.gz",
+      "size": 47218,
+      "sha256": "5f90027d6a8f2b3bde1885df25e35ebcfc28c7cf9bc96773bb1b9a7d2a0e31e8"
+    },
+    {
+      "path": "fixture_01/fixture_recourse.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "fixture_01/fixture_search.json",
+      "size": 3364,
+      "sha256": "53027c24d38250bb4f1cac8c7d035e38090a890d4d59332ece43a5c328aef255"
+    },
+    {
+      "path": "fixture_01/fixture_search.jsonl.gz",
+      "size": 5851,
+      "sha256": "94d4b00e741e1bcad46f5261736d1b838b54176db594bde3cf30188707570aff"
+    },
+    {
+      "path": "fixture_01/fixture_search.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "fixture_01/gate.json",
+      "size": 7997,
+      "sha256": "9576aba57c706d2e8780597d828f99131afac662ea934812bd19083512d862cb"
+    },
+    {
+      "path": "fixture_01/search_baseline.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "fixture_01/search_consumer.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "fixture_confirmation/fixed_input.json",
+      "size": 4236,
+      "sha256": "bc55a9bd388a260bc23e99974d027ed3c3acd4b570b2f57fe897523ec2bbb929"
+    },
+    {
+      "path": "fixture_confirmation/fixture_recourse.json",
+      "size": 3394,
+      "sha256": "16b497e407ea4a004b4be87d472499f2f12146643180051addefdedc6a079c58"
+    },
+    {
+      "path": "fixture_confirmation/fixture_recourse.jsonl.gz",
+      "size": 45498,
+      "sha256": "4ad8340a3115baa01416757520f07992433e8c068f0756fe74df1a017f843694"
+    },
+    {
+      "path": "fixture_confirmation/fixture_recourse.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "fixture_confirmation/fixture_search.json",
+      "size": 3366,
+      "sha256": "d1d519164ece05ee3c0fe067b4d4bffc56e010490ce15c299eb1961dada0845a"
+    },
+    {
+      "path": "fixture_confirmation/fixture_search.jsonl.gz",
+      "size": 5840,
+      "sha256": "4128e9c0cfcac2a5cce9f477ef14abac82f49b84771a87ac59aa75f9cb80e8a9"
+    },
+    {
+      "path": "fixture_confirmation/fixture_search.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "fixture_confirmation/gate.json",
+      "size": 9165,
+      "sha256": "838b22900e775a4d9da563becb33a2ad12276ac9d4c4cf8cf4952b8045f0b7e5"
+    },
+    {
+      "path": "fixture_confirmation/parking_audit.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "fixture_confirmation/search_baseline.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "fixture_confirmation/search_consumer.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "total_bytes": 143552,
+  "excluded": "build_cache and historical data"
+}

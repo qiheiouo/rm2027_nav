@@ -1,0 +1,22 @@
+{
+  "stage": "Research; frozen-fixture gate before any 36-episode rerun",
+  "base_commit": "21b9e56076b23f17f1140b9ed68bff5edce9b5b6",
+  "hypothesis": "Filtering beam retention by an executable emergency-to-refuge certificate preserves safe continuation and repairs the frozen head-on failure without changing the search width, goal score, main horizon, plant or observations.",
+  "arms": ["simple", "search", "recourse"],
+  "definition": "R_B(s,t)=there exists a checked backup from s,t reaching rest whose padded box is disjoint from every observed actor's forward CV ray for all future time. Failure to certify is UNKNOWN, not proof of inevitable collision.",
+  "backup_library": "brake; eight compass targets at vmax held 1.4 s, then brake to rest. 1.4=ceil((2*vmax/amax)/0.2)*0.2. Same 10 ms plant and checker; targets obey unchanged velocity and acceleration limits. All directions, no scenario-specific policy.",
+  "intended_asymmetry": "C adds fixed emergency target rollouts and an analytic CV stationary-refuge check, used before beam retention and for returned/reused/braking schedules. A/B are unchanged. Backup controls are distinct from the original search primitives; no claim that any gain isolates only a scalar terminal penalty.",
+  "search_constants_unchanged": {"beam_width":64,"max_expansions":6000,"horizon_s":2.0,"primitive_s":0.2,"score":"distance + .1*speed^2 + .01*effort"},
+  "fixture_gate": {
+    "input":"results/failure_fixture.json (head_on_13 at t=2.50 s); no scene/seed/future schedule supplied to consumer",
+    "hold_test":"reject CV-unsafe stationary holding; independently report whether early stopped state STILL admits an emergency continuation, rather than force a false nonviability claim",
+    "witness_test":"saved 0.785 m sequence accepted or equivalent checked safe schedule selected; reproduce original B response",
+    "execution":"closed loop initialized at exact saved state, queued prefix and previous schedule through same absolute 40 s timeout and 3 s post-goal; no collision, >=.05 m physical clearance, completion; repeat once with unchanged configuration",
+    "resource":"p99 <=40 ms; max <=50 ms for deterministic fixture calls and no deadline misses in fixture execution; single core",
+    "stop":"after one implementation/configuration audit and unchanged confirmation, any unmet fixture criterion stops expansion"
+  },
+  "conditional_36_episode_gate": "ONLY after fixture pass: same 4 scenes x seeds 13/29/47 x A/B/C. C must have zero collisions, >=.05 m clearance each episode, no loss of completion versus A or B, no new timeout. Paired safe traversal degradation >20%, doubling command flips/churn or resource failure means Modify, not Go. No 10% performance improvement requirement.",
+  "metrics":"collision, clearance, completion, traversal, measured wait, stop count, command flips, existing .5s/.15m trajectory churn plus schedule target RMS at aligned epochs, latency distributions/max, deadline misses, CPU/RSS; unnecessary-stop/deadlock remain null without counterfactual witness",
+  "scope":"ideal CV only; conditional model certificate, not robust viability or real sensing acceptance. No production, full kernel, holdout or tuning rescue.",
+  "data_policy":"new raw traces/logs/build external; retain only source/protocol/light summary/manifest/report in Git"
+}

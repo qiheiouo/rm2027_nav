@@ -68,7 +68,7 @@ def project_trace(s,target,queue,schedule):
         positions.append(state[:2])
     return positions
 
-def trial(cfg,arm,build,out,label=None):
+def trial(cfg,arm,build,out,label=None,initial=None):
     name=label or f'{cfg["name"]}_{cfg["seed"]}_{arm}'
     grid,path=static_grid(cfg)
     consumer=None if arm=="witness" else Consumer(build/("native_consumer" if arm=="native" else "search_consumer"),arm,out/f'{name}.log')
@@ -76,9 +76,15 @@ def trial(cfg,arm,build,out,label=None):
     cpu0,rss=(consumer.usage() if consumer else (0,0));wall0=time.perf_counter();own_cpu0=time.process_time()
     state=[0.,0.,0.,0.];target=[0.,0.];queue=[];previous=[];previous_trace=None
     t=0.;arrival=None;min_clear=math.inf;worst=None;collision=False;near=False
+    if initial is not None:
+        t=initial["epoch"];state=initial["state"].copy();target=initial["target"].copy()
+        queue=[(t+e[0],e[1:3]) for e in initial["queue"]]
+        previous=[(t+e[0],e[1:3]) for e in initial["previous"]]
+    start_epoch=t
     path_length=0.;wait=0.;stop_run=0.;stop_count=0;flips=0;last_sign=[0,0];last_acc=[0.,0.]
     churn=0;deadline=0;no_action=0;errors=[];reasons={};latencies=[];jerks=[];accelerations=[];intervals=[];finite_ttc=[]
     min_ttc_margin=None;max_expanded=0;native_unsafe=0;cycles=0;maxspeed=0.;maxacc=0.;speed_history=[]
+    last_schedule=None;sequence_rms=[]
     try:
       with gzip.open(out/f'{name}.jsonl.gz',"wt") as trace:
         while t<40 if arrival is None else t<arrival+3:
@@ -106,6 +112,15 @@ def trial(cfg,arm,build,out,label=None):
             delay=.1 if not bad else elapsed+.05
             schedule=response.get("schedule",[[delay,*command]]) if not bad else [[delay,0.,0.]]
             previous=[(t+e[0],e[1:3]) for e in schedule]
+            if last_schedule is not None:
+                # Compare targets at equal absolute future epochs, not shifted indices.
+                old_t,old_schedule=last_schedule
+                def at(events,stamp):
+                    applicable=[e[1:3] for e in events if e[0]<=stamp+1e-9]
+                    return applicable[-1] if applicable else target
+                errors_sq=[math.dist(at(schedule,.1+.2*k),at(old_schedule,t-old_t+.1+.2*k))**2 for k in range(10)]
+                sequence_rms.append(math.sqrt(sum(errors_sq)/10))
+            last_schedule=(t,schedule)
             predicted=project_trace(state,target,relative,schedule)
             if previous_trace is not None:
                 old_epoch,old=previous_trace
@@ -157,10 +172,11 @@ def trial(cfg,arm,build,out,label=None):
       "collision":collision,"near_collision":near,"completion":completed,"safe_completion":completed and not collision and min_clear>=.05,
       "arrival_s":arrival if completed else None,"elapsed_s":t,"min_clearance_m":min_clear,"worst":worst,"path_length_m":path_length,
       "wait_s":wait,"stop_count":stop_count,"unnecessary_stop_s":None,"deadlock":None,
+      "start_epoch_s":start_epoch,"duration_s":t-start_epoch,"sequence_target_rms_mps":stats(sequence_rms),
       "unknown_labels":"No cycle-specific counterfactual progress witness computed; global feasible witness does not label local deadlock or unnecessary stopping.",
-      "command_sign_flips":flips,"trajectory_churn":churn,"replan_hz":cycles/t,"acceleration_mps2":stats(accelerations),"jerk_mps3":stats(jerks),
+      "command_sign_flips":flips,"trajectory_churn":churn,"replan_hz":cycles/(t-start_epoch),"acceleration_mps2":stats(accelerations),"jerk_mps3":stats(jerks),
       "max_speed_mps":maxspeed,"max_acceleration_mps2":maxacc,"latency_ms":stats(latencies),"update_interval_s":stats(intervals),
-      "consumer_cpu_s":cpu1-cpu0,"cpu_cores_at_realtime":(cpu1-cpu0)/t,"consumer_rss_peak_mib":rss,
+      "consumer_cpu_s":cpu1-cpu0,"cpu_cores_at_realtime":(cpu1-cpu0)/(t-start_epoch),"consumer_rss_peak_mib":rss,
       "harness_cpu_s":time.process_time()-own_cpu0,"offline_wall_s":time.perf_counter()-wall0,
       "hold_ttc_s_finite":stats(finite_ttc),"ttc_censored_cycles":cycles-len(finite_ttc),"min_hold_ttc_margin_s":min_ttc_margin,
       "deadline_misses":deadline,"no_verified_action":no_action,"reasons":reasons,"max_expanded":max_expanded,"errors":errors,

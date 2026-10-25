@@ -4,6 +4,7 @@
 #include <chrono>
 #include <cmath>
 #include <iostream>
+#include <limits>
 #include <set>
 #include <vector>
 #include <nlohmann/json.hpp>
@@ -21,9 +22,35 @@ double signed_box_disk(State s,const Actor&a,double t){
   double qx=std::abs(a.x+a.vx*t-s.x)-HX,qy=std::abs(a.y+a.vy*t-s.y)-HY;
   return std::hypot(std::max(qx,0.),std::max(qy,0.))+std::min(std::max(qx,qy),0.)-a.r;
 }
-struct Node {State s; double t=0,cost=0,effort=0;std::vector<V> controls;};
+// Minimum signed clearance from a stationary box to an observed CV ray, tau >= 0.
+// Squared distance to the box is piecewise quadratic; inspect slab breakpoints
+// and each interval's stationary point. No sampled future / ground truth input.
+double ray_clearance(State s,Actor a,double epoch){
+  a.x+=a.vx*epoch;a.y+=a.vy*epoch;
+  V p{a.x-s.x,a.y-s.y},v{a.vx,a.vy},h{HX,HY};
+  std::vector<double> cuts{0};
+  for(int j=0;j<2;j++)if(std::abs(v[j])>1e-14)
+    for(int sign:{-1,1}){double t=(sign*h[j]-p[j])/v[j];if(t>0)cuts.push_back(t);}
+  std::sort(cuts.begin(),cuts.end());
+  double best=std::numeric_limits<double>::infinity();
+  for(size_t k=0;k<cuts.size();k++){
+    double lo=cuts[k],hi=k+1<cuts.size()?cuts[k+1]:std::numeric_limits<double>::infinity();
+    best=std::min(best,signed_box_disk(s,a,lo));
+    double mid=std::isfinite(hi)?(lo+hi)/2:lo+1,numer=0,denom=0;
+    for(int j=0;j<2;j++){
+      double q=p[j]+v[j]*mid;
+      if(std::abs(q)>h[j]){double b=p[j]-std::copysign(h[j],q);numer+=v[j]*b;denom+=v[j]*v[j];}
+    }
+    if(denom>0){double t=std::max(lo,std::min(hi,-numer/denom));best=std::min(best,signed_box_disk(s,a,t));}
+  }
+  // Within the box the signed minimum need not be exact; it is already negative,
+  // which suffices to reject. Positive minima (the certificate) are exact.
+  return best;
+}
+struct Node {State s; double t=0,cost=0,effort=0;std::vector<V> controls;J continuation=J::array();};
 struct Planner {
   std::vector<Actor> actors;double wall=2.;J grid;std::vector<V> path;
+  int continuation_checks=0,continuation_rejections=0;
   bool safe(State s,double t)const{
     if(wall-std::abs(s.y)-HY<.02+VMAX*DT/2)return false;
     for(auto&a:actors)if(signed_box_disk(s,a,t)<.02+(VMAX+std::hypot(a.vx,a.vy))*DT/2)return false;
@@ -52,11 +79,40 @@ struct Planner {
     int steps=std::ceil(std::hypot(n.s.vx,n.s.vy)/AMAX/DT)+30;
     return segment(n,{0,0},steps);
   }
+  bool refuge(const Node&n)const{
+    if(std::hypot(n.s.vx,n.s.vy)>1e-9||!safe(n.s,n.t))return false;
+    for(auto&a:actors)if(ray_clearance(n.s,a,n.t)<.02+(VMAX+std::hypot(a.vx,a.vy))*DT/2)return false;
+    return true;
+  }
+  bool backup(Node n,J&schedule){
+    continuation_checks++;
+    // Brake first; then all eight fixed directions. 1.4 s is two speed-ramp
+    // times rounded up to the unchanged .2 s action grid (see preregistration).
+    for(int index=-1;index<8;index++){
+      Node b=n;J events=J::array();
+      if(index>=0){
+        const V dirs[8]={{-1,-1},{-1,0},{-1,1},{0,-1},{0,1},{1,-1},{1,0},{1,1}};
+        V u=cap(dirs[index],VMAX);events.push_back({b.t,u[0],u[1]});
+        if(!segment(b,u,140))continue;
+      }
+      events.push_back({b.t,0,0});
+      int steps=std::ceil(std::hypot(b.s.vx,b.s.vy)/AMAX/DT)+30;
+      if(segment(b,{0,0},steps)&&refuge(b)){schedule=events;return true;}
+    }
+    continuation_rejections++;return false;
+  }
   J solve(const J& in){
     auto wall_start=std::chrono::steady_clock::now();
+    continuation_checks=continuation_rejections=0;
     actors.clear();for(auto&a:in["actors"])actors.push_back({a[0],a[1],a[2],a[3],a[4]});
-    wall=in["wall"];grid=in["grid"];
+    wall=in["wall"];
     auto s=in["state"];Node start{{s[0],s[1],s[2],s[3]}};
+    if(in.contains("recourse_probe")){
+      start.t=in.value("epoch",0.);J continuation;
+      bool stationary=refuge(start),exists=backup(start,continuation);
+      return {{"stationary_refuge",stationary},{"backup_exists",exists},{"schedule",continuation}};
+    }
+    grid=in["grid"];bool recourse=in["mode"]=="recourse";
     V target=in["target"].get<V>();bool prefix_safe=true;
     // Commit horizon = reserved compute slot + transport; previously queued commands remain.
     for(int k=0;k<10;k++){
@@ -84,15 +140,16 @@ struct Planner {
       for(auto&n:next){
         // Preserve continuous state, coalesce only the search key.
         std::array<int,4> key{int(std::lround(n.s.x/.05)),int(std::lround(n.s.y/.05)),int(std::lround(n.s.vx/.08)),int(std::lround(n.s.vy/.08))};
+        if(recourse&&(used.count(key)||!backup(n,n.continuation)))continue;
         if(used.insert(key).second)beam.push_back(std::move(n));
         if(beam.size()==64)break;
       }
       if(simple||beam.empty())break;
     }
     Node chosen=start;bool verified=false;int viable=0;
-    for(auto&n:beam)if(tail(n)){viable++;if(!verified){chosen=n;verified=true;}}
+    for(auto&n:beam)if(recourse?!n.continuation.empty():tail(n)){viable++;if(!verified){chosen=n;verified=true;}}
     verified&=prefix_safe;
-    V cmd{0,0};std::string reason="no_verified_action";
+    V cmd{0,0};std::string reason="no_verified_action";J fallback=J::array();
     if(verified){cmd=chosen.controls.front();reason="selected";}
     else {
       // Revalidate the unexecuted previous sequence at its original absolute stage epochs.
@@ -106,18 +163,27 @@ struct Planner {
           for(auto&e:in["previous"])if(e[0].get<double>()<=mid)last={e[1],e[2]};
           ok=segment(old,last,1);
         }
-        if(ok&&tail(old)){verified=true;reason="reused";}
+        if(ok&&(recourse?backup(old,fallback):tail(old))){verified=true;reason="reused";}
       }
-      if(!verified){cmd={0,0};if(prefix_safe&&tail(start)){verified=true;reason="brake";}}
+      if(!verified){
+        cmd={0,0};
+        if(recourse){
+          if(prefix_safe&&backup(start,fallback)){verified=true;reason="backup";cmd={fallback[0][1],fallback[0][2]};}
+        }else if(prefix_safe&&tail(start)){verified=true;reason="brake";}
+      }
     }
     J schedule=J::array();
     if(reason=="selected"){
       for(size_t k=0;k<chosen.controls.size();k++)schedule.push_back({.1+.2*k,chosen.controls[k][0],chosen.controls[k][1]});
-      schedule.push_back({2.1,0,0});
-    }else if(reason=="reused")schedule=in["previous"];
+      if(recourse){for(auto&e:chosen.continuation)schedule.push_back(e);}
+      else schedule.push_back({2.1,0,0});
+    }else if(reason=="reused"){
+      if(recourse){for(auto&e:in["previous"])if(e[0].get<double>()<2.1-1e-8)schedule.push_back(e);for(auto&e:fallback)schedule.push_back(e);}
+      else schedule=in["previous"];
+    }else if(reason=="backup")schedule=fallback;
     else schedule.push_back({.1,0,0});
     double ms=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-wall_start).count();
-    return {{"command",cmd},{"verified",verified},{"reason",reason},{"prefix_safe",prefix_safe},{"viable",viable},{"expanded",expanded},{"compute_ms",ms},{"schedule",schedule}};
+    return {{"command",cmd},{"verified",verified},{"reason",reason},{"prefix_safe",prefix_safe},{"viable",viable},{"expanded",expanded},{"compute_ms",ms},{"schedule",schedule},{"continuation_checks",continuation_checks},{"continuation_rejections",continuation_rejections}};
   }
 };
 int main(){Planner p;std::string line;while(std::getline(std::cin,line)){try{
