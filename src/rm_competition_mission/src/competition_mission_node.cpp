@@ -5,6 +5,7 @@
 #include <functional>
 #include <memory>
 #include <optional>
+#include <set>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -451,6 +452,27 @@ private:
       });
   }
 
+  void revokeLocalizationNavigation()
+  {
+    ++localization_generation_;
+    desired_goal_.reset();
+    completed_goal_.reset();
+    failed_goal_.reset();
+    consecutive_goal_failures_ = 0;
+    pursuit_candidate_.valid = false;
+    pursuit_not_before_ = now();
+    // Keep pending/active handles: only the old action's terminal result releases
+    // ownership. Its callbacks also carry the retired localization generation.
+    cancelNavigation("localization context retired");
+    cancelSpin("localization context retired");
+  }
+
+  void invalidateLocalization()
+  {
+    if (localization_valid_) {revokeLocalizationNavigation();}
+    localization_valid_ = false;
+  }
+
   void handleLocalizationStatus(const rm_competition_interfaces::msg::LocalizationStatus & msg)
   {
     const auto well_formed = [](const builtin_interfaces::msg::Time & stamp) {
@@ -459,7 +481,7 @@ private:
     if (!well_formed(msg.header.stamp) || !well_formed(msg.started_at) ||
       !well_formed(msg.valid_until))
     {
-      localization_valid_ = false;
+      invalidateLocalization();
       return;
     }
     const auto emitted = rclcpp::Time(msg.header.stamp);
@@ -473,8 +495,27 @@ private:
       (msg.producer_id == localization_id_ &&
       (msg.sequence <= localization_sequence_ || emitted.nanoseconds() < localization_emitted_ns_)))
     {
-      localization_valid_ = false;
+      invalidateLocalization();
       return;
+    }
+    const bool producer_changed = msg.producer_id != localization_id_;
+    if (!producer_changed &&
+      ((msg.session_id == localization_session_id_ && msg.session_epoch < localization_session_epoch_) ||
+      retired_localization_sessions_.count(msg.session_id) != 0 ||
+      (!localization_session_id_.empty() && msg.session_id.empty())))
+    {
+      return;  // Never roll a healthy consumer back to a retired canonical basis.
+    }
+    const bool session_changed = producer_changed || msg.session_id != localization_session_id_ ||
+      msg.session_epoch != localization_session_epoch_;
+    if (session_changed) {
+      if (producer_changed) {retired_localization_sessions_.clear();}
+      else if (msg.session_id != localization_session_id_ && !localization_session_id_.empty()) {
+        retired_localization_sessions_.insert(localization_session_id_);
+      }
+      revokeLocalizationNavigation();
+      localization_session_id_ = msg.session_id;
+      localization_session_epoch_ = msg.session_epoch;
     }
     localization_id_ = msg.producer_id;
     localization_epoch_ns_ = epoch;
@@ -482,8 +523,15 @@ private:
     localization_emitted_ns_ = emitted.nanoseconds();
     localization_deadline_ = deadline;
     localization_received_ = std::chrono::steady_clock::now();
-    localization_valid_ = msg.valid && deadline > now() &&
+    const bool valid = msg.valid && deadline > now() &&
       (deadline - emitted).seconds() <= 1.6;
+    if (!valid && !session_changed) {invalidateLocalization();}
+    if (valid && !localization_valid_) {
+      // A target computed during the invalid gap may still have used cached TF.
+      pursuit_candidate_.valid = false;
+      pursuit_not_before_ = now();
+    }
+    localization_valid_ = valid;
   }
 
   bool localizationFresh() const
@@ -614,10 +662,11 @@ private:
   {
     const auto clock_ns = now().nanoseconds();
     if (clock_ns < localization_last_clock_ns_) {
-      localization_valid_ = false;
+      invalidateLocalization();
       finishTemporary("clock_rollback");
     }
     localization_last_clock_ns_ = std::max(localization_last_clock_ns_, clock_ns);
+    if (localization_valid_ && !localizationFresh()) {invalidateLocalization();}
     if (temporary_ && !temporaryFresh()) {finishTemporary("expired");}
     desired_goal_.reset();
     patrol_spin_selected_ = false;
@@ -725,6 +774,7 @@ private:
     NavigateToPose::Goal goal;
     goal.pose = request.pose;
     const std::uint64_t generation = ++goal_generation_;
+    const std::uint64_t localization_generation = localization_generation_;
     last_sent_goal_ = request;
     completed_goal_.reset();
     last_goal_send_time_ = now();
@@ -732,7 +782,7 @@ private:
 
     auto options = rclcpp_action::Client<NavigateToPose>::SendGoalOptions();
     options.goal_response_callback =
-      [this, generation](GoalHandle::SharedPtr handle) {
+      [this, generation, localization_generation](GoalHandle::SharedPtr handle) {
         if (generation != goal_generation_) {
           if (handle) {
             navigation_client_->async_cancel_goal(handle);
@@ -741,6 +791,9 @@ private:
         }
         navigation_pending_ = false;
         active_goal_handle_ = handle;
+        if (localization_generation != localization_generation_) {
+          cancelNavigation("late acceptance from retired localization");
+        }
         if (navigation_cancel_requested_) {
           if (handle) {
             cancelNavigation("late acceptance");
@@ -759,13 +812,14 @@ private:
         }
       };
     options.result_callback =
-      [this, generation](const GoalHandle::WrappedResult & result) {
+      [this, generation, localization_generation](const GoalHandle::WrappedResult & result) {
         if (generation != goal_generation_) {
           return;
         }
         active_goal_handle_.reset();
         navigation_pending_ = false;
-        if (navigation_cancel_requested_) {
+        if (navigation_cancel_requested_ || localization_generation != localization_generation_ ||
+          (require_localization_valid_ && !localizationFresh())) {
           navigation_cancel_requested_ = false;
           last_sent_goal_.reset();
           navigation_status_ = "goal_cancel_complete";
@@ -844,6 +898,7 @@ private:
       rclcpp::Duration::from_seconds(spin_time_allowance_sec_));
 
     const std::uint64_t generation = ++spin_generation_;
+    const std::uint64_t localization_generation = localization_generation_;
     spin_goal_sent_ = true;
     spin_cancel_requested_ = false;
     spin_cancel_sent_ = false;
@@ -852,7 +907,7 @@ private:
 
     auto options = rclcpp_action::Client<Spin>::SendGoalOptions();
     options.goal_response_callback =
-      [this, generation](SpinGoalHandle::SharedPtr handle) {
+      [this, generation, localization_generation](SpinGoalHandle::SharedPtr handle) {
         if (generation != spin_generation_) {
           if (handle) {
             spin_client_->async_cancel_goal(handle);
@@ -860,6 +915,9 @@ private:
           return;
         }
         active_spin_goal_handle_ = handle;
+        if (localization_generation != localization_generation_) {
+          cancelSpin("late acceptance from retired localization");
+        }
         if (spin_cancel_requested_) {
           if (handle) {
             cancelSpin("late acceptance");
@@ -877,13 +935,14 @@ private:
         }
       };
     options.result_callback =
-      [this, generation](const SpinGoalHandle::WrappedResult & result) {
+      [this, generation, localization_generation](const SpinGoalHandle::WrappedResult & result) {
         if (generation != spin_generation_) {
           return;
         }
         active_spin_goal_handle_.reset();
         spin_goal_sent_ = false;
-        if (spin_cancel_requested_) {
+        if (spin_cancel_requested_ || localization_generation != localization_generation_ ||
+          (require_localization_valid_ && !localizationFresh())) {
           spin_cancel_requested_ = false;
           navigation_status_ = "spin_cancel_complete";
           return;
@@ -1016,6 +1075,9 @@ private:
   int64_t localization_epoch_ns_{0}, localization_emitted_ns_{0};
   uint64_t localization_sequence_{0};
   std::string localization_id_;
+  std::string localization_session_id_;
+  uint64_t localization_session_epoch_{0}, localization_generation_{0};
+  std::set<std::string> retired_localization_sessions_;
   rclcpp::Time localization_deadline_{0, 0, RCL_ROS_TIME};
   std::chrono::steady_clock::time_point localization_received_;
   bool referee_valid_{false};

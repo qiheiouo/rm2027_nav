@@ -111,3 +111,9 @@ Malformed candidate timestamps and deadlines are rejected before constructing
 ROS times. Future/outdated samples cannot advance the pursuit watermark; a
 subsequent valid sample can recover without restarting Mission. Malformed safety
 stamps close the safety gate. Existing candidate leases are never extended.
+
+Staging session fix: every pending/active navigation or Spin request is bound to
+its accepted localization producer/session/epoch. A session boundary or loss
+immediately requests cancellation while retaining the terminal-result barrier;
+retired success cannot advance patrol or complete a temporary task. See the
+[handoff contract](../../docs/contracts/navigation_target_arbitration_2027.md#localization-session-handoffstaging-修正2026-10-25).

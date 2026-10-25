@@ -98,3 +98,30 @@ Mission 保留既有 LocalizationStatus 合同；对 referee/chassis/V2 guard �
 外部安全证据时保持停止。不得与 dog-hole manager、手动目标工具或另一 Mission 同域共同控 Nav2。
 
 [受控验证与审计](../validation/navigation_target_arbitration_20261024.md) 给出证据和适用限制。
+
+## Localization session handoff（staging 修正，2026-10-25）
+
+每个 pending/active NavigateToPose 和 Spin 都属于发送时已接纳的定位上下文：
+`(LocalizationStatus.producer_id, session_id, session_epoch)`，并捕获 Mission 内单调递增的
+localization generation。`started_at/sequence/emission/deadline` 的原有准入仍先执行；
+legacy `session_id="", session_epoch=0` 继续有效。它不是物理运动 owner/session 授权。
+
+- 接纳新的 status producer、session_id 或更大的 session_epoch 时，在该 status callback 内
+  立即撤销旧导航/Spin，清 desired/completed/failed、pending patrol spin 和缓存 pursuit；
+  不等待下一 tick，不依赖 invalid 心跳是否被 depth-1 consumer 看见。
+- 同一 producer/session 的 epoch 回退、退役 session_id 和 versioned→legacy 降级不重新准入。
+  新 status producer 仍受原 started_at 身份门约束；会话身份不能以 UUID 字典顺序比较。
+- 撤销保留旧 pending/active handle 和现有 action generation；不因换代直接丢掉请求或
+  增加第二 owner。迟到 acceptance 必须 cancel；cancel ACK/拒绝都不能释放屏障，
+  只能由 rejection/terminal result 结束原请求。
+- result callback 同时检查 action generation 与发送时 localization generation。旧会话
+  result 即使 SUCCEEDED 也只清旧 handle/取消状态，不推进 patrol index、不触发 Spin、
+  不标记临时任务/home 完成，不写回新会话 completed/failed 状态。
+- localization LOST、invalid 或 lease expiry 同样撤销当前 action；恢复只使用重新接纳的
+  有效 status 和现有安全门。重复 invalid 不产生新授权。快速连续换代只合并最新上下文，
+  仍等旧终态后再按原有优先级重新计算。
+- 既有 map-frame home/patrol/显式任务是持久意图，换代不改变策略/坐标配置；旧 action 和
+  执行结果被退休后，才可在最新定位会话重新发出。pursuit 必须是撤销及恢复 COMMITTED 水位之后的新观测；invalid 期间的缓存不能跨恢复边界。
+  同 epoch 普通 relocalization correction 仍按现有定位合同处理，不新增战术行为。
+
+这些规则只闭合软件导航消费端，不授予 AUD-003/MCU 权限，不保证物理停车 SLA。
