@@ -6,7 +6,7 @@
 #include <cstdint>
 #include <string>
 
-#include <Eigen/Eigenvalues>
+#include "rm_competition_interfaces/pose_covariance.hpp"
 
 namespace rm_relocalization_bridge
 {
@@ -93,49 +93,7 @@ bool validateGlobalPose(
   }
 
   const auto & covariance = message.pose.covariance;
-  if (!std::all_of(covariance.begin(), covariance.end(), [](const double value) {
-      return std::isfinite(value);
-    }))
-  {
-    return reject(reason, "non-finite covariance");
-  }
-  // ROS PoseWithCovariance is the complete [x,y,z,roll,pitch,yaw] matrix.
-  // Zero unobserved dimensions are legal; arbitrary cross-covariance is not.
-  Eigen::Matrix<double, 6, 6> matrix;
-  for (int row = 0; row < 6; ++row) {
-    for (int col = 0; col < 6; ++col) {
-      matrix(row, col) = covariance[row * 6 + col];
-    }
-    if (matrix(row, row) < 0.0) {
-      return reject(reason, "negative covariance");
-    }
-  }
-  // Normalize by each dimension's standard deviation, so a large unused
-  // variance cannot hide a negative eigenvalue in the navigation block.
-  Eigen::Matrix<double, 6, 6> normalized;
-  for (int row = 0; row < 6; ++row) {
-    for (int col = 0; col < 6; ++col) {
-      if (matrix(row, row) == 0.0 || matrix(col, col) == 0.0) {
-        if (matrix(row, col) != 0.0) {return reject(reason, "non-PSD covariance");}
-        normalized(row, col) = 0.0;
-      } else {
-        normalized(row, col) = matrix(row, col) /
-          std::sqrt(matrix(row, row)) / std::sqrt(matrix(col, col));
-      }
-    }
-  }
-  constexpr double tolerance = 1.0e-10;
-  if (!normalized.allFinite() || normalized.cwiseAbs().maxCoeff() > 1.0 + tolerance) {
-    return reject(reason, "non-PSD covariance");
-  }
-  if ((normalized - normalized.transpose()).cwiseAbs().maxCoeff() > tolerance) {
-    return reject(reason, "asymmetric covariance");
-  }
-  const Eigen::SelfAdjointEigenSolver<Eigen::Matrix<double, 6, 6>> solver(
-    0.5 * (normalized + normalized.transpose()), Eigen::EigenvaluesOnly);
-  if (solver.info() != Eigen::Success || solver.eigenvalues().minCoeff() < -tolerance) {
-    return reject(reason, "non-PSD covariance");
-  }
+  if (!rm_competition_interfaces::validatePoseCovariance(covariance, reason)) {return false;}
   const double variance_x = covariance[0];
   const double variance_y = covariance[7];
   const double variance_yaw = covariance[35];

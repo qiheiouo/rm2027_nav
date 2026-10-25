@@ -24,6 +24,7 @@
 #include "rm_relocalization_bridge/relocalization_math.hpp"
 #include "rm_competition_interfaces/localization_session.hpp"
 #include "rm_competition_interfaces/msg/localization_frame.hpp"
+#include "rm_competition_interfaces/pose_covariance.hpp"
 
 namespace
 {
@@ -260,12 +261,12 @@ private:
     if (odom.header.frame_id != odom_frame_ || odom.child_frame_id != base_frame_ ||
       global.header.frame_id != map_frame_ || global.header.stamp != odom.header.stamp ||
       !validatePose(odom.pose.pose) || !validatePose(global.pose.pose) ||
-      !std::all_of(global.pose.covariance.begin(), global.pose.covariance.end(),
-        [](double x) {return std::isfinite(x);}) ||
+      !rm_competition_interfaces::validatePoseCovariance(global.pose.covariance) ||
       source <= recovery_after_ns_ || source <= last_pose_ns_ ||
       source > current + static_cast<int64_t>(max_future_sec_*1e9) ||
       current-source > static_cast<int64_t>(max_global_pose_age_sec_*1e9)) {
-      session_fence_->revoke(); invalidateLocked(); return;
+      session_fence_->revoke(); accepted_pose_ = geometry_msgs::msg::PoseWithCovarianceStamped(); evidence_until_ = now();
+      invalidateLocked(); return;
     }
     last_pose_ns_ = source; upstream_pose_ns_ = source;
     upstream_emitted_ns_ = rclcpp::Time(frame.emitted_at).nanoseconds();
@@ -391,6 +392,11 @@ private:
         get_logger(), "Rejecting stale, future, replayed or pre-session global pose: age %.3f s, age limit %.3f s.",
         age, max_global_pose_age_sec_);
       return;
+    }
+
+    if (!rm_competition_interfaces::validatePoseCovariance(msg.pose.covariance)) {
+      recovery_after_ns_ = std::max(recovery_after_ns_, stamp.nanoseconds());
+      accepted_pose_ = geometry_msgs::msg::PoseWithCovarianceStamped(); evidence_until_ = now(); invalidateLocked(); return;
     }
 
     const auto map_to_base = poseToTransform(msg.pose.pose);

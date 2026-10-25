@@ -2,6 +2,7 @@
 #include <optional>
 #include <random>
 #include "rm_competition_interfaces/localization_session.hpp"
+#include "rm_competition_interfaces/pose_covariance.hpp"
 #include "rm_competition_interfaces/msg/localization_frame.hpp"
 #include "rm_competition_interfaces/srv/select_localization_source.hpp"
 
@@ -117,6 +118,10 @@ private:
       if (!message.valid) {twist_.reset();}
       return;
     }
+    if (message.valid &&
+      !rm_competition_interfaces::validatePoseCovariance(message.global_pose.pose.covariance)) {
+      invalidate(); return;
+    }
     pending_=Pending{message, fence_.ticket(), Steady::now()};
     process();
   }
@@ -156,13 +161,15 @@ private:
       if (frame.global_pose.header.frame_id != "map" ||
         frame.global_pose.header.stamp != frame.odometry.header.stamp ||
         !poseValid(frame.global_pose.pose.pose) ||
-        !std::all_of(frame.global_pose.pose.covariance.begin(),frame.global_pose.pose.covariance.end(),
-        [](double x) {return std::isfinite(x);})) {invalidate(); return;}
+        !rm_competition_interfaces::validatePoseCovariance(frame.global_pose.pose.covariance)) {invalidate(); return;}
       const auto map_sensor=transform(frame.global_pose.pose.pose);
       const auto map_base=rm_localization_adapters::compute_base_transform(map_sensor,base_sensor);
       pose(map_base,output.global_pose.pose.pose);
       output.global_pose.pose.covariance=rm_localization_adapters::shift_pose_covariance(
         frame.global_pose.pose.covariance,map_base.getOrigin()-map_sensor.getOrigin());
+      if (!rm_competition_interfaces::validatePoseCovariance(output.global_pose.pose.covariance)) {
+        invalidate(); return;
+      }
       global_valid_=true; evidence_received_=Steady::now(); evidence_stamp_=stamp;
     } else {output.global_pose=geometry_msgs::msg::PoseWithCovarianceStamped();}
     checkClock();

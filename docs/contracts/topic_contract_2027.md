@@ -283,3 +283,12 @@ validated map-frame target. The command never changes enable/authority and
 must not be exposed as an arbitrary teammate tactical channel. Lifetime,
 priority and home/temporary resume rules are defined in the
 [minimal Mission contract](minimal_competition_mission_2027.md).
+
+### Staging session and covariance parity（2026-10-25）
+
+Mission action 与 LocalizationStatus 的 producer/session/epoch 绑定；换代和失效立即
+撤销旧 action，保留 terminal-result 交接屏障，旧成功不能推进任务。详见
+[arbitration handoff](navigation_target_arbitration_2027.md#localization-session-handoffstaging-修正2026-10-25)。
+A gate、Z canonical 和 bridge 的全局 pose covariance 共用 AUD-015 完整 finite/symmetry/PSD
+判据与原 tolerance；拒绝后 invalid 且必须严格新 source 才恢复。raw missing 语义和
+profile 的 variance 限值不变；详见 [Z 合同](../zlocalization_interface_contract_20261023.md#staging-covariance-validity-parity2026-10-25)。

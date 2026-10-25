@@ -32,3 +32,8 @@ protocol.
 - `SetTemporaryMission` is a trusted Mission command for one bounded
   supply/recovery/special navigation task, with ID, sequence, deadline and
   cancellation. It grants neither Nav2 ownership nor motion authority.
+
+The installed `pose_covariance.hpp` shares AUD-015 full 6x6 covariance validation
+between global-pose gates, canonical session input and bridge. It exports the
+existing Eigen dependency; message schemas, TF/motion ownership and thresholds
+are unchanged.

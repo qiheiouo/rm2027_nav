@@ -296,3 +296,26 @@ TIME_BARRIER --新 epoch 且 ROS/source time越过旧时钟水位+新 TF--> PREP
 - 其余九事件保持：relocalization 同会话可真实跳变；map reload/prior change仍是 immutable
   产物的显式新进程/新 producer选择事务；process restart取得新UUID，不能自动混用旧观测。
   localization loss/recovery保持新 source 水位，机械 home/heading来源变化仍须其自身接受合同。
+
+## Staging covariance validity parity（2026-10-25）
+
+所有用于 canonical/bridge 全局定位有效性的 pose covariance 使用 AUD-015 同一判据：
+完整 `[x,y,z,roll,pitch,yaw]` 6×6 finite、非负对角线、按每维标准差归一化后的
+symmetry/PSD。归一化 tolerance 保持 `1e-10`；零方差维的 cross term 必须为零；
+全零 missing、合法 rank-deficient 和正常 cross terms 保持兼容，不制造正方差 floor。
+A 的 xy/yaw variance 上限及 planar/profile policy 保持原值；Z 不借此新增精度阈值。
+
+- 共用 C++ validator 是唯一矩阵判据；A global-pose gate、Z versioned canonical 输入、
+  canonical 杆臂传播后的全局 covariance、bridge atomic 和 legacy/direct global-pose
+  入口都必须调用它。Python schema translation 不授予最终 validity，不得靠换入口绕过。
+- 原始 sensor covariance 若按既有合同未用于 canonical confidence，仍显式标为 missing；
+  不把未变换 covariance 重命名为 base covariance。twist/模型/噪声/估计器数学不变。
+- 对已按时间/版本准入的坏 covariance：立即 invalid，清 held global pose / pending work，
+  撤销当前 source 水位，不提交该观测的可信 canonical frame/correction，不刷新 map→odom。
+  其他独立 odometry/TF owner 不被新增或冒充；TF cache 本身仍不能作为 health。
+- 非 PSD/非对称/NaN/Inf 不被 clamp、修对称或填默认值后接受。LOST/rejected 的旧心跳、
+  同 stamp 修订或旧 callback 不能恢复 validity；必须同会话严格更新的合法观测重新准入。
+  近 PSD 边界按上述相同 tolerance 处理，不降低现有正确输入兼容性。
+
+Mission 消费端按[arbitration session handoff](contracts/navigation_target_arbitration_2027.md#localization-session-handoffstaging-修正2026-10-25)
+撤销旧会话 action；F14 的底层事务和默认关闭 gate 不变。S03/M11 及硬件门不由此关闭。

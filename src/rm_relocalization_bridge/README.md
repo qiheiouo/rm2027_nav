@@ -107,3 +107,10 @@ tolerance is `1e-10`, so a large unused variance cannot mask an invalid block.
 Existing x/y/yaw variance limits and pose/time/frame gates are unchanged. This
 checks mathematical legality; it does not calibrate sensor uncertainty or repair
 backend/canonical covariance propagation (AUD-012/013).
+
+Staging covariance parity: atomic and legacy/direct global-pose inputs use the
+same full 6x6 finite/symmetry/PSD validator as AUD-015, including its normalized
+1e-10 tolerance and legal missing/rank-deficient matrices. Rejected source
+covariance immediately clears the held global pose and pending correction,
+publishes invalid, and requires a strictly newer valid observation to recover.
+Existing planar/variance policies and TF owners are unchanged.

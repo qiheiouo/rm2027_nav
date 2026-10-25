@@ -114,3 +114,9 @@ means inherit YAML; explicit CLI values override YAML. Phase2A forwards both
 arguments. The default YAML still selects the zero-yaw software placeholder;
 selecting the derived YAML subscribes to `/gimbal/state_derived`. This does not
 confirm heading-fusion alignment, mechanical calibration or hardware readiness.
+
+The opt-in versioned canonical path uses the shared AUD-015 covariance validator
+before accepting a trusted global pose and again after the source-time lever-arm
+transform. Rejection emits invalid and revokes the source watermark; an old or
+same-stamp sample cannot restore validity. The discarded raw covariance remains
+explicitly missing; estimator/noise/twist policies are unchanged.

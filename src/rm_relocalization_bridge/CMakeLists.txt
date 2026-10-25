@@ -29,7 +29,7 @@ target_include_directories(relocalization_math PUBLIC
 ament_target_dependencies(relocalization_math tf2)
 
 add_executable(map_odom_from_global_pose src/map_odom_from_global_pose.cpp)
-target_link_libraries(map_odom_from_global_pose relocalization_math)
+target_link_libraries(map_odom_from_global_pose relocalization_math Eigen3::Eigen)
 ament_target_dependencies(map_odom_from_global_pose
   rclcpp
   rm_competition_interfaces
@@ -54,7 +54,7 @@ target_include_directories(global_pose_gate PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
 )
-ament_target_dependencies(global_pose_gate geometry_msgs)
+ament_target_dependencies(global_pose_gate geometry_msgs rm_competition_interfaces)
 target_link_libraries(global_pose_gate Eigen3::Eigen)
 
 add_executable(global_pose_gate_node src/amcl_pose_gate_node.cpp)

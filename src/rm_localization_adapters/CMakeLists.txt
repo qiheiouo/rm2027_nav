@@ -9,6 +9,8 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(ament_cmake REQUIRED)
+find_package(eigen3_cmake_module REQUIRED)
+find_package(Eigen3 REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rm_competition_interfaces REQUIRED)
 find_package(nav_msgs REQUIRED)
@@ -38,7 +40,7 @@ ament_target_dependencies(map_odom_stub
 )
 
 add_executable(lio_adapter src/lio_adapter.cpp)
-target_link_libraries(lio_adapter canonical_odometry)
+target_link_libraries(lio_adapter canonical_odometry Eigen3::Eigen)
 ament_target_dependencies(lio_adapter
   builtin_interfaces
   rclcpp

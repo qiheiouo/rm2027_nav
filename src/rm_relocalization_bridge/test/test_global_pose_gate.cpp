@@ -131,3 +131,29 @@ TEST(GlobalPoseGate, LargeUnobservedVarianceCannotMaskInvalidPlanarBlock)
   message.pose.covariance[1] = message.pose.covariance[6] = 0.08;
   EXPECT_TRUE(rm_relocalization_bridge::validateGlobalPose(message, kNow, {}));
 }
+
+TEST(GlobalPoseGate, RejectsNonFiniteCovarianceInAnyDimension)
+{
+  for (const double value : {std::numeric_limits<double>::quiet_NaN(),
+      std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity()})
+  {
+    auto message = validPose();
+    message.pose.covariance[21] = value;
+    EXPECT_FALSE(rm_relocalization_bridge::validateGlobalPose(message, kNow, {}));
+  }
+}
+
+TEST(GlobalPoseGate, PreservesNormalizedNearPsdAndSymmetryBoundary)
+{
+  auto message = validPose();
+  message.pose.covariance[1] = message.pose.covariance[6] = 0.1 * (1.0 + 2.0e-11);
+  EXPECT_TRUE(rm_relocalization_bridge::validateGlobalPose(message, kNow, {}));
+  message.pose.covariance[1] = message.pose.covariance[6] = 0.1 * (1.0 + 2.0e-9);
+  EXPECT_FALSE(rm_relocalization_bridge::validateGlobalPose(message, kNow, {}));
+  message = validPose();
+  message.pose.covariance[1] = 0.08;
+  message.pose.covariance[6] = 0.08 + 2.0e-12;
+  EXPECT_TRUE(rm_relocalization_bridge::validateGlobalPose(message, kNow, {}));
+  message.pose.covariance[6] = 0.08 + 2.0e-10;
+  EXPECT_FALSE(rm_relocalization_bridge::validateGlobalPose(message, kNow, {}));
+}
