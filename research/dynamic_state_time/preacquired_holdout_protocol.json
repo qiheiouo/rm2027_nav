@@ -1,0 +1,4864 @@
+{
+  "stage": "Research; frozen ten-class holdout",
+  "base_commit": "7e04111f7fe8d9b0851bddfc0b8ef0eb68b684ea",
+  "generator_seed": 20261026,
+  "case_count": 120,
+  "arms": [
+    "B",
+    "C0",
+    "C1"
+  ],
+  "rollout_count": 360,
+  "count_definition": "120 paired scene/input episodes, each B/C0/C1 = 360 attempted rollouts. No extra ideal replay that leaks non-CV future.",
+  "registration": "Earlier protocol named ten categories only. This file freezes the previously unspecified initial conditions and finite disturbances before any holdout run.",
+  "mode_counts": {
+    "ideal_cv": 24,
+    "causal_imperfect": 96
+  },
+  "pairing": "Four CV categories have six paired initial states, each ideal and imperfect input. Six intrinsically nonideal categories have 12 causal episodes each.",
+  "preserved": "Frozen search/checker/library/threshold/plant/lifecycle. Input and evaluator hooks only. Same initial robot state, .1s command delay, .05s control, .01s plant, limits, completion and cost for all arms.",
+  "disturbances": "Fixed exogenous schedules, never conditioned on robot outcome; no noise re-sampling during a run. Source metadata passed honestly; no obstacle identities added to frozen consumer interface.",
+  "termination": "Preserve frozen harness: C1 invalidation exits after current control slot; initialization unavailable does not roll out. Such episodes are incomplete and collision-censored, NEVER zero-collision successes. Do not invent fallback/recovery or extrapolate beyond observed prefix.",
+  "validity_audit": "Audit fresh admissions and actual command ownership separately from stored certified=true. A stale certificate is not considered valid even if frozen code produces one. Distinguish immutable previously queued actions from newly dispatched invalid backup.",
+  "go": {
+    "collision": 0,
+    "minimum_clearance_m": 0.05,
+    "completion": "not lower than B",
+    "benefit": "safe completion +10 percentage points OR paired traversal >=10% gain in two categories; persists under imperfect input",
+    "new_systematic_deadlock": false,
+    "p99_ms": 40,
+    "max_ms": 50,
+    "miss_rate": 0.001,
+    "rss_mib": 256
+  },
+  "modify": "Stable ideal evidence but one bounded observation/uncertainty/stale interface issue prevents nonideal acceptance; or a clear margin boundary.",
+  "stop": "Benefit confined to toy head-on, widespread nonideal collisions, frequent unavailable/termination and lower completion, or tuning/library/future truth/realtime failure needed.",
+  "review": "Keep all prespecified results including invalidation-censored attempts. Inspect first C1 failure and make one unchanged confirmation; no tuning, no expansion/integration.",
+  "raw_policy": "Raw JSONL/lifecycle/complete logs/build external; compact summaries/manifest/plots/source/config/report in Git.",
+  "cases": [
+    {
+      "id": "static_10000",
+      "category": "static",
+      "seed": 10000,
+      "paired_initial_key": 0,
+      "mode": "ideal_cv",
+      "scene": {
+        "name": "static",
+        "seed": 10000,
+        "phase": -0.4638,
+        "wall": 2.0,
+        "static": [
+          [
+            2.0,
+            -0.0654,
+            0.0,
+            0.0,
+            0.3
+          ]
+        ],
+        "dynamic": [],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "static_10001",
+      "category": "static",
+      "seed": 10001,
+      "paired_initial_key": 0,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "static",
+        "seed": 10001,
+        "phase": -0.4638,
+        "wall": 2.0,
+        "static": [
+          [
+            2.0,
+            -0.0654,
+            0.0,
+            0.0,
+            0.3
+          ]
+        ],
+        "dynamic": [],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "position_bias",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.005,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "static_10002",
+      "category": "static",
+      "seed": 10002,
+      "paired_initial_key": 1,
+      "mode": "ideal_cv",
+      "scene": {
+        "name": "static",
+        "seed": 10002,
+        "phase": -0.4404,
+        "wall": 2.0,
+        "static": [
+          [
+            2.0,
+            -0.0033,
+            0.0,
+            0.0,
+            0.3
+          ]
+        ],
+        "dynamic": [],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "static_10003",
+      "category": "static",
+      "seed": 10003,
+      "paired_initial_key": 1,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "static",
+        "seed": 10003,
+        "phase": -0.4404,
+        "wall": 2.0,
+        "static": [
+          [
+            2.0,
+            -0.0033,
+            0.0,
+            0.0,
+            0.3
+          ]
+        ],
+        "dynamic": [],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "position_bias",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.01,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "static_10004",
+      "category": "static",
+      "seed": 10004,
+      "paired_initial_key": 2,
+      "mode": "ideal_cv",
+      "scene": {
+        "name": "static",
+        "seed": 10004,
+        "phase": 0.0503,
+        "wall": 2.0,
+        "static": [
+          [
+            2.0,
+            -0.1179,
+            0.0,
+            0.0,
+            0.3
+          ]
+        ],
+        "dynamic": [],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "static_10005",
+      "category": "static",
+      "seed": 10005,
+      "paired_initial_key": 2,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "static",
+        "seed": 10005,
+        "phase": 0.0503,
+        "wall": 2.0,
+        "static": [
+          [
+            2.0,
+            -0.1179,
+            0.0,
+            0.0,
+            0.3
+          ]
+        ],
+        "dynamic": [],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "position_bias",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.02,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "static_10006",
+      "category": "static",
+      "seed": 10006,
+      "paired_initial_key": 3,
+      "mode": "ideal_cv",
+      "scene": {
+        "name": "static",
+        "seed": 10006,
+        "phase": -0.1193,
+        "wall": 2.0,
+        "static": [
+          [
+            2.0,
+            -0.0349,
+            0.0,
+            0.0,
+            0.3
+          ]
+        ],
+        "dynamic": [],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "static_10007",
+      "category": "static",
+      "seed": 10007,
+      "paired_initial_key": 3,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "static",
+        "seed": 10007,
+        "phase": -0.1193,
+        "wall": 2.0,
+        "static": [
+          [
+            2.0,
+            -0.0349,
+            0.0,
+            0.0,
+            0.3
+          ]
+        ],
+        "dynamic": [],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "position_bias",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.005,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "static_10008",
+      "category": "static",
+      "seed": 10008,
+      "paired_initial_key": 4,
+      "mode": "ideal_cv",
+      "scene": {
+        "name": "static",
+        "seed": 10008,
+        "phase": -0.1901,
+        "wall": 2.0,
+        "static": [
+          [
+            2.0,
+            0.0353,
+            0.0,
+            0.0,
+            0.3
+          ]
+        ],
+        "dynamic": [],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "static_10009",
+      "category": "static",
+      "seed": 10009,
+      "paired_initial_key": 4,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "static",
+        "seed": 10009,
+        "phase": -0.1901,
+        "wall": 2.0,
+        "static": [
+          [
+            2.0,
+            0.0353,
+            0.0,
+            0.0,
+            0.3
+          ]
+        ],
+        "dynamic": [],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "position_bias",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.01,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "static_10010",
+      "category": "static",
+      "seed": 10010,
+      "paired_initial_key": 5,
+      "mode": "ideal_cv",
+      "scene": {
+        "name": "static",
+        "seed": 10010,
+        "phase": -0.2747,
+        "wall": 2.0,
+        "static": [
+          [
+            2.0,
+            -0.0005,
+            0.0,
+            0.0,
+            0.3
+          ]
+        ],
+        "dynamic": [],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "static_10011",
+      "category": "static",
+      "seed": 10011,
+      "paired_initial_key": 5,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "static",
+        "seed": 10011,
+        "phase": -0.2747,
+        "wall": 2.0,
+        "static": [
+          [
+            2.0,
+            -0.0005,
+            0.0,
+            0.0,
+            0.3
+          ]
+        ],
+        "dynamic": [],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "position_bias",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.02,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "crossing_10100",
+      "category": "crossing",
+      "seed": 10100,
+      "paired_initial_key": 0,
+      "mode": "ideal_cv",
+      "scene": {
+        "name": "crossing",
+        "seed": 10100,
+        "phase": -0.1901,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.61406,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "crossing_10101",
+      "category": "crossing",
+      "seed": 10101,
+      "paired_initial_key": 0,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10101,
+        "phase": -0.1901,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.61406,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "latency",
+        "latency_s": 0.05,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "crossing_10102",
+      "category": "crossing",
+      "seed": 10102,
+      "paired_initial_key": 1,
+      "mode": "ideal_cv",
+      "scene": {
+        "name": "crossing",
+        "seed": 10102,
+        "phase": 0.5409,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.17546,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "crossing_10103",
+      "category": "crossing",
+      "seed": 10103,
+      "paired_initial_key": 1,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10103,
+        "phase": 0.5409,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.17546,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "latency",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "crossing_10104",
+      "category": "crossing",
+      "seed": 10104,
+      "paired_initial_key": 2,
+      "mode": "ideal_cv",
+      "scene": {
+        "name": "crossing",
+        "seed": 10104,
+        "phase": -0.3375,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.7025,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "crossing_10105",
+      "category": "crossing",
+      "seed": 10105,
+      "paired_initial_key": 2,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10105,
+        "phase": -0.3375,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.7025,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "latency",
+        "latency_s": 0.15,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "crossing_10106",
+      "category": "crossing",
+      "seed": 10106,
+      "paired_initial_key": 3,
+      "mode": "ideal_cv",
+      "scene": {
+        "name": "crossing",
+        "seed": 10106,
+        "phase": 0.1433,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.41402,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "crossing_10107",
+      "category": "crossing",
+      "seed": 10107,
+      "paired_initial_key": 3,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10107,
+        "phase": 0.1433,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.41402,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "latency",
+        "latency_s": 0.05,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "crossing_10108",
+      "category": "crossing",
+      "seed": 10108,
+      "paired_initial_key": 4,
+      "mode": "ideal_cv",
+      "scene": {
+        "name": "crossing",
+        "seed": 10108,
+        "phase": -0.4451,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.76706,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "crossing_10109",
+      "category": "crossing",
+      "seed": 10109,
+      "paired_initial_key": 4,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10109,
+        "phase": -0.4451,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.76706,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "latency",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "crossing_10110",
+      "category": "crossing",
+      "seed": 10110,
+      "paired_initial_key": 5,
+      "mode": "ideal_cv",
+      "scene": {
+        "name": "crossing",
+        "seed": 10110,
+        "phase": 0.4833,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.21002,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "crossing_10111",
+      "category": "crossing",
+      "seed": 10111,
+      "paired_initial_key": 5,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10111,
+        "phase": 0.4833,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.21002,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "latency",
+        "latency_s": 0.15,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "head_on_10200",
+      "category": "head_on",
+      "seed": 10200,
+      "paired_initial_key": 0,
+      "mode": "ideal_cv",
+      "scene": {
+        "name": "head_on",
+        "seed": 10200,
+        "phase": 0.3056,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            4.86248,
+            -0.0065,
+            -0.45,
+            0.0,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "head_on_10201",
+      "category": "head_on",
+      "seed": 10201,
+      "paired_initial_key": 0,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "head_on",
+        "seed": 10201,
+        "phase": 0.3056,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            4.86248,
+            -0.0065,
+            -0.45,
+            0.0,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "velocity_bias",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.01
+      },
+      "motion_events": []
+    },
+    {
+      "id": "head_on_10202",
+      "category": "head_on",
+      "seed": 10202,
+      "paired_initial_key": 1,
+      "mode": "ideal_cv",
+      "scene": {
+        "name": "head_on",
+        "seed": 10202,
+        "phase": -0.2129,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            5.095805,
+            -0.0258,
+            -0.45,
+            0.0,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "head_on_10203",
+      "category": "head_on",
+      "seed": 10203,
+      "paired_initial_key": 1,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "head_on",
+        "seed": 10203,
+        "phase": -0.2129,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            5.095805,
+            -0.0258,
+            -0.45,
+            0.0,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "velocity_bias",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.03
+      },
+      "motion_events": []
+    },
+    {
+      "id": "head_on_10204",
+      "category": "head_on",
+      "seed": 10204,
+      "paired_initial_key": 2,
+      "mode": "ideal_cv",
+      "scene": {
+        "name": "head_on",
+        "seed": 10204,
+        "phase": 0.3558,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            4.83989,
+            0.015125,
+            -0.45,
+            0.0,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "head_on_10205",
+      "category": "head_on",
+      "seed": 10205,
+      "paired_initial_key": 2,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "head_on",
+        "seed": 10205,
+        "phase": 0.3558,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            4.83989,
+            0.015125,
+            -0.45,
+            0.0,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "velocity_bias",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.06
+      },
+      "motion_events": []
+    },
+    {
+      "id": "head_on_10206",
+      "category": "head_on",
+      "seed": 10206,
+      "paired_initial_key": 3,
+      "mode": "ideal_cv",
+      "scene": {
+        "name": "head_on",
+        "seed": 10206,
+        "phase": -0.422,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            5.1899,
+            -0.010725,
+            -0.45,
+            0.0,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "head_on_10207",
+      "category": "head_on",
+      "seed": 10207,
+      "paired_initial_key": 3,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "head_on",
+        "seed": 10207,
+        "phase": -0.422,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            5.1899,
+            -0.010725,
+            -0.45,
+            0.0,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "velocity_bias",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.01
+      },
+      "motion_events": []
+    },
+    {
+      "id": "head_on_10208",
+      "category": "head_on",
+      "seed": 10208,
+      "paired_initial_key": 4,
+      "mode": "ideal_cv",
+      "scene": {
+        "name": "head_on",
+        "seed": 10208,
+        "phase": 0.1012,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            4.95446,
+            0.012975,
+            -0.45,
+            0.0,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "head_on_10209",
+      "category": "head_on",
+      "seed": 10209,
+      "paired_initial_key": 4,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "head_on",
+        "seed": 10209,
+        "phase": 0.1012,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            4.95446,
+            0.012975,
+            -0.45,
+            0.0,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "velocity_bias",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.03
+      },
+      "motion_events": []
+    },
+    {
+      "id": "head_on_10210",
+      "category": "head_on",
+      "seed": 10210,
+      "paired_initial_key": 5,
+      "mode": "ideal_cv",
+      "scene": {
+        "name": "head_on",
+        "seed": 10210,
+        "phase": 0.502,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            4.7741,
+            -0.001325,
+            -0.45,
+            0.0,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "head_on_10211",
+      "category": "head_on",
+      "seed": 10211,
+      "paired_initial_key": 5,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "head_on",
+        "seed": 10211,
+        "phase": 0.502,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            4.7741,
+            -0.001325,
+            -0.45,
+            0.0,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "velocity_bias",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.06
+      },
+      "motion_events": []
+    },
+    {
+      "id": "stop_start_10300",
+      "category": "stop_start",
+      "seed": 10300,
+      "paired_initial_key": 0,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10300,
+        "phase": -0.1578,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.59468,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact_piecewise",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.2,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": [
+        {
+          "actor": 0,
+          "t": 2.5,
+          "velocity": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "actor": 0,
+          "t": 2.7,
+          "velocity": [
+            0.0,
+            0.6
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stop_start_10301",
+      "category": "stop_start",
+      "seed": 10301,
+      "paired_initial_key": 1,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10301,
+        "phase": 0.521,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.1874000000000002,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact_piecewise",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.5,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": [
+        {
+          "actor": 0,
+          "t": 2.5,
+          "velocity": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "actor": 0,
+          "t": 3.0,
+          "velocity": [
+            0.0,
+            0.6
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stop_start_10302",
+      "category": "stop_start",
+      "seed": 10302,
+      "paired_initial_key": 2,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10302,
+        "phase": -0.3545,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.7127,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact_piecewise",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 1.0,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": [
+        {
+          "actor": 0,
+          "t": 2.5,
+          "velocity": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "actor": 0,
+          "t": 3.5,
+          "velocity": [
+            0.0,
+            0.6
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stop_start_10303",
+      "category": "stop_start",
+      "seed": 10303,
+      "paired_initial_key": 3,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10303,
+        "phase": -0.0288,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.51728,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact_piecewise",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.2,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": [
+        {
+          "actor": 0,
+          "t": 2.5,
+          "velocity": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "actor": 0,
+          "t": 2.7,
+          "velocity": [
+            0.0,
+            0.6
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stop_start_10304",
+      "category": "stop_start",
+      "seed": 10304,
+      "paired_initial_key": 4,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10304,
+        "phase": -0.5271,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.8162599999999998,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact_piecewise",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.5,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": [
+        {
+          "actor": 0,
+          "t": 2.5,
+          "velocity": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "actor": 0,
+          "t": 3.0,
+          "velocity": [
+            0.0,
+            0.6
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stop_start_10305",
+      "category": "stop_start",
+      "seed": 10305,
+      "paired_initial_key": 5,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10305,
+        "phase": -0.1283,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.57698,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact_piecewise",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 1.0,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": [
+        {
+          "actor": 0,
+          "t": 2.5,
+          "velocity": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "actor": 0,
+          "t": 3.5,
+          "velocity": [
+            0.0,
+            0.6
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stop_start_10306",
+      "category": "stop_start",
+      "seed": 10306,
+      "paired_initial_key": 6,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10306,
+        "phase": 0.574,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.1556,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact_piecewise",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.2,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": [
+        {
+          "actor": 0,
+          "t": 2.5,
+          "velocity": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "actor": 0,
+          "t": 2.7,
+          "velocity": [
+            0.0,
+            0.6
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stop_start_10307",
+      "category": "stop_start",
+      "seed": 10307,
+      "paired_initial_key": 7,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10307,
+        "phase": 0.2044,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.37736,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact_piecewise",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.5,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": [
+        {
+          "actor": 0,
+          "t": 2.5,
+          "velocity": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "actor": 0,
+          "t": 3.0,
+          "velocity": [
+            0.0,
+            0.6
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stop_start_10308",
+      "category": "stop_start",
+      "seed": 10308,
+      "paired_initial_key": 8,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10308,
+        "phase": -0.3318,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.69908,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact_piecewise",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 1.0,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": [
+        {
+          "actor": 0,
+          "t": 2.5,
+          "velocity": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "actor": 0,
+          "t": 3.5,
+          "velocity": [
+            0.0,
+            0.6
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stop_start_10309",
+      "category": "stop_start",
+      "seed": 10309,
+      "paired_initial_key": 9,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10309,
+        "phase": -0.4469,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.76814,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact_piecewise",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.2,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": [
+        {
+          "actor": 0,
+          "t": 2.5,
+          "velocity": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "actor": 0,
+          "t": 2.7,
+          "velocity": [
+            0.0,
+            0.6
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stop_start_10310",
+      "category": "stop_start",
+      "seed": 10310,
+      "paired_initial_key": 10,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10310,
+        "phase": -0.2649,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.65894,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact_piecewise",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.5,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": [
+        {
+          "actor": 0,
+          "t": 2.5,
+          "velocity": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "actor": 0,
+          "t": 3.0,
+          "velocity": [
+            0.0,
+            0.6
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stop_start_10311",
+      "category": "stop_start",
+      "seed": 10311,
+      "paired_initial_key": 11,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10311,
+        "phase": 0.3891,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.26654,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact_piecewise",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 1.0,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": [
+        {
+          "actor": 0,
+          "t": 2.5,
+          "velocity": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "actor": 0,
+          "t": 3.5,
+          "velocity": [
+            0.0,
+            0.6
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sudden_turn_10400",
+      "category": "sudden_turn",
+      "seed": 10400,
+      "paired_initial_key": 0,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10400,
+        "phase": -0.1733,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.60398,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact_piecewise",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0,
+        "turn_degrees": -90
+      },
+      "motion_events": [
+        {
+          "actor": 0,
+          "t": 2.5,
+          "velocity": [
+            0.6,
+            3.6739403974420595e-17
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sudden_turn_10401",
+      "category": "sudden_turn",
+      "seed": 10401,
+      "paired_initial_key": 1,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10401,
+        "phase": 0.112,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.4328,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact_piecewise",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0,
+        "turn_degrees": 90
+      },
+      "motion_events": [
+        {
+          "actor": 0,
+          "t": 2.5,
+          "velocity": [
+            -0.6,
+            3.6739403974420595e-17
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sudden_turn_10402",
+      "category": "sudden_turn",
+      "seed": 10402,
+      "paired_initial_key": 2,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10402,
+        "phase": -0.2468,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.64808,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact_piecewise",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0,
+        "turn_degrees": 180
+      },
+      "motion_events": [
+        {
+          "actor": 0,
+          "t": 2.5,
+          "velocity": [
+            -7.347880794884119e-17,
+            -0.6
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sudden_turn_10403",
+      "category": "sudden_turn",
+      "seed": 10403,
+      "paired_initial_key": 3,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10403,
+        "phase": 0.1758,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.39452,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact_piecewise",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0,
+        "turn_degrees": -90
+      },
+      "motion_events": [
+        {
+          "actor": 0,
+          "t": 2.5,
+          "velocity": [
+            0.6,
+            3.6739403974420595e-17
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sudden_turn_10404",
+      "category": "sudden_turn",
+      "seed": 10404,
+      "paired_initial_key": 4,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10404,
+        "phase": -0.5041,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.80246,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact_piecewise",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0,
+        "turn_degrees": 90
+      },
+      "motion_events": [
+        {
+          "actor": 0,
+          "t": 2.5,
+          "velocity": [
+            -0.6,
+            3.6739403974420595e-17
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sudden_turn_10405",
+      "category": "sudden_turn",
+      "seed": 10405,
+      "paired_initial_key": 5,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10405,
+        "phase": 0.0308,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.48152,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact_piecewise",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0,
+        "turn_degrees": 180
+      },
+      "motion_events": [
+        {
+          "actor": 0,
+          "t": 2.5,
+          "velocity": [
+            -7.347880794884119e-17,
+            -0.6
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sudden_turn_10406",
+      "category": "sudden_turn",
+      "seed": 10406,
+      "paired_initial_key": 6,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10406,
+        "phase": -0.2795,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.6677,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact_piecewise",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0,
+        "turn_degrees": -90
+      },
+      "motion_events": [
+        {
+          "actor": 0,
+          "t": 2.5,
+          "velocity": [
+            0.6,
+            3.6739403974420595e-17
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sudden_turn_10407",
+      "category": "sudden_turn",
+      "seed": 10407,
+      "paired_initial_key": 7,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10407,
+        "phase": 0.4543,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.22742,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact_piecewise",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0,
+        "turn_degrees": 90
+      },
+      "motion_events": [
+        {
+          "actor": 0,
+          "t": 2.5,
+          "velocity": [
+            -0.6,
+            3.6739403974420595e-17
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sudden_turn_10408",
+      "category": "sudden_turn",
+      "seed": 10408,
+      "paired_initial_key": 8,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10408,
+        "phase": 0.0024,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.49856,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact_piecewise",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0,
+        "turn_degrees": 180
+      },
+      "motion_events": [
+        {
+          "actor": 0,
+          "t": 2.5,
+          "velocity": [
+            -7.347880794884119e-17,
+            -0.6
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sudden_turn_10409",
+      "category": "sudden_turn",
+      "seed": 10409,
+      "paired_initial_key": 9,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10409,
+        "phase": 0.4538,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.22772,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact_piecewise",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0,
+        "turn_degrees": -90
+      },
+      "motion_events": [
+        {
+          "actor": 0,
+          "t": 2.5,
+          "velocity": [
+            0.6,
+            3.6739403974420595e-17
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sudden_turn_10410",
+      "category": "sudden_turn",
+      "seed": 10410,
+      "paired_initial_key": 10,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10410,
+        "phase": 0.5675,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.1595,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact_piecewise",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0,
+        "turn_degrees": 90
+      },
+      "motion_events": [
+        {
+          "actor": 0,
+          "t": 2.5,
+          "velocity": [
+            -0.6,
+            3.6739403974420595e-17
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sudden_turn_10411",
+      "category": "sudden_turn",
+      "seed": 10411,
+      "paired_initial_key": 11,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10411,
+        "phase": 0.5872,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.14768,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact_piecewise",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0,
+        "turn_degrees": 180
+      },
+      "motion_events": [
+        {
+          "actor": 0,
+          "t": 2.5,
+          "velocity": [
+            -7.347880794884119e-17,
+            -0.6
+          ]
+        }
+      ]
+    },
+    {
+      "id": "occlusion_reappearance_10500",
+      "category": "occlusion_reappearance",
+      "seed": 10500,
+      "paired_initial_key": 0,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10500,
+        "phase": -0.1771,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.60626,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "occlusion",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.15,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "occlusion_reappearance_10501",
+      "category": "occlusion_reappearance",
+      "seed": 10501,
+      "paired_initial_key": 1,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10501,
+        "phase": -0.3406,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.70436,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "occlusion",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.3,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "occlusion_reappearance_10502",
+      "category": "occlusion_reappearance",
+      "seed": 10502,
+      "paired_initial_key": 2,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10502,
+        "phase": 0.0623,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.46262,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "occlusion",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.6,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "occlusion_reappearance_10503",
+      "category": "occlusion_reappearance",
+      "seed": 10503,
+      "paired_initial_key": 3,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10503,
+        "phase": -0.0114,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.50684,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "occlusion",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.9,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "occlusion_reappearance_10504",
+      "category": "occlusion_reappearance",
+      "seed": 10504,
+      "paired_initial_key": 4,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10504,
+        "phase": -0.3924,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.73544,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "occlusion",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.15,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "occlusion_reappearance_10505",
+      "category": "occlusion_reappearance",
+      "seed": 10505,
+      "paired_initial_key": 5,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10505,
+        "phase": -0.1409,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.58454,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "occlusion",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.3,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "occlusion_reappearance_10506",
+      "category": "occlusion_reappearance",
+      "seed": 10506,
+      "paired_initial_key": 6,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10506,
+        "phase": 0.564,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.1616,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "occlusion",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.6,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "occlusion_reappearance_10507",
+      "category": "occlusion_reappearance",
+      "seed": 10507,
+      "paired_initial_key": 7,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10507,
+        "phase": -0.0581,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.53486,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "occlusion",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.9,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "occlusion_reappearance_10508",
+      "category": "occlusion_reappearance",
+      "seed": 10508,
+      "paired_initial_key": 8,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10508,
+        "phase": -0.4404,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.76424,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "occlusion",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.15,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "occlusion_reappearance_10509",
+      "category": "occlusion_reappearance",
+      "seed": 10509,
+      "paired_initial_key": 9,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10509,
+        "phase": 0.5475,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.1715,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "occlusion",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.3,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "occlusion_reappearance_10510",
+      "category": "occlusion_reappearance",
+      "seed": 10510,
+      "paired_initial_key": 10,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10510,
+        "phase": -0.026,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.5156,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "occlusion",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.6,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "occlusion_reappearance_10511",
+      "category": "occlusion_reappearance",
+      "seed": 10511,
+      "paired_initial_key": 11,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10511,
+        "phase": -0.1547,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.59282,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "occlusion",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.9,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "id_switch_10600",
+      "category": "id_switch",
+      "seed": 10600,
+      "paired_initial_key": 0,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "multiple",
+        "seed": 10600,
+        "phase": -0.3691,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            1.5,
+            -2.42146,
+            0.0,
+            0.6,
+            0.3
+          ],
+          [
+            2.7,
+            3.02146,
+            0.0,
+            -0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "id_relabel",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.15,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "id_switch_10601",
+      "category": "id_switch",
+      "seed": 10601,
+      "paired_initial_key": 1,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "multiple",
+        "seed": 10601,
+        "phase": 0.2932,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            1.5,
+            -2.02408,
+            0.0,
+            0.6,
+            0.3
+          ],
+          [
+            2.7,
+            2.6240799999999997,
+            0.0,
+            -0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "id_relabel",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.3,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "id_switch_10602",
+      "category": "id_switch",
+      "seed": 10602,
+      "paired_initial_key": 2,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "multiple",
+        "seed": 10602,
+        "phase": 0.3101,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            1.5,
+            -2.0139400000000003,
+            0.0,
+            0.6,
+            0.3
+          ],
+          [
+            2.7,
+            2.61394,
+            0.0,
+            -0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "id_relabel",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.6,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "id_switch_10603",
+      "category": "id_switch",
+      "seed": 10603,
+      "paired_initial_key": 3,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "multiple",
+        "seed": 10603,
+        "phase": 0.2464,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            1.5,
+            -2.05216,
+            0.0,
+            0.6,
+            0.3
+          ],
+          [
+            2.7,
+            2.65216,
+            0.0,
+            -0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "id_relabel",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.15,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "id_switch_10604",
+      "category": "id_switch",
+      "seed": 10604,
+      "paired_initial_key": 4,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "multiple",
+        "seed": 10604,
+        "phase": -0.1299,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            1.5,
+            -2.27794,
+            0.0,
+            0.6,
+            0.3
+          ],
+          [
+            2.7,
+            2.8779399999999997,
+            0.0,
+            -0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "id_relabel",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.3,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "id_switch_10605",
+      "category": "id_switch",
+      "seed": 10605,
+      "paired_initial_key": 5,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "multiple",
+        "seed": 10605,
+        "phase": -0.0478,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            1.5,
+            -2.22868,
+            0.0,
+            0.6,
+            0.3
+          ],
+          [
+            2.7,
+            2.82868,
+            0.0,
+            -0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "id_relabel",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.6,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "id_switch_10606",
+      "category": "id_switch",
+      "seed": 10606,
+      "paired_initial_key": 6,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "multiple",
+        "seed": 10606,
+        "phase": -0.161,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            1.5,
+            -2.2966,
+            0.0,
+            0.6,
+            0.3
+          ],
+          [
+            2.7,
+            2.8966,
+            0.0,
+            -0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "id_misassociate",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.15,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "id_switch_10607",
+      "category": "id_switch",
+      "seed": 10607,
+      "paired_initial_key": 7,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "multiple",
+        "seed": 10607,
+        "phase": -0.2144,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            1.5,
+            -2.32864,
+            0.0,
+            0.6,
+            0.3
+          ],
+          [
+            2.7,
+            2.9286399999999997,
+            0.0,
+            -0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "id_misassociate",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.3,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "id_switch_10608",
+      "category": "id_switch",
+      "seed": 10608,
+      "paired_initial_key": 8,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "multiple",
+        "seed": 10608,
+        "phase": 0.2049,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            1.5,
+            -2.0770600000000004,
+            0.0,
+            0.6,
+            0.3
+          ],
+          [
+            2.7,
+            2.67706,
+            0.0,
+            -0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "id_misassociate",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.6,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "id_switch_10609",
+      "category": "id_switch",
+      "seed": 10609,
+      "paired_initial_key": 9,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "multiple",
+        "seed": 10609,
+        "phase": -0.0511,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            1.5,
+            -2.2306600000000003,
+            0.0,
+            0.6,
+            0.3
+          ],
+          [
+            2.7,
+            2.83066,
+            0.0,
+            -0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "id_misassociate",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.15,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "id_switch_10610",
+      "category": "id_switch",
+      "seed": 10610,
+      "paired_initial_key": 10,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "multiple",
+        "seed": 10610,
+        "phase": 0.5582,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            1.5,
+            -1.8650800000000003,
+            0.0,
+            0.6,
+            0.3
+          ],
+          [
+            2.7,
+            2.46508,
+            0.0,
+            -0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "id_misassociate",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.3,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "id_switch_10611",
+      "category": "id_switch",
+      "seed": 10611,
+      "paired_initial_key": 11,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "multiple",
+        "seed": 10611,
+        "phase": 0.109,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            1.5,
+            -2.1346000000000003,
+            0.0,
+            0.6,
+            0.3
+          ],
+          [
+            2.7,
+            2.7346,
+            0.0,
+            -0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "id_misassociate",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.6,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "prediction_error_10700",
+      "category": "prediction_error",
+      "seed": 10700,
+      "paired_initial_key": 0,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10700,
+        "phase": -0.0983,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.55898,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "velocity_bias",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.01,
+        "error_y_mps": -0.01
+      },
+      "motion_events": []
+    },
+    {
+      "id": "prediction_error_10701",
+      "category": "prediction_error",
+      "seed": 10701,
+      "paired_initial_key": 1,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10701,
+        "phase": 0.3954,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.26276,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "velocity_bias",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.03,
+        "error_y_mps": -0.03
+      },
+      "motion_events": []
+    },
+    {
+      "id": "prediction_error_10702",
+      "category": "prediction_error",
+      "seed": 10702,
+      "paired_initial_key": 2,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10702,
+        "phase": 0.5518,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.16892,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "velocity_bias",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.06,
+        "error_y_mps": -0.06
+      },
+      "motion_events": []
+    },
+    {
+      "id": "prediction_error_10703",
+      "category": "prediction_error",
+      "seed": 10703,
+      "paired_initial_key": 3,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10703,
+        "phase": -0.1634,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.59804,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "velocity_bias",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.12,
+        "error_y_mps": -0.12
+      },
+      "motion_events": []
+    },
+    {
+      "id": "prediction_error_10704",
+      "category": "prediction_error",
+      "seed": 10704,
+      "paired_initial_key": 4,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10704,
+        "phase": 0.1736,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.39584,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "velocity_bias",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.01,
+        "error_y_mps": -0.01
+      },
+      "motion_events": []
+    },
+    {
+      "id": "prediction_error_10705",
+      "category": "prediction_error",
+      "seed": 10705,
+      "paired_initial_key": 5,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10705,
+        "phase": -0.3374,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.70244,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "velocity_bias",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.03,
+        "error_y_mps": -0.03
+      },
+      "motion_events": []
+    },
+    {
+      "id": "prediction_error_10706",
+      "category": "prediction_error",
+      "seed": 10706,
+      "paired_initial_key": 6,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10706,
+        "phase": 0.179,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.3926,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "velocity_bias",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.06,
+        "error_y_mps": -0.06
+      },
+      "motion_events": []
+    },
+    {
+      "id": "prediction_error_10707",
+      "category": "prediction_error",
+      "seed": 10707,
+      "paired_initial_key": 7,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10707,
+        "phase": 0.3065,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.3161,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "velocity_bias",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.12,
+        "error_y_mps": -0.12
+      },
+      "motion_events": []
+    },
+    {
+      "id": "prediction_error_10708",
+      "category": "prediction_error",
+      "seed": 10708,
+      "paired_initial_key": 8,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10708,
+        "phase": 0.2115,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.3731,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "velocity_bias",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.01,
+        "error_y_mps": -0.01
+      },
+      "motion_events": []
+    },
+    {
+      "id": "prediction_error_10709",
+      "category": "prediction_error",
+      "seed": 10709,
+      "paired_initial_key": 9,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10709,
+        "phase": 0.2947,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.32318,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "velocity_bias",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.03,
+        "error_y_mps": -0.03
+      },
+      "motion_events": []
+    },
+    {
+      "id": "prediction_error_10710",
+      "category": "prediction_error",
+      "seed": 10710,
+      "paired_initial_key": 10,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10710,
+        "phase": -0.0224,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.51344,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "velocity_bias",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.06,
+        "error_y_mps": -0.06
+      },
+      "motion_events": []
+    },
+    {
+      "id": "prediction_error_10711",
+      "category": "prediction_error",
+      "seed": 10711,
+      "paired_initial_key": 11,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "crossing",
+        "seed": 10711,
+        "phase": 0.0771,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            2.0,
+            -2.45374,
+            0.0,
+            0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "velocity_bias",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.12,
+        "error_y_mps": -0.12
+      },
+      "motion_events": []
+    },
+    {
+      "id": "stale_observation_10800",
+      "category": "stale_observation",
+      "seed": 10800,
+      "paired_initial_key": 0,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "head_on",
+        "seed": 10800,
+        "phase": 0.4669,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            4.789895,
+            0.02155,
+            -0.45,
+            0.0,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "stale",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.1,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "stale_observation_10801",
+      "category": "stale_observation",
+      "seed": 10801,
+      "paired_initial_key": 1,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "head_on",
+        "seed": 10801,
+        "phase": -0.4826,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            5.21717,
+            0.00205,
+            -0.45,
+            0.0,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "stale",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.2,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "stale_observation_10802",
+      "category": "stale_observation",
+      "seed": 10802,
+      "paired_initial_key": 2,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "head_on",
+        "seed": 10802,
+        "phase": 0.2213,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            4.900415,
+            -0.0245,
+            -0.45,
+            0.0,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "stale",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.4,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "stale_observation_10803",
+      "category": "stale_observation",
+      "seed": 10803,
+      "paired_initial_key": 3,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "head_on",
+        "seed": 10803,
+        "phase": 0.0298,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            4.98659,
+            0.0052,
+            -0.45,
+            0.0,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "stale",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.8,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "stale_observation_10804",
+      "category": "stale_observation",
+      "seed": 10804,
+      "paired_initial_key": 4,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "head_on",
+        "seed": 10804,
+        "phase": -0.2413,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            5.108585,
+            -0.001825,
+            -0.45,
+            0.0,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "stale",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.1,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "stale_observation_10805",
+      "category": "stale_observation",
+      "seed": 10805,
+      "paired_initial_key": 5,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "head_on",
+        "seed": 10805,
+        "phase": 0.3057,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            4.862435,
+            0.002675,
+            -0.45,
+            0.0,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "stale",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.2,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "stale_observation_10806",
+      "category": "stale_observation",
+      "seed": 10806,
+      "paired_initial_key": 6,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "head_on",
+        "seed": 10806,
+        "phase": 0.4288,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            4.80704,
+            -0.0194,
+            -0.45,
+            0.0,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "stale",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.4,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "stale_observation_10807",
+      "category": "stale_observation",
+      "seed": 10807,
+      "paired_initial_key": 7,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "head_on",
+        "seed": 10807,
+        "phase": 0.1245,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            4.943975,
+            0.01065,
+            -0.45,
+            0.0,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "stale",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.8,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "stale_observation_10808",
+      "category": "stale_observation",
+      "seed": 10808,
+      "paired_initial_key": 8,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "head_on",
+        "seed": 10808,
+        "phase": 0.2068,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            4.90694,
+            -0.0232,
+            -0.45,
+            0.0,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "stale",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.1,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "stale_observation_10809",
+      "category": "stale_observation",
+      "seed": 10809,
+      "paired_initial_key": 9,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "head_on",
+        "seed": 10809,
+        "phase": -0.4239,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            5.190755,
+            -0.0019,
+            -0.45,
+            0.0,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "stale",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.2,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "stale_observation_10810",
+      "category": "stale_observation",
+      "seed": 10810,
+      "paired_initial_key": 10,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "head_on",
+        "seed": 10810,
+        "phase": 0.5649,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            4.745795,
+            -0.016625,
+            -0.45,
+            0.0,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "stale",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.4,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "stale_observation_10811",
+      "category": "stale_observation",
+      "seed": 10811,
+      "paired_initial_key": 11,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "head_on",
+        "seed": 10811,
+        "phase": 0.2641,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            4.881155,
+            0.024675,
+            -0.45,
+            0.0,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "stale",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.8,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "multiple_10900",
+      "category": "multiple",
+      "seed": 10900,
+      "paired_initial_key": 0,
+      "mode": "ideal_cv",
+      "scene": {
+        "name": "multiple",
+        "seed": 10900,
+        "phase": 0.3316,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            1.5,
+            -2.00104,
+            0.0,
+            0.6,
+            0.3
+          ],
+          [
+            2.7,
+            2.60104,
+            0.0,
+            -0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "multiple_10901",
+      "category": "multiple",
+      "seed": 10901,
+      "paired_initial_key": 0,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "multiple",
+        "seed": 10901,
+        "phase": 0.3316,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            1.5,
+            -2.00104,
+            0.0,
+            0.6,
+            0.3
+          ],
+          [
+            2.7,
+            2.60104,
+            0.0,
+            -0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "latency",
+        "latency_s": 0.05,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "multiple_10902",
+      "category": "multiple",
+      "seed": 10902,
+      "paired_initial_key": 1,
+      "mode": "ideal_cv",
+      "scene": {
+        "name": "multiple",
+        "seed": 10902,
+        "phase": -0.2542,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            1.5,
+            -2.35252,
+            0.0,
+            0.6,
+            0.3
+          ],
+          [
+            2.7,
+            2.95252,
+            0.0,
+            -0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "multiple_10903",
+      "category": "multiple",
+      "seed": 10903,
+      "paired_initial_key": 1,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "multiple",
+        "seed": 10903,
+        "phase": -0.2542,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            1.5,
+            -2.35252,
+            0.0,
+            0.6,
+            0.3
+          ],
+          [
+            2.7,
+            2.95252,
+            0.0,
+            -0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "latency",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "multiple_10904",
+      "category": "multiple",
+      "seed": 10904,
+      "paired_initial_key": 2,
+      "mode": "ideal_cv",
+      "scene": {
+        "name": "multiple",
+        "seed": 10904,
+        "phase": 0.0703,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            1.5,
+            -2.15782,
+            0.0,
+            0.6,
+            0.3
+          ],
+          [
+            2.7,
+            2.7578199999999997,
+            0.0,
+            -0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "multiple_10905",
+      "category": "multiple",
+      "seed": 10905,
+      "paired_initial_key": 2,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "multiple",
+        "seed": 10905,
+        "phase": 0.0703,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            1.5,
+            -2.15782,
+            0.0,
+            0.6,
+            0.3
+          ],
+          [
+            2.7,
+            2.7578199999999997,
+            0.0,
+            -0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "latency",
+        "latency_s": 0.15,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "multiple_10906",
+      "category": "multiple",
+      "seed": 10906,
+      "paired_initial_key": 3,
+      "mode": "ideal_cv",
+      "scene": {
+        "name": "multiple",
+        "seed": 10906,
+        "phase": 0.0812,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            1.5,
+            -2.1512800000000003,
+            0.0,
+            0.6,
+            0.3
+          ],
+          [
+            2.7,
+            2.75128,
+            0.0,
+            -0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "multiple_10907",
+      "category": "multiple",
+      "seed": 10907,
+      "paired_initial_key": 3,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "multiple",
+        "seed": 10907,
+        "phase": 0.0812,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            1.5,
+            -2.1512800000000003,
+            0.0,
+            0.6,
+            0.3
+          ],
+          [
+            2.7,
+            2.75128,
+            0.0,
+            -0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "latency",
+        "latency_s": 0.05,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "multiple_10908",
+      "category": "multiple",
+      "seed": 10908,
+      "paired_initial_key": 4,
+      "mode": "ideal_cv",
+      "scene": {
+        "name": "multiple",
+        "seed": 10908,
+        "phase": -0.3007,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            1.5,
+            -2.38042,
+            0.0,
+            0.6,
+            0.3
+          ],
+          [
+            2.7,
+            2.9804199999999996,
+            0.0,
+            -0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "multiple_10909",
+      "category": "multiple",
+      "seed": 10909,
+      "paired_initial_key": 4,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "multiple",
+        "seed": 10909,
+        "phase": -0.3007,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            1.5,
+            -2.38042,
+            0.0,
+            0.6,
+            0.3
+          ],
+          [
+            2.7,
+            2.9804199999999996,
+            0.0,
+            -0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "latency",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "multiple_10910",
+      "category": "multiple",
+      "seed": 10910,
+      "paired_initial_key": 5,
+      "mode": "ideal_cv",
+      "scene": {
+        "name": "multiple",
+        "seed": 10910,
+        "phase": -0.5478,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            1.5,
+            -2.52868,
+            0.0,
+            0.6,
+            0.3
+          ],
+          [
+            2.7,
+            3.1286799999999997,
+            0.0,
+            -0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "exact",
+        "latency_s": 0.1,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    },
+    {
+      "id": "multiple_10911",
+      "category": "multiple",
+      "seed": 10911,
+      "paired_initial_key": 5,
+      "mode": "causal_imperfect",
+      "scene": {
+        "name": "multiple",
+        "seed": 10911,
+        "phase": -0.5478,
+        "wall": 2.0,
+        "static": [],
+        "dynamic": [
+          [
+            1.5,
+            -2.52868,
+            0.0,
+            0.6,
+            0.3
+          ],
+          [
+            2.7,
+            3.1286799999999997,
+            0.0,
+            -0.6,
+            0.3
+          ]
+        ],
+        "goal": [
+          4.0,
+          0.0
+        ]
+      },
+      "input": {
+        "kind": "latency",
+        "latency_s": 0.15,
+        "start_s": 2.0,
+        "duration_s": 0.0,
+        "error_m": 0.0,
+        "error_mps": 0.0
+      },
+      "motion_events": []
+    }
+  ]
+}

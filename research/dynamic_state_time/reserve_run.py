@@ -117,7 +117,7 @@ def sanity(build, out):
             c.close()
 
 
-def trial(build, out, arm, condition, full_episode=False, cfg=None):
+def trial(build, out, arm, condition, full_episode=False, cfg=None, observation_source=None):
     name = f"{arm}_{condition}"
     planner = Consumer(build/"search_baseline", "search", out/f"{name}_planner.log")
     checker = None if arm == "B" else Consumer(build/"reserve_consumer", "reserve", out/f"{name}_reserve.log")
@@ -127,6 +127,13 @@ def trial(build, out, arm, condition, full_episode=False, cfg=None):
         raise ValueError("scenario selection requires an original full episode")
     cfg = FIXTURE["scene"] if cfg is None else cfg
     grid, _ = static_grid(cfg)
+    def input_at(epoch):
+        if observation_source is None:
+            current, actors = observed(cfg, epoch)
+            return current, actors, {}
+        return observation_source.sample(epoch)
+    def truth_at(epoch):
+        return actors_at(cfg, epoch) if observation_source is None else observation_source.truth(epoch)
     start_epoch = 0. if full_episode else START
     state = [0.,0.,0.,0.] if full_episode else FIXTURE["state"].copy()
     target = [0.,0.] if full_episode else FIXTURE["target"].copy()
@@ -149,8 +156,10 @@ def trial(build, out, arm, condition, full_episode=False, cfg=None):
     try:
         if checker:
             if arm == "C1": transition("INITIALIZING", "episode_start" if full_episode else "fixture_start")
-            _, initial_actors = observed(cfg, epoch)
+            _, initial_actors, input_metadata = input_at(epoch)
             rq = question(state, target, queue, epoch, initial_actors, queue_version, slot, cfg["wall"])
+            if input_metadata:
+                rq.update(source_epoch=input_metadata["source_epoch"], source_version=input_metadata["source_version"])
             t0 = time.perf_counter(); initial = checker.call(rq | {"op": "init"})
             init_ms = (time.perf_counter()-t0)*1000
             intrinsic.append(init_ms)
@@ -180,8 +189,10 @@ def trial(build, out, arm, condition, full_episode=False, cfg=None):
         with gzip.open(out/f"{name}.jsonl.gz", "wt") as trace:
             while (epoch < 40 if arrival is None else epoch < arrival+3-1e-8):
                 begin = time.perf_counter()
-                _, actors = observed(cfg, epoch)
+                _, actors, input_metadata = input_at(epoch)
                 rq = question(state, target, queue, epoch, actors, queue_version, slot, cfg["wall"])
+                if input_metadata:
+                    rq.update(source_epoch=input_metadata["source_epoch"], source_version=input_metadata["source_version"])
                 validity_ms = 0.; validation_ms = 0.; validity = "not_held"
                 lifecycle_start = len(lifecycle)
                 if arm == "C1" and backup is not None:
@@ -322,6 +333,10 @@ def trial(build, out, arm, condition, full_episode=False, cfg=None):
                               backup_validation_ms=validity_ms+validation_ms, response_ms=response_ms,
                               total_cycle_ms=total_cycle_lat[-1], lifecycle=lifecycle[lifecycle_start:],
                               backup_dispatch=from_backup, executed=[], executed_owners=[])
+                if input_metadata:
+                    record["observation"] = input_metadata
+                    record["input_actors"] = actors
+                    record["hold_ttc_margin_s"] = ttc-.1 if ttc is not None else None
                 for k in range(5):
                     while queue and queue[0][0] <= epoch+.005+1e-9:
                         e = queue.pop(0); target = e[1:]
@@ -340,7 +355,7 @@ def trial(build, out, arm, condition, full_episode=False, cfg=None):
                         wait += .01; stop_run += .01
                         if abs(stop_run-.3) < .005: stops += 1
                     else: stop_run = 0.
-                    value = clearance(state, actors_at(cfg, epoch), cfg["wall"])
+                    value = clearance(state, truth_at(epoch), cfg["wall"])
                     if value < minimum: minimum = value; worst = dict(t=epoch, state=state.copy(), clearance_m=value)
                     if value < 0: collision = True
                     if arrival is None and math.dist(state[:2], cfg["goal"]) <= .15: arrival = epoch
