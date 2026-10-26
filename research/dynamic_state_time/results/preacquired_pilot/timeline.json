@@ -1,0 +1,4714 @@
+{
+  "static_13_B": [
+    {
+      "label": "start",
+      "t": 0.0,
+      "state": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.16000000000000003,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "reason": "baseline",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 12.124064000090584
+    },
+    {
+      "label": "worst_latency",
+      "t": 0.05,
+      "state": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.15313708498984763,
+        0.11313708498984763
+      ],
+      "accepted": true,
+      "committed": [
+        0.15313708498984763,
+        0.11313708498984763
+      ],
+      "reason": "baseline",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 13.676958000360173
+    },
+    {
+      "label": "worst_clearance",
+      "t": 5.85,
+      "state": [
+        2.5269873077057596,
+        0.5659323395762162,
+        0.43792244175006884,
+        -0.24086940733960843
+      ],
+      "proposal": [
+        0.4551891553240254,
+        -0.20478810189821747
+      ],
+      "accepted": true,
+      "committed": [
+        0.4551891553240254,
+        -0.20478810189821747
+      ],
+      "reason": "baseline",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.43792244175006884,
+        -0.24086940733960843
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 12.040326999340323
+    }
+  ],
+  "static_13_C0": [
+    {
+      "label": "start",
+      "t": 0.0,
+      "state": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.16000000000000003,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "reason": "new_backup",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 12.482643999646825
+    },
+    {
+      "label": "worst_latency",
+      "t": 5.6,
+      "state": [
+        2.4139158844025723,
+        0.6179072782638424,
+        0.4826347068355692,
+        -0.12968824768668666
+      ],
+      "proposal": [
+        0.4363659162012033,
+        -0.24409995325252418
+      ],
+      "accepted": true,
+      "committed": [
+        0.4363659162012033,
+        -0.24409995325252418
+      ],
+      "reason": "new_backup",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.46301807124258254,
+        -0.18871742289147223
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 13.060354000117513
+    },
+    {
+      "label": "worst_clearance",
+      "t": 5.85,
+      "state": [
+        2.5269873077057596,
+        0.5659323395762162,
+        0.43792244175006884,
+        -0.24086940733960843
+      ],
+      "proposal": [
+        0.4551891553240254,
+        -0.20478810189821747
+      ],
+      "accepted": true,
+      "committed": [
+        0.4551891553240254,
+        -0.20478810189821747
+      ],
+      "reason": "new_backup",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.43792244175006884,
+        -0.24086940733960843
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 12.881064999419323
+    }
+  ],
+  "static_13_C1": [
+    {
+      "label": "start",
+      "t": 0.0,
+      "state": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.16000000000000003,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "reason": "splice_old",
+      "backup": {
+        "id": 1,
+        "lineage": 0,
+        "acquired_epoch": 0.0,
+        "switch_time": 0.15,
+        "execution_cursor": 0,
+        "backup_controls": [
+          [
+            0.15,
+            0.0,
+            0.0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 1.343,
+          "epoch": 1.0900000000000007,
+          "state": [
+            0.0020000000000000005,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 13.191106000704167
+    },
+    {
+      "label": "worst_latency",
+      "t": 1.8,
+      "state": [
+        0.6191752921699508,
+        0.2744470558605238,
+        0.45080738123762787,
+        0.21494301923224482
+      ],
+      "proposal": [
+        0.45049990275679924,
+        0.21478774456030433
+      ],
+      "accepted": true,
+      "committed": [
+        0.45049990275679924,
+        0.21478774456030433
+      ],
+      "reason": "splice_old",
+      "backup": {
+        "id": 37,
+        "lineage": 0,
+        "acquired_epoch": 0.0,
+        "switch_time": 1.95,
+        "execution_cursor": 1,
+        "backup_controls": [
+          [
+            1.95,
+            0.0,
+            0.0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.531427510094014,
+          "epoch": 2.8900000000000006,
+          "state": [
+            0.8263957141838171,
+            0.3754603993687253,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        0.43218517458906774,
+        0.2514278720934038
+      ],
+      "executed_owner": {
+        "backup": false,
+        "id": 35,
+        "lineage": 0
+      },
+      "total_cycle_ms": 14.596028000596561
+    },
+    {
+      "label": "worst_clearance",
+      "t": 5.85,
+      "state": [
+        2.5269873077057596,
+        0.5659323395762162,
+        0.43792244175006884,
+        -0.24086940733960843
+      ],
+      "proposal": [
+        0.4551891553240254,
+        -0.20478810189821747
+      ],
+      "accepted": true,
+      "committed": [
+        0.4551891553240254,
+        -0.20478810189821747
+      ],
+      "reason": "splice_old",
+      "backup": {
+        "id": 118,
+        "lineage": 0,
+        "acquired_epoch": 0.0,
+        "switch_time": 6.0,
+        "execution_cursor": 1,
+        "backup_controls": [
+          [
+            6.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.14953801458054933,
+          "epoch": 6.94,
+          "state": [
+            2.735979776473606,
+            0.4686186004299404,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        0.43792244175006884,
+        -0.24086940733960843
+      ],
+      "executed_owner": {
+        "backup": false,
+        "id": 116,
+        "lineage": 0
+      },
+      "total_cycle_ms": 14.19632899978751
+    }
+  ],
+  "static_29_B": [
+    {
+      "label": "start",
+      "t": 0.0,
+      "state": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.11313708498984763,
+        -0.11313708498984763
+      ],
+      "accepted": true,
+      "committed": [
+        0.11313708498984763,
+        -0.11313708498984763
+      ],
+      "reason": "baseline",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 11.95103600002767
+    },
+    {
+      "label": "worst_latency",
+      "t": 1.3,
+      "state": [
+        0.3941940354234566,
+        -0.16728410523004322,
+        0.4519518178293542,
+        -0.20424863962029222
+      ],
+      "proposal": [
+        0.453100692098124,
+        -0.21142318420693834
+      ],
+      "accepted": true,
+      "committed": [
+        0.453100692098124,
+        -0.21142318420693834
+      ],
+      "reason": "baseline",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.4359448485084818,
+        -0.2448511569482914
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 12.656860999413766
+    },
+    {
+      "label": "worst_clearance",
+      "t": 5.9,
+      "state": [
+        2.5132518391114056,
+        -0.6786287094155249,
+        0.45623664666157054,
+        0.19413074090333823
+      ],
+      "proposal": [
+        0.4144546112462303,
+        0.27969157158687524
+      ],
+      "accepted": true,
+      "committed": [
+        0.4144546112462303,
+        0.27969157158687524
+      ],
+      "reason": "baseline",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.49501670621518074,
+        0.0704163373648008
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 12.18468400020356
+    }
+  ],
+  "static_29_C0": [
+    {
+      "label": "start",
+      "t": 0.0,
+      "state": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.11313708498984763,
+        -0.11313708498984763
+      ],
+      "accepted": true,
+      "committed": [
+        0.11313708498984763,
+        -0.11313708498984763
+      ],
+      "reason": "new_backup",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 12.47115899968776
+    },
+    {
+      "label": "worst_latency",
+      "t": 5.7,
+      "state": [
+        2.4229124803674917,
+        -0.7203238464107289,
+        0.4703427548894365,
+        0.15682151471378133
+      ],
+      "proposal": [
+        0.4425282089562457,
+        0.23170837701418517
+      ],
+      "accepted": true,
+      "committed": [
+        0.4425282089562457,
+        0.23170837701418517
+      ],
+      "reason": "new_backup",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.453784129512694,
+        0.20995228934785762
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 13.28805299999658
+    },
+    {
+      "label": "worst_clearance",
+      "t": 5.9,
+      "state": [
+        2.5132518391114056,
+        -0.6786287094155249,
+        0.45623664666157054,
+        0.19413074090333823
+      ],
+      "proposal": [
+        0.4144546112462303,
+        0.27969157158687524
+      ],
+      "accepted": true,
+      "committed": [
+        0.4144546112462303,
+        0.27969157158687524
+      ],
+      "reason": "new_backup",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.49501670621518074,
+        0.0704163373648008
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 12.883424000392552
+    }
+  ],
+  "static_29_C1": [
+    {
+      "label": "start",
+      "t": 0.0,
+      "state": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.11313708498984763,
+        -0.11313708498984763
+      ],
+      "accepted": true,
+      "committed": [
+        0.11313708498984763,
+        -0.11313708498984763
+      ],
+      "reason": "splice_old",
+      "backup": {
+        "id": 1,
+        "lineage": 0,
+        "acquired_epoch": 0.0,
+        "switch_time": 0.15,
+        "execution_cursor": 0,
+        "backup_controls": [
+          [
+            0.15,
+            0.0,
+            0.0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 1.3435857864376268,
+          "epoch": 1.0900000000000007,
+          "state": [
+            0.001414213562373095,
+            -0.001414213562373095,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 12.93377199999668
+    },
+    {
+      "label": "worst_latency",
+      "t": 5.7,
+      "state": [
+        2.4229124803674917,
+        -0.7203238464107289,
+        0.4703427548894365,
+        0.15682151471378133
+      ],
+      "proposal": [
+        0.4425282089562457,
+        0.23170837701418517
+      ],
+      "accepted": true,
+      "committed": [
+        0.4425282089562457,
+        0.23170837701418517
+      ],
+      "reason": "splice_old",
+      "backup": {
+        "id": 115,
+        "lineage": 0,
+        "acquired_epoch": 0.0,
+        "switch_time": 5.8500000000000005,
+        "execution_cursor": 1,
+        "backup_controls": [
+          [
+            5.8500000000000005,
+            0.0,
+            0.0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.09670790949777103,
+          "epoch": 6.790000000000001,
+          "state": [
+            2.6289486887401194,
+            -0.6169307954815252,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        0.453784129512694,
+        0.20995228934785762
+      ],
+      "executed_owner": {
+        "backup": false,
+        "id": 113,
+        "lineage": 0
+      },
+      "total_cycle_ms": 14.36506800018833
+    },
+    {
+      "label": "worst_clearance",
+      "t": 5.9,
+      "state": [
+        2.5132518391114056,
+        -0.6786287094155249,
+        0.45623664666157054,
+        0.19413074090333823
+      ],
+      "proposal": [
+        0.4144546112462303,
+        0.27969157158687524
+      ],
+      "accepted": true,
+      "committed": [
+        0.4144546112462303,
+        0.27969157158687524
+      ],
+      "reason": "splice_old",
+      "backup": {
+        "id": 119,
+        "lineage": 0,
+        "acquired_epoch": 0.0,
+        "switch_time": 6.050000000000001,
+        "execution_cursor": 1,
+        "backup_controls": [
+          [
+            6.050000000000001,
+            0.0,
+            0.0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.15198374030918732,
+          "epoch": 6.990000000000001,
+          "state": [
+            2.721747924507109,
+            -0.5941690015380512,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        0.49501670621518074,
+        0.0704163373648008
+      ],
+      "executed_owner": {
+        "backup": false,
+        "id": 117,
+        "lineage": 0
+      },
+      "total_cycle_ms": 14.234241999474762
+    }
+  ],
+  "static_47_B": [
+    {
+      "label": "start",
+      "t": 0.0,
+      "state": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.16000000000000003,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "reason": "baseline",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 12.079017999894859
+    },
+    {
+      "label": "worst_latency",
+      "t": 0.45,
+      "state": [
+        0.04460660171779824,
+        -0.010606601717798213,
+        0.24485281374238588,
+        -0.08485281374238574
+      ],
+      "proposal": [
+        0.4614213562373095,
+        -0.1414213562373095
+      ],
+      "accepted": true,
+      "committed": [
+        0.4614213562373095,
+        -0.1414213562373095
+      ],
+      "reason": "baseline",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.3579898987322335,
+        -0.19798989873223338
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 12.348229999588511
+    },
+    {
+      "label": "worst_clearance",
+      "t": 5.85,
+      "state": [
+        2.5269873077057596,
+        -0.5659323395762162,
+        0.43792244175006884,
+        0.24086940733960843
+      ],
+      "proposal": [
+        0.4551891553240254,
+        0.20478810189821747
+      ],
+      "accepted": true,
+      "committed": [
+        0.4551891553240254,
+        0.20478810189821747
+      ],
+      "reason": "baseline",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.43792244175006884,
+        0.24086940733960843
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 11.95585499954177
+    }
+  ],
+  "static_47_C0": [
+    {
+      "label": "start",
+      "t": 0.0,
+      "state": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.16000000000000003,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "reason": "new_backup",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 12.437558999408793
+    },
+    {
+      "label": "worst_latency",
+      "t": 2.15,
+      "state": [
+        0.7759640883452481,
+        -0.3514157878114545,
+        0.45049990275679924,
+        -0.21478774456030433
+      ],
+      "proposal": [
+        0.45049990275679924,
+        -0.21478774456030433
+      ],
+      "accepted": true,
+      "committed": [
+        0.45049990275679924,
+        -0.21478774456030433
+      ],
+      "reason": "new_backup",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.45049990275679924,
+        -0.21478774456030433
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 13.030839999373711
+    },
+    {
+      "label": "worst_clearance",
+      "t": 5.85,
+      "state": [
+        2.5269873077057596,
+        -0.5659323395762162,
+        0.43792244175006884,
+        0.24086940733960843
+      ],
+      "proposal": [
+        0.4551891553240254,
+        0.20478810189821747
+      ],
+      "accepted": true,
+      "committed": [
+        0.4551891553240254,
+        0.20478810189821747
+      ],
+      "reason": "new_backup",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.43792244175006884,
+        0.24086940733960843
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 12.766520999321074
+    }
+  ],
+  "static_47_C1": [
+    {
+      "label": "start",
+      "t": 0.0,
+      "state": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.16000000000000003,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "reason": "splice_old",
+      "backup": {
+        "id": 1,
+        "lineage": 0,
+        "acquired_epoch": 0.0,
+        "switch_time": 0.15,
+        "execution_cursor": 0,
+        "backup_controls": [
+          [
+            0.15,
+            0.0,
+            0.0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 1.343,
+          "epoch": 1.0900000000000007,
+          "state": [
+            0.0020000000000000005,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 13.358652000533766
+    },
+    {
+      "label": "worst_latency",
+      "t": 2.15,
+      "state": [
+        0.7759640883452481,
+        -0.3514157878114545,
+        0.45049990275679924,
+        -0.21478774456030433
+      ],
+      "proposal": [
+        0.45049990275679924,
+        -0.21478774456030433
+      ],
+      "accepted": true,
+      "committed": [
+        0.45049990275679924,
+        -0.21478774456030433
+      ],
+      "reason": "splice_old",
+      "backup": {
+        "id": 44,
+        "lineage": 0,
+        "acquired_epoch": 0.0,
+        "switch_time": 2.3,
+        "execution_cursor": 1,
+        "backup_controls": [
+          [
+            2.3,
+            0.0,
+            0.0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.3967839398691109,
+          "epoch": 3.2400000000000007,
+          "state": [
+            0.9840706801486956,
+            -0.45063610996483094,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        0.45049990275679924,
+        -0.21478774456030433
+      ],
+      "executed_owner": {
+        "backup": false,
+        "id": 42,
+        "lineage": 0
+      },
+      "total_cycle_ms": 14.580539999769826
+    },
+    {
+      "label": "worst_clearance",
+      "t": 5.85,
+      "state": [
+        2.5269873077057596,
+        -0.5659323395762162,
+        0.43792244175006884,
+        0.24086940733960843
+      ],
+      "proposal": [
+        0.4551891553240254,
+        0.20478810189821747
+      ],
+      "accepted": true,
+      "committed": [
+        0.4551891553240254,
+        0.20478810189821747
+      ],
+      "reason": "splice_old",
+      "backup": {
+        "id": 118,
+        "lineage": 0,
+        "acquired_epoch": 0.0,
+        "switch_time": 6.0,
+        "execution_cursor": 1,
+        "backup_controls": [
+          [
+            6.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.14953801458054933,
+          "epoch": 6.94,
+          "state": [
+            2.735979776473606,
+            -0.4686186004299404,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        0.43792244175006884,
+        0.24086940733960843
+      ],
+      "executed_owner": {
+        "backup": false,
+        "id": 116,
+        "lineage": 0
+      },
+      "total_cycle_ms": 14.06295900051191
+    }
+  ],
+  "crossing_13_B": [
+    {
+      "label": "start",
+      "t": 0.0,
+      "state": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.16000000000000003,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "reason": "baseline",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 12.515143000200624
+    },
+    {
+      "label": "worst_latency",
+      "t": 0.25,
+      "state": [
+        0.009000000000000005,
+        0.0,
+        0.12000000000000005,
+        0.0
+      ],
+      "proposal": [
+        0.36000000000000015,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.36000000000000015,
+        0.0
+      ],
+      "reason": "baseline",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.2800000000000001,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 12.82063799953903
+    },
+    {
+      "label": "worst_clearance",
+      "t": 3.85,
+      "state": [
+        1.3189871129449335,
+        0.05431962040626165,
+        -0.1436346595910354,
+        -0.09121861007641538
+      ],
+      "proposal": [
+        0.016365340408964618,
+        -0.13121861007641542
+      ],
+      "accepted": true,
+      "committed": [
+        0.016365340408964618,
+        -0.13121861007641542
+      ],
+      "reason": "baseline",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        -0.1436346595910354,
+        -0.25121861007641544
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 11.84522299990931
+    }
+  ],
+  "crossing_13_C0": [
+    {
+      "label": "start",
+      "t": 0.0,
+      "state": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.16000000000000003,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "reason": "new_backup",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 12.921344999995199
+    },
+    {
+      "label": "worst_latency",
+      "t": 0.25,
+      "state": [
+        0.009000000000000005,
+        0.0,
+        0.12000000000000005,
+        0.0
+      ],
+      "proposal": [
+        0.36000000000000015,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.36000000000000015,
+        0.0
+      ],
+      "reason": "new_backup",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.2800000000000001,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 13.1498790005935
+    },
+    {
+      "label": "worst_clearance",
+      "t": 3.85,
+      "state": [
+        1.3189871129449335,
+        0.05431962040626165,
+        -0.1436346595910354,
+        -0.09121861007641538
+      ],
+      "proposal": [
+        0.016365340408964618,
+        -0.13121861007641542
+      ],
+      "accepted": true,
+      "committed": [
+        0.016365340408964618,
+        -0.13121861007641542
+      ],
+      "reason": "new_backup",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        -0.1436346595910354,
+        -0.25121861007641544
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 12.369702999421861
+    }
+  ],
+  "crossing_13_C1": [
+    {
+      "label": "start",
+      "t": 0.0,
+      "state": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.16000000000000003,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "reason": "splice_old",
+      "backup": {
+        "id": 1,
+        "lineage": 0,
+        "acquired_epoch": 0.0,
+        "switch_time": 0.15,
+        "execution_cursor": 0,
+        "backup_controls": [
+          [
+            0.15,
+            0.0,
+            0.0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 1.343,
+          "epoch": 1.0900000000000007,
+          "state": [
+            0.0020000000000000005,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 13.498918000550475
+    },
+    {
+      "label": "worst_latency",
+      "t": 6.2,
+      "state": [
+        1.9147036845880536,
+        -0.0582597534779634,
+        0.4779784718402841,
+        0.13452310087777486
+      ],
+      "proposal": [
+        0.4892421182013591,
+        0.10316079574066583
+      ],
+      "accepted": true,
+      "committed": [
+        0.4892421182013591,
+        0.10316079574066583
+      ],
+      "reason": "splice_old",
+      "backup": {
+        "id": 125,
+        "lineage": 54,
+        "acquired_epoch": 2.65,
+        "switch_time": 6.3500000000000005,
+        "execution_cursor": 1,
+        "backup_controls": [
+          [
+            6.3500000000000005,
+            0.0,
+            0.0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 1.1338874331343174,
+          "epoch": 7.290000000000001,
+          "state": [
+            2.140751491289347,
+            -0.009887433134317017,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        0.4892421182013591,
+        0.10316079574066583
+      ],
+      "executed_owner": {
+        "backup": false,
+        "id": 123,
+        "lineage": 54
+      },
+      "total_cycle_ms": 14.811693000410742
+    },
+    {
+      "label": "worst_clearance",
+      "t": 3.85,
+      "state": [
+        1.3189871129449335,
+        0.05431962040626165,
+        -0.1436346595910354,
+        -0.09121861007641538
+      ],
+      "proposal": [
+        0.016365340408964618,
+        -0.13121861007641542
+      ],
+      "accepted": true,
+      "committed": [
+        0.016365340408964618,
+        -0.13121861007641542
+      ],
+      "reason": "splice_old",
+      "backup": {
+        "id": 78,
+        "lineage": 54,
+        "acquired_epoch": 2.65,
+        "switch_time": 4.0,
+        "execution_cursor": 1,
+        "backup_controls": [
+          [
+            4.0,
+            -0.5,
+            0.0
+          ],
+          [
+            4.200000000000001,
+            0,
+            0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.14564389724475885,
+          "epoch": 5.140000000000001,
+          "state": [
+            1.2197091783881864,
+            0.0008602230576994009,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        -0.1436346595910354,
+        -0.25121861007641544
+      ],
+      "executed_owner": {
+        "backup": false,
+        "id": 76,
+        "lineage": 54
+      },
+      "total_cycle_ms": 14.398057000107656
+    }
+  ],
+  "crossing_29_B": [
+    {
+      "label": "start",
+      "t": 0.0,
+      "state": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.16000000000000003,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "reason": "baseline",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 12.536297999758972
+    },
+    {
+      "label": "worst_latency",
+      "t": 0.2,
+      "state": [
+        0.004,
+        0.0,
+        0.08000000000000002,
+        0.0
+      ],
+      "proposal": [
+        0.3200000000000001,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.3200000000000001,
+        0.0
+      ],
+      "reason": "baseline",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.24000000000000005,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 12.779528999999457
+    },
+    {
+      "label": "worst_clearance",
+      "t": 3.8,
+      "state": [
+        1.3198112596833769,
+        0.15191684877101977,
+        -0.1137637843558023,
+        -0.0802531742729897
+      ],
+      "proposal": [
+        -0.02891097061341659,
+        -0.26167453051029926
+      ],
+      "accepted": true,
+      "committed": [
+        -0.02891097061341659,
+        -0.26167453051029926
+      ],
+      "reason": "baseline",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        -0.22690086934564993,
+        -0.19339025926283732
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 12.239769999723649
+    }
+  ],
+  "crossing_29_C0": [
+    {
+      "label": "start",
+      "t": 0.0,
+      "state": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.16000000000000003,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "reason": "new_backup",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 12.889091000033659
+    },
+    {
+      "label": "worst_latency",
+      "t": 0.25,
+      "state": [
+        0.009000000000000005,
+        0.0,
+        0.12000000000000005,
+        0.0
+      ],
+      "proposal": [
+        0.36000000000000015,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.36000000000000015,
+        0.0
+      ],
+      "reason": "new_backup",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.2800000000000001,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 13.115241999912541
+    },
+    {
+      "label": "worst_clearance",
+      "t": 3.8,
+      "state": [
+        1.3198112596833769,
+        0.15191684877101977,
+        -0.1137637843558023,
+        -0.0802531742729897
+      ],
+      "proposal": [
+        -0.02891097061341659,
+        -0.26167453051029926
+      ],
+      "accepted": true,
+      "committed": [
+        -0.02891097061341659,
+        -0.26167453051029926
+      ],
+      "reason": "new_backup",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        -0.22690086934564993,
+        -0.19339025926283732
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 12.629871000171988
+    }
+  ],
+  "crossing_29_C1": [
+    {
+      "label": "start",
+      "t": 0.0,
+      "state": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.16000000000000003,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "reason": "splice_old",
+      "backup": {
+        "id": 1,
+        "lineage": 0,
+        "acquired_epoch": 0.0,
+        "switch_time": 0.15,
+        "execution_cursor": 0,
+        "backup_controls": [
+          [
+            0.15,
+            0.0,
+            0.0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 1.343,
+          "epoch": 1.0900000000000007,
+          "state": [
+            0.0020000000000000005,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 13.722638999752235
+    },
+    {
+      "label": "worst_latency",
+      "t": 3.8,
+      "state": [
+        1.3198112596833769,
+        0.15191684877101977,
+        -0.1137637843558023,
+        -0.0802531742729897
+      ],
+      "proposal": [
+        -0.02891097061341659,
+        -0.26167453051029926
+      ],
+      "accepted": true,
+      "committed": [
+        -0.02891097061341659,
+        -0.26167453051029926
+      ],
+      "reason": "splice_old",
+      "backup": {
+        "id": 77,
+        "lineage": 54,
+        "acquired_epoch": 2.65,
+        "switch_time": 3.9499999999999997,
+        "execution_cursor": 1,
+        "backup_controls": [
+          [
+            3.9499999999999997,
+            -0.5,
+            0.0
+          ],
+          [
+            4.200000000000001,
+            0,
+            0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.185529006153329,
+          "epoch": 5.140000000000001,
+          "state": [
+            1.1914515547750102,
+            0.08070192254316928,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        -0.22690086934564993,
+        -0.19339025926283732
+      ],
+      "executed_owner": {
+        "backup": false,
+        "id": 75,
+        "lineage": 54
+      },
+      "total_cycle_ms": 15.002284999354742
+    },
+    {
+      "label": "worst_clearance",
+      "t": 3.8,
+      "state": [
+        1.3198112596833769,
+        0.15191684877101977,
+        -0.1137637843558023,
+        -0.0802531742729897
+      ],
+      "proposal": [
+        -0.02891097061341659,
+        -0.26167453051029926
+      ],
+      "accepted": true,
+      "committed": [
+        -0.02891097061341659,
+        -0.26167453051029926
+      ],
+      "reason": "splice_old",
+      "backup": {
+        "id": 77,
+        "lineage": 54,
+        "acquired_epoch": 2.65,
+        "switch_time": 3.9499999999999997,
+        "execution_cursor": 1,
+        "backup_controls": [
+          [
+            3.9499999999999997,
+            -0.5,
+            0.0
+          ],
+          [
+            4.200000000000001,
+            0,
+            0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.185529006153329,
+          "epoch": 5.140000000000001,
+          "state": [
+            1.1914515547750102,
+            0.08070192254316928,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        -0.22690086934564993,
+        -0.19339025926283732
+      ],
+      "executed_owner": {
+        "backup": false,
+        "id": 75,
+        "lineage": 54
+      },
+      "total_cycle_ms": 15.002284999354742
+    }
+  ],
+  "crossing_47_B": [
+    {
+      "label": "start",
+      "t": 0.0,
+      "state": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.16000000000000003,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "reason": "baseline",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 12.615163999726065
+    },
+    {
+      "label": "worst_latency",
+      "t": 0.4,
+      "state": [
+        0.03600000000000002,
+        0.0,
+        0.24000000000000016,
+        0.0
+      ],
+      "proposal": [
+        0.48000000000000026,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.48000000000000026,
+        0.0
+      ],
+      "reason": "baseline",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.4000000000000002,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 12.899449000542518
+    },
+    {
+      "label": "worst_clearance",
+      "t": 4.5,
+      "state": [
+        1.3263764460782423,
+        -0.08985772788552487,
+        0.2571948847465354,
+        -0.20380177213563702
+      ],
+      "proposal": [
+        0.42690051223130665,
+        -0.03409614465086551
+      ],
+      "accepted": true,
+      "committed": [
+        0.42690051223130665,
+        -0.03409614465086551
+      ],
+      "reason": "baseline",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.37033196973638305,
+        -0.09066468714578939
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 12.080243000127666
+    }
+  ],
+  "crossing_47_C0": [
+    {
+      "label": "start",
+      "t": 0.0,
+      "state": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.16000000000000003,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "reason": "new_backup",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 13.060580000455957
+    },
+    {
+      "label": "worst_latency",
+      "t": 0.15,
+      "state": [
+        0.001,
+        0.0,
+        0.04,
+        0.0
+      ],
+      "proposal": [
+        0.2800000000000001,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.2800000000000001,
+        0.0
+      ],
+      "reason": "new_backup",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.20000000000000004,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 13.288545999785129
+    },
+    {
+      "label": "worst_clearance",
+      "t": 4.5,
+      "state": [
+        1.3263764460782423,
+        -0.08985772788552487,
+        0.2571948847465354,
+        -0.20380177213563702
+      ],
+      "proposal": [
+        0.42690051223130665,
+        -0.03409614465086551
+      ],
+      "accepted": true,
+      "committed": [
+        0.42690051223130665,
+        -0.03409614465086551
+      ],
+      "reason": "new_backup",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.37033196973638305,
+        -0.09066468714578939
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 12.546797000140941
+    }
+  ],
+  "crossing_47_C1": [
+    {
+      "label": "start",
+      "t": 0.0,
+      "state": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.16000000000000003,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "reason": "splice_old",
+      "backup": {
+        "id": 1,
+        "lineage": 0,
+        "acquired_epoch": 0.0,
+        "switch_time": 0.15,
+        "execution_cursor": 0,
+        "backup_controls": [
+          [
+            0.15,
+            0.0,
+            0.0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 1.343,
+          "epoch": 1.0900000000000007,
+          "state": [
+            0.0020000000000000005,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 13.62399500067113
+    },
+    {
+      "label": "worst_latency",
+      "t": 6.85,
+      "state": [
+        2.43839290923985,
+        -0.022931967113647738,
+        0.4963611856682886,
+        -0.00273835950639777
+      ],
+      "proposal": [
+        0.496499986752641,
+        0.03776096402541667
+      ],
+      "accepted": true,
+      "committed": [
+        0.496499986752641,
+        0.03776096402541667
+      ],
+      "reason": "splice_old",
+      "backup": {
+        "id": 138,
+        "lineage": 0,
+        "acquired_epoch": 0.0,
+        "switch_time": 7.0,
+        "execution_cursor": 1,
+        "backup_controls": [
+          [
+            7.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 1.6614924886477673,
+          "epoch": 7.94,
+          "state": [
+            2.6676343166580967,
+            -0.008507511352232709,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        0.49999564859520873,
+        -0.002085997568692549
+      ],
+      "executed_owner": {
+        "backup": false,
+        "id": 136,
+        "lineage": 0
+      },
+      "total_cycle_ms": 14.615151999350928
+    },
+    {
+      "label": "worst_clearance",
+      "t": 4.5,
+      "state": [
+        1.3263764460782423,
+        -0.08985772788552487,
+        0.2571948847465354,
+        -0.20380177213563702
+      ],
+      "proposal": [
+        0.42690051223130665,
+        -0.03409614465086551
+      ],
+      "accepted": true,
+      "committed": [
+        0.42690051223130665,
+        -0.03409614465086551
+      ],
+      "reason": "splice_old",
+      "backup": {
+        "id": 91,
+        "lineage": 0,
+        "acquired_epoch": 0.0,
+        "switch_time": 4.65,
+        "execution_cursor": 1,
+        "backup_controls": [
+          [
+            4.65,
+            0.0,
+            0.0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.5091501696019147,
+          "epoch": 5.590000000000001,
+          "state": [
+            1.448745294426605,
+            -0.1409892276376195,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        0.37033196973638305,
+        -0.09066468714578939
+      ],
+      "executed_owner": {
+        "backup": false,
+        "id": 89,
+        "lineage": 0
+      },
+      "total_cycle_ms": 14.001787999404769
+    }
+  ],
+  "head_on_13_B": [
+    {
+      "label": "start",
+      "t": 0.0,
+      "state": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.16000000000000003,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "reason": "baseline",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 11.732906999895931
+    },
+    {
+      "label": "worst_latency",
+      "t": 1.7,
+      "state": [
+        0.6421286294693948,
+        0.01624745501429388,
+        0.4962198922700764,
+        0.010584811040345648
+      ],
+      "proposal": [
+        0.49993496865887976,
+        0.008063938990647798
+      ],
+      "accepted": true,
+      "committed": [
+        0.49993496865887976,
+        0.008063938990647798
+      ],
+      "reason": "baseline",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.49993496865887976,
+        0.008063938990647798
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 11.911309000424808
+    },
+    {
+      "label": "worst_clearance",
+      "t": 6.8,
+      "state": [
+        1.3975667215305267,
+        -0.0055211396190927315,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.0,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.0,
+        0.0
+      ],
+      "reason": "baseline",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 2.4725510002099327
+    }
+  ],
+  "head_on_13_C0": [
+    {
+      "label": "start",
+      "t": 0.0,
+      "state": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.16000000000000003,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "reason": "new_backup",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 12.518878000264522
+    },
+    {
+      "label": "worst_latency",
+      "t": 0.25,
+      "state": [
+        0.009000000000000005,
+        0.0,
+        0.12000000000000005,
+        0.0
+      ],
+      "proposal": [
+        0.36000000000000015,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.36000000000000015,
+        0.0
+      ],
+      "reason": "new_backup",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.2800000000000001,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 12.825559999328107
+    },
+    {
+      "label": "worst_clearance",
+      "t": 6.9,
+      "state": [
+        1.3524506287566476,
+        -0.03030782240001553,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.0,
+        0.0
+      ],
+      "accepted": false,
+      "committed": null,
+      "reason": "unsafe_prefix",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 2.572807000433386
+    },
+    {
+      "label": "first_rejected_proposal",
+      "t": 0.5,
+      "state": [
+        0.06400000000000003,
+        0.0,
+        0.32000000000000023,
+        0.0
+      ],
+      "proposal": [
+        0.5,
+        0.0
+      ],
+      "accepted": false,
+      "committed": null,
+      "reason": "unavailable",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.48000000000000026,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 11.836814000162121
+    }
+  ],
+  "head_on_13_C1": [
+    {
+      "label": "start",
+      "t": 0.0,
+      "state": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.16000000000000003,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "reason": "splice_old",
+      "backup": {
+        "id": 1,
+        "lineage": 0,
+        "acquired_epoch": 0.0,
+        "switch_time": 0.15,
+        "execution_cursor": 0,
+        "backup_controls": [
+          [
+            0.15,
+            0.0,
+            -0.5
+          ],
+          [
+            1.500000000000001,
+            0,
+            0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.04450241911848418,
+          "epoch": 2.439999999999992,
+          "state": [
+            0.013540606470521268,
+            -0.6745024191184842,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 14.385015000698331
+    },
+    {
+      "label": "worst_latency",
+      "t": 7.5,
+      "state": [
+        1.0710964598950532,
+        -0.48066557356466305,
+        -0.21753939080198384,
+        -0.43919081933337084
+      ],
+      "proposal": [
+        -0.03611803456467423,
+        -0.2977694630960614
+      ],
+      "accepted": true,
+      "committed": [
+        -0.03611803456467423,
+        -0.2977694630960614
+      ],
+      "reason": "splice_old",
+      "backup": {
+        "id": 128,
+        "lineage": 116,
+        "acquired_epoch": 6.9,
+        "switch_time": 7.65,
+        "execution_cursor": 1,
+        "backup_controls": [
+          [
+            7.65,
+            -0.35355339059327373,
+            -0.35355339059327373
+          ],
+          [
+            8.450000000000001,
+            0,
+            0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.31131047485443114,
+          "epoch": 9.39,
+          "state": [
+            0.6870392683246952,
+            -0.9413104748544311,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        -0.05753939080198381,
+        -0.43919081933337084
+      ],
+      "executed_owner": {
+        "backup": false,
+        "id": 126,
+        "lineage": 116
+      },
+      "total_cycle_ms": 15.706406000390416
+    },
+    {
+      "label": "worst_clearance",
+      "t": 9.05,
+      "state": [
+        1.4253573555765917,
+        -0.6561776229308419,
+        0.4485674613736033,
+        0.2195788382090735
+      ],
+      "proposal": [
+        0.4703217761372028,
+        0.16969804622077087
+      ],
+      "accepted": true,
+      "committed": [
+        0.4703217761372028,
+        0.16969804622077087
+      ],
+      "reason": "splice_old",
+      "backup": {
+        "id": 159,
+        "lineage": 116,
+        "acquired_epoch": 6.9,
+        "switch_time": 9.200000000000001,
+        "execution_cursor": 1,
+        "backup_controls": [
+          [
+            9.200000000000001,
+            0.0,
+            0.0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.4923145705516973,
+          "epoch": 10.14,
+          "state": [
+            1.638013944825224,
+            -0.5670765571251654,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        0.4485674613736033,
+        0.2195788382090735
+      ],
+      "executed_owner": {
+        "backup": false,
+        "id": 157,
+        "lineage": 116
+      },
+      "total_cycle_ms": 14.202444999682484
+    },
+    {
+      "label": "first_rejected_proposal",
+      "t": 0.5,
+      "state": [
+        0.06400000000000003,
+        0.0,
+        0.32000000000000023,
+        0.0
+      ],
+      "proposal": [
+        0.5,
+        0.0
+      ],
+      "accepted": false,
+      "committed": null,
+      "reason": "unavailable",
+      "backup": {
+        "id": 10,
+        "lineage": 10,
+        "acquired_epoch": 0.45,
+        "switch_time": 0.6,
+        "execution_cursor": 2,
+        "backup_controls": [
+          [
+            0.6,
+            0.0,
+            -0.5
+          ],
+          [
+            2.0000000000000013,
+            0,
+            0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.02616119540763362,
+          "epoch": 2.939999999999991,
+          "state": [
+            0.2600790436738931,
+            -0.6561611954076336,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        0.48000000000000026,
+        0.0
+      ],
+      "executed_owner": {
+        "backup": false,
+        "id": 9,
+        "lineage": 9
+      },
+      "total_cycle_ms": 14.649069999904896
+    },
+    {
+      "label": "first_actual_backup",
+      "t": 0.6,
+      "state": [
+        0.10000000000000006,
+        0.0,
+        0.4000000000000003,
+        0.0
+      ],
+      "proposal": [
+        0.49929532557814393,
+        -0.026536349707810873
+      ],
+      "accepted": true,
+      "committed": [
+        0.49929532557814393,
+        -0.026536349707810873
+      ],
+      "reason": "new_backup",
+      "backup": {
+        "id": 12,
+        "lineage": 12,
+        "acquired_epoch": 0.6,
+        "switch_time": 0.75,
+        "execution_cursor": 1,
+        "backup_controls": [
+          [
+            0.75,
+            0.0,
+            -0.5
+          ],
+          [
+            2.1500000000000012,
+            0,
+            0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.03707561707873264,
+          "epoch": 3.089999999999991,
+          "state": [
+            0.34715618974960777,
+            -0.6670756170787326,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        0.0,
+        -0.5
+      ],
+      "executed_owner": {
+        "backup": true,
+        "id": 10,
+        "lineage": 10
+      },
+      "total_cycle_ms": 15.112627999769757
+    },
+    {
+      "label": "first_actual_moving_backup",
+      "t": 0.6,
+      "state": [
+        0.10000000000000006,
+        0.0,
+        0.4000000000000003,
+        0.0
+      ],
+      "proposal": [
+        0.49929532557814393,
+        -0.026536349707810873
+      ],
+      "accepted": true,
+      "committed": [
+        0.49929532557814393,
+        -0.026536349707810873
+      ],
+      "reason": "new_backup",
+      "backup": {
+        "id": 12,
+        "lineage": 12,
+        "acquired_epoch": 0.6,
+        "switch_time": 0.75,
+        "execution_cursor": 1,
+        "backup_controls": [
+          [
+            0.75,
+            0.0,
+            -0.5
+          ],
+          [
+            2.1500000000000012,
+            0,
+            0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.03707561707873264,
+          "epoch": 3.089999999999991,
+          "state": [
+            0.34715618974960777,
+            -0.6670756170787326,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        0.0,
+        -0.5
+      ],
+      "executed_owner": {
+        "backup": true,
+        "id": 10,
+        "lineage": 10
+      },
+      "total_cycle_ms": 15.112627999769757
+    }
+  ],
+  "head_on_29_B": [
+    {
+      "label": "start",
+      "t": 0.0,
+      "state": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.16000000000000003,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "reason": "baseline",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 11.843444999612984
+    },
+    {
+      "label": "worst_latency",
+      "t": 0.0,
+      "state": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.16000000000000003,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "reason": "baseline",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 11.843444999612984
+    },
+    {
+      "label": "worst_clearance",
+      "t": 6.6,
+      "state": [
+        1.397479691390389,
+        -0.007720103644266755,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.0,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.0,
+        0.0
+      ],
+      "reason": "baseline",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 2.5465870003245072
+    }
+  ],
+  "head_on_29_C0": [
+    {
+      "label": "start",
+      "t": 0.0,
+      "state": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.16000000000000003,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "reason": "new_backup",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 12.499560999458481
+    },
+    {
+      "label": "worst_latency",
+      "t": 0.25,
+      "state": [
+        0.009000000000000005,
+        0.0,
+        0.12000000000000005,
+        0.0
+      ],
+      "proposal": [
+        0.36000000000000015,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.36000000000000015,
+        0.0
+      ],
+      "reason": "new_backup",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.2800000000000001,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 12.907013999210903
+    },
+    {
+      "label": "worst_clearance",
+      "t": 6.75,
+      "state": [
+        1.3330413374933954,
+        -0.01923199812100037,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.0,
+        0.0
+      ],
+      "accepted": false,
+      "committed": null,
+      "reason": "unsafe_prefix",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 2.5307839996457915
+    },
+    {
+      "label": "first_rejected_proposal",
+      "t": 0.5,
+      "state": [
+        0.06400000000000003,
+        0.0,
+        0.32000000000000023,
+        0.0
+      ],
+      "proposal": [
+        0.5,
+        0.0
+      ],
+      "accepted": false,
+      "committed": null,
+      "reason": "unavailable",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.48000000000000026,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 12.15923100062355
+    }
+  ],
+  "head_on_29_C1": [
+    {
+      "label": "start",
+      "t": 0.0,
+      "state": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.16000000000000003,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "reason": "splice_old",
+      "backup": {
+        "id": 1,
+        "lineage": 0,
+        "acquired_epoch": 0.0,
+        "switch_time": 0.15,
+        "execution_cursor": 0,
+        "backup_controls": [
+          [
+            0.15,
+            0.0,
+            -0.5
+          ],
+          [
+            1.500000000000001,
+            0,
+            0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.04450241911848418,
+          "epoch": 2.439999999999992,
+          "state": [
+            0.013540606470521268,
+            -0.6745024191184842,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 14.388489999873855
+    },
+    {
+      "label": "worst_latency",
+      "t": 0.3,
+      "state": [
+        0.016000000000000007,
+        0.0,
+        0.1600000000000001,
+        0.0
+      ],
+      "proposal": [
+        0.4000000000000002,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.4000000000000002,
+        0.0
+      ],
+      "reason": "new_backup",
+      "backup": {
+        "id": 7,
+        "lineage": 7,
+        "acquired_epoch": 0.3,
+        "switch_time": 0.44999999999999996,
+        "execution_cursor": 1,
+        "backup_controls": [
+          [
+            0.44999999999999996,
+            0.0,
+            -0.5
+          ],
+          [
+            1.8500000000000012,
+            0,
+            0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.04717003014139898,
+          "epoch": 2.7899999999999907,
+          "state": [
+            0.14929038312081683,
+            -0.677170030141399,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        0.3200000000000001,
+        0.0
+      ],
+      "executed_owner": {
+        "backup": false,
+        "id": 5,
+        "lineage": 4
+      },
+      "total_cycle_ms": 15.52039199941646
+    },
+    {
+      "label": "worst_clearance",
+      "t": 8.9,
+      "state": [
+        1.3742258890062427,
+        -0.6598771211217818,
+        0.4667313226511928,
+        0.17594764464894427
+      ],
+      "proposal": [
+        0.47218966649405836,
+        0.1644290693771327
+      ],
+      "accepted": true,
+      "committed": [
+        0.47218966649405836,
+        0.1644290693771327
+      ],
+      "reason": "splice_old",
+      "backup": {
+        "id": 157,
+        "lineage": 110,
+        "acquired_epoch": 6.05,
+        "switch_time": 9.05,
+        "execution_cursor": 1,
+        "backup_controls": [
+          [
+            9.05,
+            0.0,
+            0.0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.4690544986682567,
+          "epoch": 9.990000000000002,
+          "state": [
+            1.5885523153338752,
+            -0.5748010282417096,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        0.4474754984661148,
+        0.2230822231207635
+      ],
+      "executed_owner": {
+        "backup": false,
+        "id": 155,
+        "lineage": 110
+      },
+      "total_cycle_ms": 14.202307000232395
+    },
+    {
+      "label": "first_rejected_proposal",
+      "t": 0.5,
+      "state": [
+        0.06400000000000003,
+        0.0,
+        0.32000000000000023,
+        0.0
+      ],
+      "proposal": [
+        0.5,
+        0.0
+      ],
+      "accepted": false,
+      "committed": null,
+      "reason": "unavailable",
+      "backup": {
+        "id": 10,
+        "lineage": 10,
+        "acquired_epoch": 0.45,
+        "switch_time": 0.6,
+        "execution_cursor": 2,
+        "backup_controls": [
+          [
+            0.6,
+            0.0,
+            -0.5
+          ],
+          [
+            2.0000000000000013,
+            0,
+            0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.02616119540763362,
+          "epoch": 2.939999999999991,
+          "state": [
+            0.2600790436738931,
+            -0.6561611954076336,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        0.48000000000000026,
+        0.0
+      ],
+      "executed_owner": {
+        "backup": false,
+        "id": 9,
+        "lineage": 9
+      },
+      "total_cycle_ms": 14.641310999650159
+    },
+    {
+      "label": "first_actual_backup",
+      "t": 0.6,
+      "state": [
+        0.10000000000000006,
+        0.0,
+        0.4000000000000003,
+        0.0
+      ],
+      "proposal": [
+        0.49929532557814393,
+        -0.026536349707810873
+      ],
+      "accepted": true,
+      "committed": [
+        0.49929532557814393,
+        -0.026536349707810873
+      ],
+      "reason": "new_backup",
+      "backup": {
+        "id": 12,
+        "lineage": 12,
+        "acquired_epoch": 0.6,
+        "switch_time": 0.75,
+        "execution_cursor": 1,
+        "backup_controls": [
+          [
+            0.75,
+            0.0,
+            -0.5
+          ],
+          [
+            2.1500000000000012,
+            0,
+            0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.03707561707873264,
+          "epoch": 3.089999999999991,
+          "state": [
+            0.34715618974960777,
+            -0.6670756170787326,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        0.0,
+        -0.5
+      ],
+      "executed_owner": {
+        "backup": true,
+        "id": 10,
+        "lineage": 10
+      },
+      "total_cycle_ms": 15.027980000013486
+    },
+    {
+      "label": "first_actual_moving_backup",
+      "t": 0.6,
+      "state": [
+        0.10000000000000006,
+        0.0,
+        0.4000000000000003,
+        0.0
+      ],
+      "proposal": [
+        0.49929532557814393,
+        -0.026536349707810873
+      ],
+      "accepted": true,
+      "committed": [
+        0.49929532557814393,
+        -0.026536349707810873
+      ],
+      "reason": "new_backup",
+      "backup": {
+        "id": 12,
+        "lineage": 12,
+        "acquired_epoch": 0.6,
+        "switch_time": 0.75,
+        "execution_cursor": 1,
+        "backup_controls": [
+          [
+            0.75,
+            0.0,
+            -0.5
+          ],
+          [
+            2.1500000000000012,
+            0,
+            0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.03707561707873264,
+          "epoch": 3.089999999999991,
+          "state": [
+            0.34715618974960777,
+            -0.6670756170787326,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        0.0,
+        -0.5
+      ],
+      "executed_owner": {
+        "backup": true,
+        "id": 10,
+        "lineage": 10
+      },
+      "total_cycle_ms": 15.027980000013486
+    }
+  ],
+  "head_on_47_B": [
+    {
+      "label": "start",
+      "t": 0.0,
+      "state": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.16000000000000003,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "reason": "baseline",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 11.75257100021554
+    },
+    {
+      "label": "worst_latency",
+      "t": 1.7,
+      "state": [
+        0.6421286294693948,
+        0.01624745501429388,
+        0.4962198922700764,
+        0.010584811040345648
+      ],
+      "proposal": [
+        0.49993496865887976,
+        0.008063938990647798
+      ],
+      "accepted": true,
+      "committed": [
+        0.49993496865887976,
+        0.008063938990647798
+      ],
+      "reason": "baseline",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.49993496865887976,
+        0.008063938990647798
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 12.15590100036934
+    },
+    {
+      "label": "worst_clearance",
+      "t": 6.55,
+      "state": [
+        1.322565663455995,
+        -0.004162962821904316,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.0,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.0,
+        0.0
+      ],
+      "reason": "baseline",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 2.5438419997954043
+    }
+  ],
+  "head_on_47_C0": [
+    {
+      "label": "start",
+      "t": 0.0,
+      "state": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.16000000000000003,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "reason": "new_backup",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 12.792036999599077
+    },
+    {
+      "label": "worst_latency",
+      "t": 0.35,
+      "state": [
+        0.02500000000000001,
+        0.0,
+        0.20000000000000012,
+        0.0
+      ],
+      "proposal": [
+        0.4400000000000002,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.4400000000000002,
+        0.0
+      ],
+      "reason": "new_backup",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.36000000000000015,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 13.167654999961087
+    },
+    {
+      "label": "worst_clearance",
+      "t": 6.7,
+      "state": [
+        1.2566390084878327,
+        0.029223558457515925,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.0,
+        0.0
+      ],
+      "accepted": false,
+      "committed": null,
+      "reason": "unsafe_prefix",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 2.595902999928512
+    },
+    {
+      "label": "first_rejected_proposal",
+      "t": 0.5,
+      "state": [
+        0.06400000000000003,
+        0.0,
+        0.32000000000000023,
+        0.0
+      ],
+      "proposal": [
+        0.5,
+        0.0
+      ],
+      "accepted": false,
+      "committed": null,
+      "reason": "unavailable",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.48000000000000026,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 12.294462999307143
+    }
+  ],
+  "head_on_47_C1": [
+    {
+      "label": "start",
+      "t": 0.0,
+      "state": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.16000000000000003,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "reason": "splice_old",
+      "backup": {
+        "id": 1,
+        "lineage": 0,
+        "acquired_epoch": 0.0,
+        "switch_time": 0.15,
+        "execution_cursor": 0,
+        "backup_controls": [
+          [
+            0.15,
+            0.0,
+            -0.5
+          ],
+          [
+            1.500000000000001,
+            0,
+            0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.04450241911848418,
+          "epoch": 2.439999999999992,
+          "state": [
+            0.013540606470521268,
+            -0.6745024191184842,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 14.454408999881707
+    },
+    {
+      "label": "worst_latency",
+      "t": 2.15,
+      "state": [
+        0.8498784360024016,
+        -0.030261327334331112,
+        0.49999482329186684,
+        -0.0022752321496690145
+      ],
+      "proposal": [
+        0.49999702897359877,
+        -0.001723663996916899
+      ],
+      "accepted": true,
+      "committed": [
+        0.49999702897359877,
+        -0.001723663996916899
+      ],
+      "reason": "new_backup",
+      "backup": {
+        "id": 41,
+        "lineage": 41,
+        "acquired_epoch": 2.15,
+        "switch_time": 2.3,
+        "execution_cursor": 1,
+        "backup_controls": [
+          [
+            2.3,
+            0.0,
+            -0.5
+          ],
+          [
+            3.700000000000001,
+            0,
+            0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.03694832997331654,
+          "epoch": 4.639999999999991,
+          "state": [
+            1.1454714358522615,
+            -0.6669483299733165,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        0.49999702897359877,
+        -0.001723663996916899
+      ],
+      "executed_owner": {
+        "backup": false,
+        "id": 39,
+        "lineage": 39
+      },
+      "total_cycle_ms": 15.394027000183996
+    },
+    {
+      "label": "worst_clearance",
+      "t": 7.25,
+      "state": [
+        1.00129175800568,
+        -0.4756034059853876,
+        -0.18425627835556857,
+        -0.4634438214500752
+      ],
+      "proposal": [
+        -0.042834922118259,
+        -0.32202246521276573
+      ],
+      "accepted": true,
+      "committed": [
+        -0.042834922118259,
+        -0.32202246521276573
+      ],
+      "reason": "splice_old",
+      "backup": {
+        "id": 124,
+        "lineage": 110,
+        "acquired_epoch": 6.55,
+        "switch_time": 7.4,
+        "execution_cursor": 1,
+        "backup_controls": [
+          [
+            7.4,
+            -0.35355339059327373,
+            -0.35355339059327373
+          ],
+          [
+            8.100000000000001,
+            0,
+            0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.27800566838307456,
+          "epoch": 9.040000000000001,
+          "state": [
+            0.6512632427576309,
+            -0.9080056683830745,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        -0.18425627835556857,
+        -0.4634438214500752
+      ],
+      "executed_owner": {
+        "backup": false,
+        "id": 122,
+        "lineage": 110
+      },
+      "total_cycle_ms": 15.260527999998885
+    },
+    {
+      "label": "first_rejected_proposal",
+      "t": 0.5,
+      "state": [
+        0.06400000000000003,
+        0.0,
+        0.32000000000000023,
+        0.0
+      ],
+      "proposal": [
+        0.5,
+        0.0
+      ],
+      "accepted": false,
+      "committed": null,
+      "reason": "unavailable",
+      "backup": {
+        "id": 10,
+        "lineage": 10,
+        "acquired_epoch": 0.45,
+        "switch_time": 0.6,
+        "execution_cursor": 2,
+        "backup_controls": [
+          [
+            0.6,
+            0.0,
+            -0.5
+          ],
+          [
+            2.0000000000000013,
+            0,
+            0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.02616119540763362,
+          "epoch": 2.939999999999991,
+          "state": [
+            0.2600790436738931,
+            -0.6561611954076336,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        0.48000000000000026,
+        0.0
+      ],
+      "executed_owner": {
+        "backup": false,
+        "id": 9,
+        "lineage": 9
+      },
+      "total_cycle_ms": 14.733494000211067
+    },
+    {
+      "label": "first_actual_backup",
+      "t": 0.6,
+      "state": [
+        0.10000000000000006,
+        0.0,
+        0.4000000000000003,
+        0.0
+      ],
+      "proposal": [
+        0.49929532557814393,
+        -0.026536349707810873
+      ],
+      "accepted": true,
+      "committed": [
+        0.49929532557814393,
+        -0.026536349707810873
+      ],
+      "reason": "new_backup",
+      "backup": {
+        "id": 12,
+        "lineage": 12,
+        "acquired_epoch": 0.6,
+        "switch_time": 0.75,
+        "execution_cursor": 1,
+        "backup_controls": [
+          [
+            0.75,
+            0.0,
+            -0.5
+          ],
+          [
+            2.1500000000000012,
+            0,
+            0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.03707561707873264,
+          "epoch": 3.089999999999991,
+          "state": [
+            0.34715618974960777,
+            -0.6670756170787326,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        0.0,
+        -0.5
+      ],
+      "executed_owner": {
+        "backup": true,
+        "id": 10,
+        "lineage": 10
+      },
+      "total_cycle_ms": 15.016373000435124
+    },
+    {
+      "label": "first_actual_moving_backup",
+      "t": 0.6,
+      "state": [
+        0.10000000000000006,
+        0.0,
+        0.4000000000000003,
+        0.0
+      ],
+      "proposal": [
+        0.49929532557814393,
+        -0.026536349707810873
+      ],
+      "accepted": true,
+      "committed": [
+        0.49929532557814393,
+        -0.026536349707810873
+      ],
+      "reason": "new_backup",
+      "backup": {
+        "id": 12,
+        "lineage": 12,
+        "acquired_epoch": 0.6,
+        "switch_time": 0.75,
+        "execution_cursor": 1,
+        "backup_controls": [
+          [
+            0.75,
+            0.0,
+            -0.5
+          ],
+          [
+            2.1500000000000012,
+            0,
+            0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.03707561707873264,
+          "epoch": 3.089999999999991,
+          "state": [
+            0.34715618974960777,
+            -0.6670756170787326,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        0.0,
+        -0.5
+      ],
+      "executed_owner": {
+        "backup": true,
+        "id": 10,
+        "lineage": 10
+      },
+      "total_cycle_ms": 15.016373000435124
+    }
+  ],
+  "multiple_13_B": [
+    {
+      "label": "start",
+      "t": 0.0,
+      "state": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.16000000000000003,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "reason": "baseline",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 14.797632999943744
+    },
+    {
+      "label": "worst_latency",
+      "t": 0.0,
+      "state": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.16000000000000003,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "reason": "baseline",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 14.797632999943744
+    },
+    {
+      "label": "worst_clearance",
+      "t": 4.35,
+      "state": [
+        0.8212317165794094,
+        -0.09157784586846833,
+        0.19970363957506707,
+        -0.18876367720838214
+      ],
+      "proposal": [
+        0.3811249958123766,
+        -0.04734232097107256
+      ],
+      "accepted": true,
+      "committed": [
+        0.3811249958123766,
+        -0.04734232097107256
+      ],
+      "reason": "baseline",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.3597036395750671,
+        -0.18876367720838214
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 13.81786700039811
+    }
+  ],
+  "multiple_13_C0": [
+    {
+      "label": "start",
+      "t": 0.0,
+      "state": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.16000000000000003,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "reason": "new_backup",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 15.059158999974898
+    },
+    {
+      "label": "worst_latency",
+      "t": 0.15,
+      "state": [
+        0.001,
+        0.0,
+        0.04,
+        0.0
+      ],
+      "proposal": [
+        0.2800000000000001,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.2800000000000001,
+        0.0
+      ],
+      "reason": "new_backup",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.20000000000000004,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 15.284467000128643
+    },
+    {
+      "label": "worst_clearance",
+      "t": 4.35,
+      "state": [
+        0.8212317165794094,
+        -0.09157784586846833,
+        0.19970363957506707,
+        -0.18876367720838214
+      ],
+      "proposal": [
+        0.3811249958123766,
+        -0.04734232097107256
+      ],
+      "accepted": true,
+      "committed": [
+        0.3811249958123766,
+        -0.04734232097107256
+      ],
+      "reason": "new_backup",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.3597036395750671,
+        -0.18876367720838214
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 14.446873999986565
+    }
+  ],
+  "multiple_13_C1": [
+    {
+      "label": "start",
+      "t": 0.0,
+      "state": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.16000000000000003,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "reason": "splice_old",
+      "backup": {
+        "id": 1,
+        "lineage": 0,
+        "acquired_epoch": 0.0,
+        "switch_time": 0.15,
+        "execution_cursor": 0,
+        "backup_controls": [
+          [
+            0.15,
+            0.0,
+            0.0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.843,
+          "epoch": 1.0900000000000007,
+          "state": [
+            0.0020000000000000005,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 15.644773000531131
+    },
+    {
+      "label": "worst_latency",
+      "t": 8.4,
+      "state": [
+        2.760006418157036,
+        -0.01191895100492247,
+        0.49999972560659706,
+        -0.0005238256653477758
+      ],
+      "proposal": [
+        0.49999984251984264,
+        -0.0003968376652596622
+      ],
+      "accepted": true,
+      "committed": [
+        0.49999984251984264,
+        -0.0003968376652596622
+      ],
+      "reason": "splice_old",
+      "backup": {
+        "id": 169,
+        "lineage": 0,
+        "acquired_epoch": 0.0,
+        "switch_time": 8.55,
+        "execution_cursor": 1,
+        "backup_controls": [
+          [
+            8.55,
+            0.0,
+            0.0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 1.6578841698981324,
+          "epoch": 9.490000000000002,
+          "state": [
+            2.9912663330434213,
+            -0.012115830101867614,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        0.49999972560659706,
+        -0.0005238256653477758
+      ],
+      "executed_owner": {
+        "backup": false,
+        "id": 167,
+        "lineage": 0
+      },
+      "total_cycle_ms": 16.85261199963861
+    },
+    {
+      "label": "worst_clearance",
+      "t": 4.35,
+      "state": [
+        0.8212317165794094,
+        -0.09157784586846833,
+        0.19970363957506707,
+        -0.18876367720838214
+      ],
+      "proposal": [
+        0.3811249958123766,
+        -0.04734232097107256
+      ],
+      "accepted": true,
+      "committed": [
+        0.3811249958123766,
+        -0.04734232097107256
+      ],
+      "reason": "splice_old",
+      "backup": {
+        "id": 88,
+        "lineage": 0,
+        "acquired_epoch": 0.0,
+        "switch_time": 4.5,
+        "execution_cursor": 1,
+        "backup_controls": [
+          [
+            4.5,
+            0.0,
+            0.0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.49082391763461825,
+          "epoch": 5.44,
+          "state": [
+            0.9190988684356957,
+            -0.14387277788619157,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        0.3597036395750671,
+        -0.18876367720838214
+      ],
+      "executed_owner": {
+        "backup": false,
+        "id": 86,
+        "lineage": 0
+      },
+      "total_cycle_ms": 15.780501999870467
+    }
+  ],
+  "multiple_29_B": [
+    {
+      "label": "start",
+      "t": 0.0,
+      "state": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.16000000000000003,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "reason": "baseline",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 14.617668999562738
+    },
+    {
+      "label": "worst_latency",
+      "t": 0.25,
+      "state": [
+        0.009000000000000005,
+        0.0,
+        0.12000000000000005,
+        0.0
+      ],
+      "proposal": [
+        0.3200000000000001,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.3200000000000001,
+        0.0
+      ],
+      "reason": "baseline",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.2800000000000001,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 14.716497999870626
+    },
+    {
+      "label": "worst_clearance",
+      "t": 4.25,
+      "state": [
+        0.8248602056974474,
+        -0.047825123060579816,
+        0.20463994719611184,
+        -0.1015877159039335
+      ],
+      "proposal": [
+        0.39777703218595956,
+        0.011549369085914127
+      ],
+      "accepted": true,
+      "committed": [
+        0.39777703218595956,
+        0.011549369085914127
+      ],
+      "reason": "baseline",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.36463994719611187,
+        -0.1015877159039335
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 13.829135000378301
+    }
+  ],
+  "multiple_29_C0": [
+    {
+      "label": "start",
+      "t": 0.0,
+      "state": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.16000000000000003,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "reason": "new_backup",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 15.047821000734984
+    },
+    {
+      "label": "worst_latency",
+      "t": 0.25,
+      "state": [
+        0.009000000000000005,
+        0.0,
+        0.12000000000000005,
+        0.0
+      ],
+      "proposal": [
+        0.3200000000000001,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.3200000000000001,
+        0.0
+      ],
+      "reason": "new_backup",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.2800000000000001,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 15.104078999684134
+    },
+    {
+      "label": "worst_clearance",
+      "t": 4.25,
+      "state": [
+        0.8248602056974474,
+        -0.047825123060579816,
+        0.20463994719611184,
+        -0.1015877159039335
+      ],
+      "proposal": [
+        0.39777703218595956,
+        0.011549369085914127
+      ],
+      "accepted": true,
+      "committed": [
+        0.39777703218595956,
+        0.011549369085914127
+      ],
+      "reason": "new_backup",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.36463994719611187,
+        -0.1015877159039335
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 14.338685999973677
+    }
+  ],
+  "multiple_29_C1": [
+    {
+      "label": "start",
+      "t": 0.0,
+      "state": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.16000000000000003,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "reason": "splice_old",
+      "backup": {
+        "id": 1,
+        "lineage": 0,
+        "acquired_epoch": 0.0,
+        "switch_time": 0.15,
+        "execution_cursor": 0,
+        "backup_controls": [
+          [
+            0.15,
+            0.0,
+            0.0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.843,
+          "epoch": 1.0900000000000007,
+          "state": [
+            0.0020000000000000005,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 15.58156500050245
+    },
+    {
+      "label": "worst_latency",
+      "t": 8.2,
+      "state": [
+        2.731739178841835,
+        -0.009889296960807679,
+        0.4999999444065756,
+        -0.00023578257214717946
+      ],
+      "proposal": [
+        0.4999999680937641,
+        -0.00017862316436504356
+      ],
+      "accepted": true,
+      "committed": [
+        0.4999999680937641,
+        -0.00017862316436504356
+      ],
+      "reason": "splice_old",
+      "backup": {
+        "id": 165,
+        "lineage": 0,
+        "acquired_epoch": 0.0,
+        "switch_time": 8.35,
+        "execution_cursor": 1,
+        "backup_controls": [
+          [
+            8.35,
+            0.0,
+            0.0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 1.6600278004561713,
+          "epoch": 9.29,
+          "state": [
+            2.962999163966128,
+            -0.009972199543828709,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        0.4999999680937641,
+        -0.00017862316436504356
+      ],
+      "executed_owner": {
+        "backup": false,
+        "id": 163,
+        "lineage": 0
+      },
+      "total_cycle_ms": 16.487960000631574
+    },
+    {
+      "label": "worst_clearance",
+      "t": 4.25,
+      "state": [
+        0.8248602056974474,
+        -0.047825123060579816,
+        0.20463994719611184,
+        -0.1015877159039335
+      ],
+      "proposal": [
+        0.39777703218595956,
+        0.011549369085914127
+      ],
+      "accepted": true,
+      "committed": [
+        0.39777703218595956,
+        0.011549369085914127
+      ],
+      "reason": "splice_old",
+      "backup": {
+        "id": 86,
+        "lineage": 0,
+        "acquired_epoch": 0.0,
+        "switch_time": 4.4,
+        "execution_cursor": 1,
+        "backup_controls": [
+          [
+            4.4,
+            0.0,
+            0.0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.48204419381378555,
+          "epoch": 5.340000000000001,
+          "state": [
+            0.9271266526192251,
+            -0.0770821030879044,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        0.36463994719611187,
+        -0.1015877159039335
+      ],
+      "executed_owner": {
+        "backup": false,
+        "id": 84,
+        "lineage": 0
+      },
+      "total_cycle_ms": 15.78115699976479
+    }
+  ],
+  "multiple_47_B": [
+    {
+      "label": "start",
+      "t": 0.0,
+      "state": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.16000000000000003,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "reason": "baseline",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 14.44399699994392
+    },
+    {
+      "label": "worst_latency",
+      "t": 0.0,
+      "state": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.16000000000000003,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "reason": "baseline",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 14.44399699994392
+    },
+    {
+      "label": "worst_clearance",
+      "t": 4.35,
+      "state": [
+        0.8224062951439782,
+        0.14114734310182178,
+        0.2738074154535877,
+        -0.3505144929353076
+      ],
+      "proposal": [
+        0.44351304293835897,
+        -0.18080886545053637
+      ],
+      "accepted": true,
+      "committed": [
+        0.44351304293835897,
+        -0.18080886545053637
+      ],
+      "reason": "baseline",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.38694450044343537,
+        -0.23737740794545997
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 13.962266999442363
+    }
+  ],
+  "multiple_47_C0": [
+    {
+      "label": "start",
+      "t": 0.0,
+      "state": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.16000000000000003,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "reason": "new_backup",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 14.88986499953171
+    },
+    {
+      "label": "worst_latency",
+      "t": 0.25,
+      "state": [
+        0.009000000000000005,
+        0.0,
+        0.12000000000000005,
+        0.0
+      ],
+      "proposal": [
+        0.32000000000000006,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.32000000000000006,
+        0.0
+      ],
+      "reason": "new_backup",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 14.930838000509539
+    },
+    {
+      "label": "worst_clearance",
+      "t": 4.35,
+      "state": [
+        0.8224062951439782,
+        0.14114734310182178,
+        0.2738074154535877,
+        -0.3505144929353076
+      ],
+      "proposal": [
+        0.44351304293835897,
+        -0.18080886545053637
+      ],
+      "accepted": true,
+      "committed": [
+        0.44351304293835897,
+        -0.18080886545053637
+      ],
+      "reason": "new_backup",
+      "backup": null,
+      "validity": "not_held",
+      "executed": [
+        0.38694450044343537,
+        -0.23737740794545997
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 14.233261000299535
+    }
+  ],
+  "multiple_47_C1": [
+    {
+      "label": "start",
+      "t": 0.0,
+      "state": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "proposal": [
+        0.16000000000000003,
+        0.0
+      ],
+      "accepted": true,
+      "committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "reason": "splice_old",
+      "backup": {
+        "id": 1,
+        "lineage": 0,
+        "acquired_epoch": 0.0,
+        "switch_time": 0.15,
+        "execution_cursor": 0,
+        "backup_controls": [
+          [
+            0.15,
+            0.0,
+            0.0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.843,
+          "epoch": 1.0900000000000007,
+          "state": [
+            0.0020000000000000005,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        0.0,
+        0.0
+      ],
+      "executed_owner": null,
+      "total_cycle_ms": 15.434071000527183
+    },
+    {
+      "label": "worst_latency",
+      "t": 8.5,
+      "state": [
+        2.8435851664155245,
+        0.027122443192042517,
+        0.49615942310992134,
+        0.012749706134630882
+      ],
+      "proposal": [
+        0.4999056376687709,
+        0.009713569219373022
+      ],
+      "accepted": true,
+      "committed": [
+        0.4999056376687709,
+        0.009713569219373022
+      ],
+      "reason": "splice_old",
+      "backup": {
+        "id": 171,
+        "lineage": 37,
+        "acquired_epoch": 1.8,
+        "switch_time": 8.65,
+        "execution_cursor": 1,
+        "backup_controls": [
+          [
+            8.65,
+            0.0,
+            0.0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 1.6383696560880368,
+          "epoch": 9.59,
+          "state": [
+            3.0747827908772867,
+            0.03163034391196324,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        0.4999056376687709,
+        0.009713569219373022
+      ],
+      "executed_owner": {
+        "backup": false,
+        "id": 169,
+        "lineage": 37
+      },
+      "total_cycle_ms": 16.384978000132833
+    },
+    {
+      "label": "worst_clearance",
+      "t": 4.35,
+      "state": [
+        0.8224062951439782,
+        0.14114734310182178,
+        0.2738074154535877,
+        -0.3505144929353076
+      ],
+      "proposal": [
+        0.44351304293835897,
+        -0.18080886545053637
+      ],
+      "accepted": true,
+      "committed": [
+        0.44351304293835897,
+        -0.18080886545053637
+      ],
+      "reason": "splice_old",
+      "backup": {
+        "id": 88,
+        "lineage": 37,
+        "acquired_epoch": 1.8,
+        "switch_time": 4.5,
+        "execution_cursor": 1,
+        "backup_controls": [
+          [
+            4.5,
+            0.0,
+            0.0
+          ]
+        ],
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.5513793748290348,
+          "epoch": 5.44,
+          "state": [
+            0.9698978906713568,
+            0.02082169303747601,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "validity": "valid",
+      "executed": [
+        0.38694450044343537,
+        -0.23737740794545997
+      ],
+      "executed_owner": {
+        "backup": false,
+        "id": 86,
+        "lineage": 37
+      },
+      "total_cycle_ms": 15.822477000256185
+    }
+  ]
+}

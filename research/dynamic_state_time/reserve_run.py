@@ -28,9 +28,9 @@ def at(events, stamp, initial):
     return value
 
 
-def question(state, target, queue, epoch, actors, version, slot):
+def question(state, target, queue, epoch, actors, version, slot, wall=None):
     return dict(state=state, target=target, queue=queue, epoch=epoch,
-                actors=actors, wall=FIXTURE["wall"], queue_version=version,
+                actors=actors, wall=FIXTURE["wall"] if wall is None else wall, queue_version=version,
                 source_epoch=epoch-.1, source_version=slot, dynamics=[.01,.5,.8,.355,.330])
 
 
@@ -117,13 +117,16 @@ def sanity(build, out):
             c.close()
 
 
-def trial(build, out, arm, condition, full_episode=False):
+def trial(build, out, arm, condition, full_episode=False, cfg=None):
     name = f"{arm}_{condition}"
     planner = Consumer(build/"search_baseline", "search", out/f"{name}_planner.log")
     checker = None if arm == "B" else Consumer(build/"reserve_consumer", "reserve", out/f"{name}_reserve.log")
     cpu0 = planner.usage()[0] + (checker.usage()[0] if checker else 0)
     own_cpu = time.process_time()
-    cfg = FIXTURE["scene"]; grid, _ = static_grid(cfg)
+    if cfg is not None and not full_episode:
+        raise ValueError("scenario selection requires an original full episode")
+    cfg = FIXTURE["scene"] if cfg is None else cfg
+    grid, _ = static_grid(cfg)
     start_epoch = 0. if full_episode else START
     state = [0.,0.,0.,0.] if full_episode else FIXTURE["state"].copy()
     target = [0.,0.] if full_episode else FIXTURE["target"].copy()
@@ -147,7 +150,7 @@ def trial(build, out, arm, condition, full_episode=False):
         if checker:
             if arm == "C1": transition("INITIALIZING", "episode_start" if full_episode else "fixture_start")
             _, initial_actors = observed(cfg, epoch)
-            rq = question(state, target, queue, epoch, initial_actors, queue_version, slot)
+            rq = question(state, target, queue, epoch, initial_actors, queue_version, slot, cfg["wall"])
             t0 = time.perf_counter(); initial = checker.call(rq | {"op": "init"})
             init_ms = (time.perf_counter()-t0)*1000
             intrinsic.append(init_ms)
@@ -178,7 +181,7 @@ def trial(build, out, arm, condition, full_episode=False):
             while (epoch < 40 if arrival is None else epoch < arrival+3-1e-8):
                 begin = time.perf_counter()
                 _, actors = observed(cfg, epoch)
-                rq = question(state, target, queue, epoch, actors, queue_version, slot)
+                rq = question(state, target, queue, epoch, actors, queue_version, slot, cfg["wall"])
                 validity_ms = 0.; validation_ms = 0.; validity = "not_held"
                 lifecycle_start = len(lifecycle)
                 if arm == "C1" and backup is not None:

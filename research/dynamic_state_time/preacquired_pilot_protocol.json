@@ -1,0 +1,328 @@
+{
+  "stage": "Research; frozen 36-episode pilot; no automatic holdout",
+  "base_commit": "612eb7edcb7cdff754f17cafeef087be304a3cff",
+  "original_search_commit": "21b9e56076b23f17f1140b9ed68bff5edce9b5b6",
+  "hypothesis": "The already tested persistent lifecycle provides safe completion beyond head_on_13 without new obstruction or realtime failure.",
+  "arms": [
+    "B",
+    "C0",
+    "C1"
+  ],
+  "scenes": [
+    "static",
+    "crossing",
+    "head_on",
+    "multiple"
+  ],
+  "seeds": [
+    13,
+    29,
+    47
+  ],
+  "condition": "normal",
+  "episodes": 36,
+  "scenario_configs": [
+    {
+      "name": "static",
+      "seed": 13,
+      "phase": -0.2,
+      "wall": 2.0,
+      "static": [
+        [
+          2.0,
+          -0.1,
+          0.0,
+          0.0,
+          0.3
+        ]
+      ],
+      "dynamic": [],
+      "goal": [
+        4.0,
+        0.0
+      ]
+    },
+    {
+      "name": "static",
+      "seed": 29,
+      "phase": 0.0,
+      "wall": 2.0,
+      "static": [
+        [
+          2.0,
+          0.0,
+          0.0,
+          0.0,
+          0.3
+        ]
+      ],
+      "dynamic": [],
+      "goal": [
+        4.0,
+        0.0
+      ]
+    },
+    {
+      "name": "static",
+      "seed": 47,
+      "phase": 0.2,
+      "wall": 2.0,
+      "static": [
+        [
+          2.0,
+          0.1,
+          0.0,
+          0.0,
+          0.3
+        ]
+      ],
+      "dynamic": [],
+      "goal": [
+        4.0,
+        0.0
+      ]
+    },
+    {
+      "name": "crossing",
+      "seed": 13,
+      "phase": -0.2,
+      "wall": 2.0,
+      "static": [],
+      "dynamic": [
+        [
+          2.0,
+          -2.62,
+          0.0,
+          0.6,
+          0.3
+        ]
+      ],
+      "goal": [
+        4.0,
+        0.0
+      ]
+    },
+    {
+      "name": "crossing",
+      "seed": 29,
+      "phase": 0.0,
+      "wall": 2.0,
+      "static": [],
+      "dynamic": [
+        [
+          2.0,
+          -2.5,
+          0.0,
+          0.6,
+          0.3
+        ]
+      ],
+      "goal": [
+        4.0,
+        0.0
+      ]
+    },
+    {
+      "name": "crossing",
+      "seed": 47,
+      "phase": 0.2,
+      "wall": 2.0,
+      "static": [],
+      "dynamic": [
+        [
+          2.0,
+          -2.38,
+          0.0,
+          0.6,
+          0.3
+        ]
+      ],
+      "goal": [
+        4.0,
+        0.0
+      ]
+    },
+    {
+      "name": "head_on",
+      "seed": 13,
+      "phase": -0.2,
+      "wall": 2.0,
+      "static": [],
+      "dynamic": [
+        [
+          5.09,
+          0.0,
+          -0.45,
+          0.0,
+          0.3
+        ]
+      ],
+      "goal": [
+        4.0,
+        0.0
+      ]
+    },
+    {
+      "name": "head_on",
+      "seed": 29,
+      "phase": 0.0,
+      "wall": 2.0,
+      "static": [],
+      "dynamic": [
+        [
+          5.0,
+          0.0,
+          -0.45,
+          0.0,
+          0.3
+        ]
+      ],
+      "goal": [
+        4.0,
+        0.0
+      ]
+    },
+    {
+      "name": "head_on",
+      "seed": 47,
+      "phase": 0.2,
+      "wall": 2.0,
+      "static": [],
+      "dynamic": [
+        [
+          4.91,
+          0.0,
+          -0.45,
+          0.0,
+          0.3
+        ]
+      ],
+      "goal": [
+        4.0,
+        0.0
+      ]
+    },
+    {
+      "name": "multiple",
+      "seed": 13,
+      "phase": -0.2,
+      "wall": 2.0,
+      "static": [],
+      "dynamic": [
+        [
+          1.5,
+          -2.3200000000000003,
+          0.0,
+          0.6,
+          0.3
+        ],
+        [
+          2.7,
+          2.92,
+          0.0,
+          -0.6,
+          0.3
+        ]
+      ],
+      "goal": [
+        4.0,
+        0.0
+      ]
+    },
+    {
+      "name": "multiple",
+      "seed": 29,
+      "phase": 0.0,
+      "wall": 2.0,
+      "static": [],
+      "dynamic": [
+        [
+          1.5,
+          -2.2,
+          0.0,
+          0.6,
+          0.3
+        ],
+        [
+          2.7,
+          2.8,
+          0.0,
+          -0.6,
+          0.3
+        ]
+      ],
+      "goal": [
+        4.0,
+        0.0
+      ]
+    },
+    {
+      "name": "multiple",
+      "seed": 47,
+      "phase": 0.2,
+      "wall": 2.0,
+      "static": [],
+      "dynamic": [
+        [
+          1.5,
+          -2.08,
+          0.0,
+          0.6,
+          0.3
+        ],
+        [
+          2.7,
+          2.6799999999999997,
+          0.0,
+          -0.6,
+          0.3
+        ]
+      ],
+      "goal": [
+        4.0,
+        0.0
+      ]
+    }
+  ],
+  "execution_order": "scene, then seed, then B/C0/C1; one logical CPU sequentially",
+  "frozen": "Original plant/CV observation/control/command delay/limits/checker/completion, original finite search proposal, beam64/horizon2s/cost, nine emergency actions and .05m physical threshold. C1 lifecycle unchanged from base.",
+  "start": {
+    "state": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "target": [
+      0,
+      0
+    ],
+    "queue": [],
+    "epoch": 0
+  },
+  "metrics": "Per-episode and pooled distributions, all failures and worst; proposal/commit/backup/actual command from external trace; no raw in Git.",
+  "go": {
+    "collision": 0,
+    "minimum_clearance_m": 0.05,
+    "completion": "not lower than B or C0",
+    "new_deadlocks": 0,
+    "initialization": "12/12 and valid reserve every executed cycle",
+    "latency_p99_ms": 40,
+    "latency_max_ms": 50,
+    "intrinsic_miss_rate_max": 0.001,
+    "benefit": "stable safety or task benefit across multiple initial conditions beyond original fixture"
+  },
+  "modify": "Positive signal with a clear bounded mechanism defect; no modification during this pilot.",
+  "stop": "Only original fixture benefits, marked static/crossing/multiple regression, frequent unavailable/obstruction, realtime failure, or requires library/threshold/tuning expansion.",
+  "analysis_conventions": {
+    "conservatism": "Report every paired completed traversal/wait delta; repeated >10% slower traversal in >=2/3 of a non-head-on class is a warning, not a replacement for safety/completion gates.",
+    "timeout": "No arrival by 40s. Deadlock requires evidence of persistent failure to progress; do not label every timeout or wait as proven deadlock.",
+    "sequence_churn": "Inherited aligned absolute-time sequence target RMS.",
+    "action_switch": "Count changes of actually executed target >1e-7; sum Euclidean changes as command total variation.",
+    "backup_execution": "Count actual .01s steps carrying backup ownership, separately nonzero vs brake/rest; dispatch is not execution.",
+    "latency": "Full measured total_cycle_ms per executed control slot including revalidation/IPC/transaction/queue preparation; excludes evaluator/log serialization. Initialization separately. Count full-cycle >50ms independently of inherited counters.",
+    "rss": "Sum of consumers individual peak RSS, not simultaneous total process peak; Python evaluator excluded."
+  },
+  "failure_review": "Finish prespecified 36 for comparison; inspect first C1 gate failure and one unchanged confirmation outside primary 36. No tuning and no broader scenario expansion.",
+  "data": "External generated raw JSONL/lifecycle/logs; source/config/small summaries/manifest/plot/report only in Git."
+}
