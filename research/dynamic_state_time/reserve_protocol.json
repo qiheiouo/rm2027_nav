@@ -1,0 +1,16 @@
+{
+  "base_commit": "0ceb8e060f381bec81a895b9de40bf56109064c8",
+  "stage": "Research; saved head_on_13 fixture only; no 36-episode dispatch",
+  "hypothesis": "Atomic admission of immutable queue + one main control slice + a continuously held executable backup repairs the saved failure without per-node recourse.",
+  "arms": {"B":"unchanged finite search and timeout brake", "C0":"commit-point certificate, discarded after admission; rejection/timeout brakes", "C1":"same certificate; persist and execute reserve on rejection/timeout"},
+  "constants": {"plant_dt_s":0.01,"control_period_s":0.05,"command_delay_s":0.1,"main_slice_s":0.05,"vmax_mps":0.5,"amax_mps2":0.8},
+  "library": "unchanged brake or eight .5 m/s compass targets for 1.4 s, brake, analytic CV safe rest; unchanged padded checker",
+  "validity": "exact ideal-CV model; 1e-7 numerical state/observation tolerance, 0.15 s maximum source age; immutable queue must match certified controls; no robustness claim",
+  "injection": "80 ms response availability every sixth absolute control slot (slot % 6 == 5); busy planner skips next slot for all arms. C1 executor still ticks at 20 Hz. Injection is delivery/worker unavailability, not extra CPU cost. Native measured latency >80 ms is never clipped.",
+  "measurement": "native proposal IPC + reserve IPC + validity + transaction/command preparation measured together; trace serialization and evaluator physics excluded. Injected availability and intrinsic compute distributions both retained. Independent executor is a discrete-event model, not OS real-time validation.",
+  "gate": {"collision":0,"minimum_clearance_m":0.05,"completion":"unchanged 40 s absolute timeout, goal radius .15 m and 3 s observation", "intrinsic_p99_ms":40,"intrinsic_max_ms":50,"intrinsic_deadline_misses":0,"persistence":"no invalid certificate execution, no unvalidated postponement, exact immutable queue; injected miss cannot replace valid reserve with timeout brake"},
+  "attribution": "log proposal, admitted command, candidate/active backup, replacement/rejection, actual execution, planner and validator timing. C0/C1 share checker; C0 deliberately discards certificates and has no executable reserve.",
+  "repetition": "initial six runs B/C0/C1 x normal/late, one unchanged confirmation after implementation audit; failures stop expansion without tuning library/beam/horizon",
+  "interpretation": "Go-to-36 requires all gates plus reproducible mechanism attribution; safe but bounded transaction defect is Modify; repeated safety/persistence/intrinsic deadline failure is Stop. Injected deadline misses are expected disturbances and never reported as zero.",
+  "data": "raw traces/logs/build external; only source, protocol, lightweight summary, manifest, report and optional small plot in Git"
+}

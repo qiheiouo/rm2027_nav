@@ -1,0 +1,604 @@
+[
+  {
+    "run": "fixture_01",
+    "arm_condition": "B_late",
+    "event": "initial",
+    "t": 2.4999999999999907,
+    "state": [
+      1.0416169874629055,
+      0.008954131159090647,
+      0.49919956204167826,
+      -0.028280687003618812
+    ],
+    "proposed": [
+      0.49919956204167826,
+      -0.028280687003618812
+    ],
+    "admitted": true,
+    "committed": [
+      0.49919956204167826,
+      -0.028280687003618812
+    ],
+    "backup": null,
+    "candidate_available": false,
+    "reason": "baseline",
+    "actually_executed": [
+      0.49919956204167826,
+      -0.028280687003618812
+    ],
+    "planner_ms": 11.77900400011822,
+    "validation_ms": 0.0,
+    "response_ms": 11.813257999847337
+  },
+  {
+    "run": "fixture_01",
+    "arm_condition": "B_late",
+    "event": "first_admission",
+    "t": 2.4999999999999907,
+    "state": [
+      1.0416169874629055,
+      0.008954131159090647,
+      0.49919956204167826,
+      -0.028280687003618812
+    ],
+    "proposed": [
+      0.49919956204167826,
+      -0.028280687003618812
+    ],
+    "admitted": true,
+    "committed": [
+      0.49919956204167826,
+      -0.028280687003618812
+    ],
+    "backup": null,
+    "candidate_available": false,
+    "reason": "baseline",
+    "actually_executed": [
+      0.49919956204167826,
+      -0.028280687003618812
+    ],
+    "planner_ms": 11.77900400011822,
+    "validation_ms": 0.0,
+    "response_ms": 11.813257999847337
+  },
+  {
+    "run": "fixture_01",
+    "arm_condition": "B_late",
+    "event": "first_late",
+    "t": 2.75,
+    "state": [
+      1.16644926692006,
+      0.002534673524957304,
+      0.49954049832309827,
+      -0.021431064721815
+    ],
+    "proposed": [
+      0.49973624492766977,
+      -0.01623839602891995
+    ],
+    "admitted": false,
+    "committed": null,
+    "backup": null,
+    "candidate_available": false,
+    "reason": "planner_deadline_rejected",
+    "actually_executed": [
+      0.49954049832309827,
+      -0.021431064721815
+    ],
+    "planner_ms": 11.151787000017066,
+    "validation_ms": 0.0,
+    "response_ms": 80.0
+  },
+  {
+    "run": "fixture_01",
+    "arm_condition": "B_late",
+    "event": "first_parked",
+    "t": 3.55,
+    "state": [
+      1.3875059282379985,
+      -0.006949001235740266,
+      0.0,
+      0.0
+    ],
+    "proposed": [
+      0.0,
+      0.0
+    ],
+    "admitted": true,
+    "committed": [
+      0.0,
+      0.0
+    ],
+    "backup": null,
+    "candidate_available": false,
+    "reason": "baseline",
+    "actually_executed": [
+      0.0,
+      0.0
+    ],
+    "planner_ms": 9.45500899979379,
+    "validation_ms": 0.0,
+    "response_ms": 9.472110999922734
+  },
+  {
+    "run": "fixture_01",
+    "arm_condition": "B_late",
+    "event": "collision",
+    "t": 6.8,
+    "state": [
+      1.3875059282379985,
+      -0.006949001235740266,
+      0.0,
+      0.0
+    ],
+    "proposed": [
+      0.0,
+      0.0
+    ],
+    "admitted": true,
+    "committed": [
+      0.0,
+      0.0
+    ],
+    "backup": null,
+    "candidate_available": false,
+    "reason": "baseline",
+    "actually_executed": [
+      0.0,
+      0.0
+    ],
+    "planner_ms": 2.3597110000537214,
+    "validation_ms": 0.0,
+    "response_ms": 2.374987999928635
+  },
+  {
+    "run": "fixture_01",
+    "arm_condition": "B_normal",
+    "event": "initial",
+    "t": 2.4999999999999907,
+    "state": [
+      1.0416169874629055,
+      0.008954131159090647,
+      0.49919956204167826,
+      -0.028280687003618812
+    ],
+    "proposed": [
+      0.49919956204167826,
+      -0.028280687003618812
+    ],
+    "admitted": true,
+    "committed": [
+      0.49919956204167826,
+      -0.028280687003618812
+    ],
+    "backup": null,
+    "candidate_available": false,
+    "reason": "baseline",
+    "actually_executed": [
+      0.49919956204167826,
+      -0.028280687003618812
+    ],
+    "planner_ms": 11.823482999943735,
+    "validation_ms": 0.0,
+    "response_ms": 11.874541999986832
+  },
+  {
+    "run": "fixture_01",
+    "arm_condition": "B_normal",
+    "event": "first_admission",
+    "t": 2.4999999999999907,
+    "state": [
+      1.0416169874629055,
+      0.008954131159090647,
+      0.49919956204167826,
+      -0.028280687003618812
+    ],
+    "proposed": [
+      0.49919956204167826,
+      -0.028280687003618812
+    ],
+    "admitted": true,
+    "committed": [
+      0.49919956204167826,
+      -0.028280687003618812
+    ],
+    "backup": null,
+    "candidate_available": false,
+    "reason": "baseline",
+    "actually_executed": [
+      0.49919956204167826,
+      -0.028280687003618812
+    ],
+    "planner_ms": 11.823482999943735,
+    "validation_ms": 0.0,
+    "response_ms": 11.874541999986832
+  },
+  {
+    "run": "fixture_01",
+    "arm_condition": "B_normal",
+    "event": "first_parked",
+    "t": 3.55,
+    "state": [
+      1.3975667215305267,
+      -0.0055211396190927315,
+      0.0,
+      0.0
+    ],
+    "proposed": [
+      0.0,
+      0.0
+    ],
+    "admitted": true,
+    "committed": [
+      0.0,
+      0.0
+    ],
+    "backup": null,
+    "candidate_available": false,
+    "reason": "baseline",
+    "actually_executed": [
+      0.0,
+      0.0
+    ],
+    "planner_ms": 9.415520999937144,
+    "validation_ms": 0.0,
+    "response_ms": 9.43288999997094
+  },
+  {
+    "run": "fixture_01",
+    "arm_condition": "B_normal",
+    "event": "collision",
+    "t": 6.8,
+    "state": [
+      1.3975667215305267,
+      -0.0055211396190927315,
+      0.0,
+      0.0
+    ],
+    "proposed": [
+      0.0,
+      0.0
+    ],
+    "admitted": true,
+    "committed": [
+      0.0,
+      0.0
+    ],
+    "backup": null,
+    "candidate_available": false,
+    "reason": "baseline",
+    "actually_executed": [
+      0.0,
+      0.0
+    ],
+    "planner_ms": 2.4271370000406023,
+    "validation_ms": 0.0,
+    "response_ms": 2.4389699999574077
+  },
+  {
+    "run": "fixture_01",
+    "arm_condition": "C0_late",
+    "event": "initial",
+    "t": 2.4999999999999907,
+    "state": [
+      1.0416169874629055,
+      0.008954131159090647,
+      0.49919956204167826,
+      -0.028280687003618812
+    ],
+    "proposed": [
+      0.49919956204167826,
+      -0.028280687003618812
+    ],
+    "admitted": false,
+    "committed": null,
+    "backup": null,
+    "candidate_available": false,
+    "reason": "unavailable",
+    "actually_executed": [
+      0.49919956204167826,
+      -0.028280687003618812
+    ],
+    "planner_ms": 11.685585999885006,
+    "validation_ms": 0.227806000111741,
+    "response_ms": 11.946218000048248
+  },
+  {
+    "run": "fixture_01",
+    "arm_condition": "C0_late",
+    "event": "first_admission",
+    "t": 2.6,
+    "state": [
+      1.091536943667073,
+      0.006126062458728763,
+      0.49919956204167826,
+      -0.028280687003618812
+    ],
+    "proposed": [
+      0.49919956204167826,
+      -0.028280687003618812
+    ],
+    "admitted": true,
+    "committed": [
+      0.49919956204167826,
+      -0.028280687003618812
+    ],
+    "backup": null,
+    "candidate_available": true,
+    "reason": "new_backup",
+    "actually_executed": [
+      0.0,
+      0.0
+    ],
+    "planner_ms": 11.642381000001478,
+    "validation_ms": 0.8680469998125773,
+    "response_ms": 12.543390000018917
+  },
+  {
+    "run": "fixture_01",
+    "arm_condition": "C0_late",
+    "event": "first_late",
+    "t": 2.75,
+    "state": [
+      1.1594280841047415,
+      0.002279889026236605,
+      0.4592635970783439,
+      -0.026018232043329308
+    ],
+    "proposed": [
+      0.49919956204167826,
+      -0.028280687003618812
+    ],
+    "admitted": false,
+    "committed": null,
+    "backup": null,
+    "candidate_available": false,
+    "reason": "planner_deadline_rejected",
+    "actually_executed": [
+      0.0,
+      0.0
+    ],
+    "planner_ms": 11.338989000023503,
+    "validation_ms": 0.0,
+    "response_ms": 80.0
+  },
+  {
+    "run": "fixture_01",
+    "arm_condition": "C0_late",
+    "event": "first_parked",
+    "t": 3.5,
+    "state": [
+      1.3636805769097144,
+      -0.009291436868164065,
+      0.0,
+      0.0
+    ],
+    "proposed": [
+      0.0,
+      0.0
+    ],
+    "admitted": true,
+    "committed": [
+      0.0,
+      0.0
+    ],
+    "backup": null,
+    "candidate_available": true,
+    "reason": "new_backup",
+    "actually_executed": [
+      0.0,
+      0.0
+    ],
+    "planner_ms": 9.618494000051214,
+    "validation_ms": 0.7218900000225403,
+    "response_ms": 10.382061999962389
+  },
+  {
+    "run": "fixture_01",
+    "arm_condition": "C0_late",
+    "event": "last_certificate",
+    "t": 5.4,
+    "state": [
+      1.3636805769097144,
+      -0.009291436868164065,
+      0.0,
+      0.0
+    ],
+    "proposed": [
+      0.0,
+      0.0
+    ],
+    "admitted": true,
+    "committed": [
+      0.0,
+      0.0
+    ],
+    "backup": null,
+    "candidate_available": true,
+    "reason": "new_backup",
+    "actually_executed": [
+      0.0,
+      0.0
+    ],
+    "planner_ms": 4.99351299981754,
+    "validation_ms": 0.7738419999441248,
+    "response_ms": 5.806792999919708
+  },
+  {
+    "run": "fixture_01",
+    "arm_condition": "C0_late",
+    "event": "collision",
+    "t": 6.85,
+    "state": [
+      1.3636805769097144,
+      -0.009291436868164065,
+      0.0,
+      0.0
+    ],
+    "proposed": [
+      0.0,
+      0.0
+    ],
+    "admitted": false,
+    "committed": null,
+    "backup": null,
+    "candidate_available": false,
+    "reason": "unsafe_prefix",
+    "actually_executed": [
+      0.0,
+      0.0
+    ],
+    "planner_ms": 2.40096899983655,
+    "validation_ms": 0.07107900000846712,
+    "response_ms": 2.488153000058446
+  },
+  {
+    "run": "fixture_01",
+    "arm_condition": "C0_normal",
+    "event": "initial",
+    "t": 2.4999999999999907,
+    "state": [
+      1.0416169874629055,
+      0.008954131159090647,
+      0.49919956204167826,
+      -0.028280687003618812
+    ],
+    "proposed": [
+      0.49919956204167826,
+      -0.028280687003618812
+    ],
+    "admitted": false,
+    "committed": null,
+    "backup": null,
+    "candidate_available": false,
+    "reason": "unavailable",
+    "actually_executed": [
+      0.49919956204167826,
+      -0.028280687003618812
+    ],
+    "planner_ms": 11.967595999976766,
+    "validation_ms": 0.21766000008938136,
+    "response_ms": 12.218916999927387
+  },
+  {
+    "run": "fixture_01",
+    "arm_condition": "C0_normal",
+    "event": "first_admission",
+    "t": 2.6,
+    "state": [
+      1.091536943667073,
+      0.006126062458728763,
+      0.49919956204167826,
+      -0.028280687003618812
+    ],
+    "proposed": [
+      0.49919956204167826,
+      -0.028280687003618812
+    ],
+    "admitted": true,
+    "committed": [
+      0.49919956204167826,
+      -0.028280687003618812
+    ],
+    "backup": null,
+    "candidate_available": true,
+    "reason": "new_backup",
+    "actually_executed": [
+      0.0,
+      0.0
+    ],
+    "planner_ms": 11.825784999928146,
+    "validation_ms": 0.8726650000880909,
+    "response_ms": 12.728804000062155
+  },
+  {
+    "run": "fixture_01",
+    "arm_condition": "C0_normal",
+    "event": "first_parked",
+    "t": 3.65,
+    "state": [
+      1.4307820051231526,
+      -0.026521046368133218,
+      0.0,
+      0.0
+    ],
+    "proposed": [
+      0.0,
+      0.0
+    ],
+    "admitted": true,
+    "committed": [
+      0.0,
+      0.0
+    ],
+    "backup": null,
+    "candidate_available": true,
+    "reason": "new_backup",
+    "actually_executed": [
+      0.0,
+      0.0
+    ],
+    "planner_ms": 8.71443599999111,
+    "validation_ms": 0.7648690000223723,
+    "response_ms": 9.52135200009252
+  },
+  {
+    "run": "fixture_01",
+    "arm_condition": "C0_normal",
+    "event": "last_certificate",
+    "t": 5.3,
+    "state": [
+      1.4307820051231526,
+      -0.026521046368133218,
+      0.0,
+      0.0
+    ],
+    "proposed": [
+      0.0,
+      0.0
+    ],
+    "admitted": true,
+    "committed": [
+      0.0,
+      0.0
+    ],
+    "backup": null,
+    "candidate_available": true,
+    "reason": "new_backup",
+    "actually_executed": [
+      0.0,
+      0.0
+    ],
+    "planner_ms": 5.002424999929644,
+    "validation_ms": 0.7215769999220356,
+    "response_ms": 5.761912999787455
+  },
+  {
+    "run": "fixture_01",
+    "arm_condition": "C0_normal",
+    "event": "collision",
+    "t": 6.7,
+    "state": [
+      1.4307820051231526,
+      -0.026521046368133218,
+      0.0,
+      0.0
+    ],
+    "proposed": [
+      0.0,
+      0.0
+    ],
+    "admitted": false,
+    "committed": null,
+    "backup": null,
+    "candidate_available": false,
+    "reason": "unsafe_prefix",
+    "actually_executed": [
+      0.0,
+      0.0
+    ],
+    "planner_ms": 2.416817000039373,
+    "validation_ms": 0.07271200001923717,
+    "response_ms": 2.504499999986365
+  }
+]

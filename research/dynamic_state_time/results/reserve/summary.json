@@ -1,0 +1,1775 @@
+{
+  "verdict": "Stop",
+  "reason": "Initial reserve unavailable with frozen nine-action library at exact fixture state",
+  "scope": "8 B/C0 rollouts; 4 C1 initialization attempts without rollout; repeated same fixture, not independent scenarios",
+  "persistence_result": "NOT_EVALUATED; initialization gate failed",
+  "episode_36": "NOT_RUN",
+  "audit": {
+    "baseline_parity": true,
+    "initialization_available": false,
+    "archived_library_also_unavailable": true,
+    "library": [
+      {
+        "direction": null,
+        "rest_state": [
+          1.2475467907963382,
+          -0.002712217843642185,
+          0.0,
+          0.0
+        ],
+        "relative_rest_epoch": 1.0300000000000007,
+        "stationary_refuge": false,
+        "cv_rest_physical_clearance_m": -0.5972877821563578
+      },
+      {
+        "direction": [
+          -1,
+          -1
+        ],
+        "rest_state": [
+          0.972505714844648,
+          -0.41379582185715885,
+          0.0,
+          0.0
+        ],
+        "relative_rest_epoch": 2.429999999999992,
+        "stationary_refuge": false,
+        "cv_rest_physical_clearance_m": -0.18620417814284113
+      },
+      {
+        "direction": [
+          -1,
+          0
+        ],
+        "rest_state": [
+          0.8595285838502487,
+          -0.011542345252982839,
+          0.0,
+          0.0
+        ],
+        "relative_rest_epoch": 2.429999999999992,
+        "stationary_refuge": false,
+        "cv_rest_physical_clearance_m": -0.5884576547470171
+      },
+      {
+        "direction": [
+          -1,
+          1
+        ],
+        "rest_state": [
+          0.9840496317049144,
+          0.38861465427055625,
+          0.0,
+          0.0
+        ],
+        "relative_rest_epoch": 2.429999999999992,
+        "stationary_refuge": false,
+        "cv_rest_physical_clearance_m": -0.21138534572944373
+      },
+      {
+        "direction": [
+          0,
+          -1
+        ],
+        "rest_state": [
+          1.305827710925329,
+          -0.6476395821794528,
+          0.0,
+          0.0
+        ],
+        "relative_rest_epoch": 2.429999999999992,
+        "stationary_refuge": false,
+        "cv_rest_physical_clearance_m": 0.047639582179452855
+      },
+      {
+        "direction": [
+          0,
+          1
+        ],
+        "rest_state": [
+          1.3183108875503295,
+          0.622401286872798,
+          0.0,
+          0.0
+        ],
+        "relative_rest_epoch": 2.429999999999992,
+        "stationary_refuge": false,
+        "cv_rest_physical_clearance_m": 0.022401286872798076
+      },
+      {
+        "direction": [
+          1,
+          -1
+        ],
+        "rest_state": [
+          1.7294501848966894,
+          -0.5268793162468856,
+          0.0,
+          0.0
+        ],
+        "relative_rest_epoch": 2.429999999999992,
+        "stationary_refuge": false,
+        "cv_rest_physical_clearance_m": -0.07312068375311442
+      },
+      {
+        "direction": [
+          1,
+          0
+        ],
+        "rest_state": [
+          1.9477825085044072,
+          0.00561604627003466,
+          0.0,
+          0.0
+        ],
+        "relative_rest_epoch": 2.429999999999992,
+        "stationary_refuge": false,
+        "cv_rest_physical_clearance_m": -0.5943839537299653
+      },
+      {
+        "direction": [
+          1,
+          1
+        ],
+        "rest_state": [
+          1.7342059287281826,
+          0.5140631902877308,
+          0.0,
+          0.0
+        ],
+        "relative_rest_epoch": 2.429999999999992,
+        "stationary_refuge": false,
+        "cv_rest_physical_clearance_m": -0.08593680971226914
+      }
+    ],
+    "note": "Persistence/invalidation execution tests not reached; no bootstrap motion authorized"
+  },
+  "results": [
+    {
+      "run": "fixture_01",
+      "arm": "B",
+      "condition": "normal",
+      "collision": true,
+      "completion": false,
+      "minimum_clearance_m": -0.001566721530527282,
+      "worst": {
+        "t": 6.82,
+        "state": [
+          1.3975667215305267,
+          -0.0055211396190927315,
+          0.0,
+          0.0
+        ],
+        "clearance_m": -0.001566721530527282
+      },
+      "arrival_s": null,
+      "traversal_s": null,
+      "end_s": 6.82,
+      "wait_s": 3.3399999999999728,
+      "stop_count": 1,
+      "unnecessary_stop_s": null,
+      "deadlock": null,
+      "calls": 87,
+      "control_slots": 87,
+      "accepted": 87,
+      "rejected": 0,
+      "initialized": null,
+      "backup_dispatches": 0,
+      "late_backup_dispatches": 0,
+      "invalid": [],
+      "timeout_brakes": 0,
+      "injected_calls": 0,
+      "intrinsic_deadline_misses": 0,
+      "response_deadline_misses": 0,
+      "intrinsic_ms": {
+        "n": 87,
+        "mean": 7.131371045982727,
+        "min": 2.407571000048847,
+        "p05": 2.4534786000003805,
+        "p50": 7.233939000116152,
+        "p95": 11.332834400150205,
+        "p99": 11.85914197996226,
+        "max": 11.874541999986832
+      },
+      "response_ms": {
+        "n": 87,
+        "mean": 7.131371045982727,
+        "min": 2.407571000048847,
+        "p05": 2.4534786000003805,
+        "p50": 7.233939000116152,
+        "p95": 11.332834400150205,
+        "p99": 11.85914197996226,
+        "max": 11.874541999986832
+      },
+      "planner_ms": {
+        "n": 87,
+        "mean": 7.113114022987488,
+        "min": 2.394957999968028,
+        "p05": 2.440269099975012,
+        "p50": 7.216869000103543,
+        "p95": 11.304719800136809,
+        "p99": 11.824579059939424,
+        "max": 11.831311999912941
+      },
+      "backup_validation_ms": {
+        "n": 87,
+        "mean": 0.0,
+        "min": 0.0,
+        "p05": 0.0,
+        "p50": 0.0,
+        "p95": 0.0,
+        "p99": 0.0,
+        "max": 0.0
+      },
+      "executor_only_ms": {
+        "n": null,
+        "mean": null,
+        "min": null,
+        "p05": null,
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "max": null
+      },
+      "sequence_rms_mps": {
+        "n": 86,
+        "mean": 0.006053193661457733,
+        "min": 0.0,
+        "p05": 0.0,
+        "p50": 0.0,
+        "p95": 0.0,
+        "p99": 0.13752543681796386,
+        "max": 0.4356614569065691
+      },
+      "command_sign_flips": 0,
+      "acceleration_mps2": {
+        "n": 432,
+        "mean": 0.11853112474060878,
+        "min": 0.0,
+        "p05": 0.0,
+        "p50": 0.0,
+        "p95": 0.7999999999999988,
+        "p99": 0.8000000000000002,
+        "max": 0.8000000000000002
+      },
+      "jerk_mps3": {
+        "n": 432,
+        "mean": 0.9284471703439791,
+        "min": 0.0,
+        "p05": 0.0,
+        "p50": 0.0,
+        "p95": 0.0,
+        "p99": 48.254862513862335,
+        "max": 79.99999999999989
+      },
+      "hold_ttc_margin_s": {
+        "n": 66,
+        "mean": 1.4686363636363635,
+        "min": -0.08,
+        "p05": 0.0825,
+        "p50": 1.545,
+        "p95": 2.7074999999999996,
+        "p99": 2.8374999999999995,
+        "max": 2.8699999999999997
+      },
+      "replacement_count": 0,
+      "first_rejections": [],
+      "consumer_cpu_s": 0.52,
+      "consumer_rss_peak_sum_mib": 4.140625,
+      "harness_cpu_s": 0.20122222100000003,
+      "planner_update_hz": 20.138888888888847,
+      "executor_update_hz": 20.138888888888847,
+      "initialization_ms": null
+    },
+    {
+      "run": "fixture_01",
+      "arm": "C0",
+      "condition": "normal",
+      "collision": true,
+      "completion": false,
+      "minimum_clearance_m": -0.003282005123152798,
+      "worst": {
+        "t": 6.75,
+        "state": [
+          1.4307820051231526,
+          -0.026521046368133218,
+          0.0,
+          0.0
+        ],
+        "clearance_m": -0.003282005123152798
+      },
+      "arrival_s": null,
+      "traversal_s": null,
+      "end_s": 6.75,
+      "wait_s": 3.1699999999999764,
+      "stop_count": 1,
+      "unnecessary_stop_s": null,
+      "deadlock": null,
+      "calls": 85,
+      "control_slots": 85,
+      "accepted": 54,
+      "rejected": 31,
+      "initialized": false,
+      "backup_dispatches": 0,
+      "late_backup_dispatches": 0,
+      "invalid": [
+        {
+          "t": 2.4999999999999907,
+          "reason": "initialization_unavailable"
+        }
+      ],
+      "timeout_brakes": 0,
+      "injected_calls": 0,
+      "intrinsic_deadline_misses": 0,
+      "response_deadline_misses": 0,
+      "intrinsic_ms": {
+        "n": 86,
+        "mean": 7.602528406976511,
+        "min": 0.24122600007103756,
+        "p05": 2.5194577499974002,
+        "p50": 7.618946999855325,
+        "p95": 12.10860225006627,
+        "p99": 12.708144750149586,
+        "max": 12.728804000062155
+      },
+      "response_ms": {
+        "n": 85,
+        "mean": 7.68913196470481,
+        "min": 2.497034000043641,
+        "p05": 2.5376523999966594,
+        "p50": 7.660156999918399,
+        "p95": 12.109902000065631,
+        "p99": 12.708387800148557,
+        "max": 12.728804000062155
+      },
+      "planner_ms": {
+        "n": 85,
+        "mean": 7.115936458833804,
+        "min": 2.410380999890549,
+        "p05": 2.4415444001533615,
+        "p50": 7.135891999951127,
+        "p95": 11.462308400041366,
+        "p99": 11.887754839945046,
+        "max": 11.967595999976766
+      },
+      "backup_validation_ms": {
+        "n": 85,
+        "mean": 0.539540788221369,
+        "min": 0.07100499988155207,
+        "p05": 0.08239920007326873,
+        "p50": 0.7302259998596128,
+        "p95": 0.8656026000608107,
+        "p99": 0.9689854400312469,
+        "max": 1.0085779999826627
+      },
+      "executor_only_ms": {
+        "n": null,
+        "mean": null,
+        "min": null,
+        "p05": null,
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "max": null
+      },
+      "sequence_rms_mps": {
+        "n": 84,
+        "mean": 0.004978448411030207,
+        "min": 0.0,
+        "p05": 0.0,
+        "p50": 0.0,
+        "p95": 0.0,
+        "p99": 0.07109224330951207,
+        "max": 0.4181896665265374
+      },
+      "command_sign_flips": 0,
+      "acceleration_mps2": {
+        "n": 425,
+        "mean": 0.18310431074314348,
+        "min": 0.0,
+        "p05": 0.0,
+        "p50": 0.0,
+        "p95": 0.8000000000000018,
+        "p99": 0.8000000000000018,
+        "max": 0.8000000000000018
+      },
+      "jerk_mps3": {
+        "n": 425,
+        "mean": 2.147877646627955,
+        "min": 0.0,
+        "p05": 0.0,
+        "p50": 0.0,
+        "p95": 2.11288981220927e-14,
+        "p99": 80.00000000000018,
+        "max": 160.00000000000037
+      },
+      "hold_ttc_margin_s": {
+        "n": 65,
+        "mean": 1.4772307692307691,
+        "min": -0.05,
+        "p05": 0.11000000000000001,
+        "p50": 1.55,
+        "p95": 2.7399999999999993,
+        "p99": 2.868,
+        "max": 2.9
+      },
+      "replacement_count": 0,
+      "first_rejections": [
+        {
+          "t": 2.4999999999999907,
+          "reason": "unavailable",
+          "backup_id": null
+        },
+        {
+          "t": 2.55,
+          "reason": "unavailable",
+          "backup_id": null
+        },
+        {
+          "t": 2.65,
+          "reason": "unavailable",
+          "backup_id": null
+        },
+        {
+          "t": 5.35,
+          "reason": "unavailable",
+          "backup_id": null
+        },
+        {
+          "t": 5.4,
+          "reason": "unavailable",
+          "backup_id": null
+        },
+        {
+          "t": 5.45,
+          "reason": "unavailable",
+          "backup_id": null
+        },
+        {
+          "t": 5.5,
+          "reason": "unavailable",
+          "backup_id": null
+        },
+        {
+          "t": 5.55,
+          "reason": "unavailable",
+          "backup_id": null
+        }
+      ],
+      "consumer_cpu_s": 0.53,
+      "consumer_rss_peak_sum_mib": 7.94140625,
+      "harness_cpu_s": 0.219562877,
+      "planner_update_hz": 19.999999999999957,
+      "executor_update_hz": 19.999999999999957,
+      "initialization_ms": 0.23719299997537746
+    },
+    {
+      "run": "fixture_01",
+      "arm": "C1",
+      "condition": "normal",
+      "status": "initialization_unavailable",
+      "executed": false,
+      "collision": null,
+      "completion": false,
+      "minimum_clearance_m": null,
+      "traversal_s": null,
+      "arrival_s": null,
+      "initialization_ms": 0.23962199998095457,
+      "calls": 0,
+      "injected_calls": 0,
+      "intrinsic_ms": {
+        "n": 1,
+        "mean": 0.23962199998095457,
+        "min": 0.23962199998095457,
+        "p05": 0.23962199998095457,
+        "p50": 0.23962199998095457,
+        "p95": 0.23962199998095457,
+        "p99": 0.23962199998095457,
+        "max": 0.23962199998095457
+      },
+      "response_ms": {
+        "n": null,
+        "mean": null,
+        "min": null,
+        "p05": null,
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "max": null
+      },
+      "planner_ms": {
+        "n": null,
+        "mean": null,
+        "min": null,
+        "p05": null,
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "max": null
+      },
+      "backup_validation_ms": {
+        "n": 1,
+        "mean": 0.23962199998095457,
+        "min": 0.23962199998095457,
+        "p05": 0.23962199998095457,
+        "p50": 0.23962199998095457,
+        "p95": 0.23962199998095457,
+        "p99": 0.23962199998095457,
+        "max": 0.23962199998095457
+      },
+      "intrinsic_deadline_misses": 0,
+      "response_deadline_misses": 0,
+      "timeout_brakes": 0,
+      "backup_dispatches": 0,
+      "late_backup_dispatches": 0,
+      "invalid": [
+        {
+          "t": 2.4999999999999907,
+          "reason": "initialization_unavailable"
+        }
+      ],
+      "persistence_tested": false,
+      "note": "No executable reserve at exact fixture start. No plant rollout or lateness exposure."
+    },
+    {
+      "run": "fixture_01",
+      "arm": "B",
+      "condition": "late",
+      "collision": true,
+      "completion": false,
+      "minimum_clearance_m": -0.0005059282379984431,
+      "worst": {
+        "t": 6.84,
+        "state": [
+          1.3875059282379985,
+          -0.006949001235740266,
+          0.0,
+          0.0
+        ],
+        "clearance_m": -0.0005059282379984431
+      },
+      "arrival_s": null,
+      "traversal_s": null,
+      "end_s": 6.84,
+      "wait_s": 3.379999999999972,
+      "stop_count": 1,
+      "unnecessary_stop_s": null,
+      "deadlock": null,
+      "calls": 73,
+      "control_slots": 87,
+      "accepted": 59,
+      "rejected": 0,
+      "initialized": null,
+      "backup_dispatches": 0,
+      "late_backup_dispatches": 0,
+      "invalid": [],
+      "timeout_brakes": 14,
+      "injected_calls": 14,
+      "intrinsic_deadline_misses": 0,
+      "response_deadline_misses": 14,
+      "intrinsic_ms": {
+        "n": 73,
+        "mean": 7.106161808220873,
+        "min": 2.374987999928635,
+        "p05": 2.5040760000592854,
+        "p50": 7.120384999780072,
+        "p95": 11.27624119999382,
+        "p99": 11.495521280075991,
+        "max": 11.813257999847337
+      },
+      "response_ms": {
+        "n": 73,
+        "mean": 21.137787301371,
+        "min": 2.374987999928635,
+        "p05": 2.5089642000693857,
+        "p50": 8.032592000063232,
+        "p95": 80.0,
+        "p99": 80.0,
+        "max": 80.0
+      },
+      "planner_ms": {
+        "n": 73,
+        "mean": 7.088041890390069,
+        "min": 2.3597110000537214,
+        "p05": 2.4863075998837303,
+        "p50": 7.102478999968298,
+        "p95": 11.251617800007807,
+        "p99": 11.46780056001262,
+        "max": 11.77900400011822
+      },
+      "backup_validation_ms": {
+        "n": 73,
+        "mean": 0.0,
+        "min": 0.0,
+        "p05": 0.0,
+        "p50": 0.0,
+        "p95": 0.0,
+        "p99": 0.0,
+        "max": 0.0
+      },
+      "executor_only_ms": {
+        "n": 14,
+        "mean": 0.007377928552289502,
+        "min": 0.006291999852692243,
+        "p05": 0.0065337999558323645,
+        "p50": 0.00737799985017773,
+        "p95": 0.008362300138742285,
+        "p99": 0.00850686014700841,
+        "max": 0.008543000149074942
+      },
+      "sequence_rms_mps": {
+        "n": 86,
+        "mean": 0.005707829081416207,
+        "min": 0.0,
+        "p05": 0.0,
+        "p50": 0.0,
+        "p95": 0.0,
+        "p99": 0.13307023373542803,
+        "max": 0.4059601030229979
+      },
+      "command_sign_flips": 0,
+      "acceleration_mps2": {
+        "n": 434,
+        "mean": 0.11678758110446154,
+        "min": 0.0,
+        "p05": 0.0,
+        "p50": 0.0,
+        "p95": 0.7999999999999992,
+        "p99": 0.8000000000000005,
+        "max": 0.8000000000000005
+      },
+      "jerk_mps3": {
+        "n": 434,
+        "mean": 0.6847051609844779,
+        "min": 0.0,
+        "p05": 0.0,
+        "p50": 0.0,
+        "p95": 0.0,
+        "p99": 26.799999999998548,
+        "max": 79.99999999999991
+      },
+      "hold_ttc_margin_s": {
+        "n": 65,
+        "mean": 1.4776923076923076,
+        "min": -0.060000000000000005,
+        "p05": 0.1,
+        "p50": 1.54,
+        "p95": 2.7299999999999995,
+        "p99": 2.8579999999999997,
+        "max": 2.8899999999999997
+      },
+      "replacement_count": 0,
+      "first_rejections": [
+        {
+          "t": 2.75,
+          "reason": "planner_deadline_rejected",
+          "backup_id": null
+        },
+        {
+          "t": 3.05,
+          "reason": "planner_deadline_rejected",
+          "backup_id": null
+        },
+        {
+          "t": 3.35,
+          "reason": "planner_deadline_rejected",
+          "backup_id": null
+        },
+        {
+          "t": 3.65,
+          "reason": "planner_deadline_rejected",
+          "backup_id": null
+        },
+        {
+          "t": 3.95,
+          "reason": "planner_deadline_rejected",
+          "backup_id": null
+        },
+        {
+          "t": 4.25,
+          "reason": "planner_deadline_rejected",
+          "backup_id": null
+        },
+        {
+          "t": 4.55,
+          "reason": "planner_deadline_rejected",
+          "backup_id": null
+        },
+        {
+          "t": 4.85,
+          "reason": "planner_deadline_rejected",
+          "backup_id": null
+        }
+      ],
+      "consumer_cpu_s": 0.44,
+      "consumer_rss_peak_sum_mib": 4.14453125,
+      "harness_cpu_s": 0.18554315799999999,
+      "planner_update_hz": 16.82027649769582,
+      "executor_update_hz": 20.046082949308715,
+      "initialization_ms": null
+    },
+    {
+      "run": "fixture_01",
+      "arm": "C0",
+      "condition": "late",
+      "collision": true,
+      "completion": false,
+      "minimum_clearance_m": -0.0036805769097150165,
+      "worst": {
+        "t": 6.9,
+        "state": [
+          1.3636805769097144,
+          -0.009291436868164065,
+          0.0,
+          0.0
+        ],
+        "clearance_m": -0.0036805769097150165
+      },
+      "arrival_s": null,
+      "traversal_s": null,
+      "end_s": 6.9,
+      "wait_s": 3.45999999999997,
+      "stop_count": 1,
+      "unnecessary_stop_s": null,
+      "deadlock": null,
+      "calls": 74,
+      "control_slots": 88,
+      "accepted": 38,
+      "rejected": 22,
+      "initialized": false,
+      "backup_dispatches": 0,
+      "late_backup_dispatches": 0,
+      "invalid": [
+        {
+          "t": 2.4999999999999907,
+          "reason": "initialization_unavailable"
+        }
+      ],
+      "timeout_brakes": 14,
+      "injected_calls": 14,
+      "intrinsic_deadline_misses": 0,
+      "response_deadline_misses": 14,
+      "intrinsic_ms": {
+        "n": 75,
+        "mean": 7.588693106666445,
+        "min": 0.2472379999289842,
+        "p05": 2.5564257000041835,
+        "p50": 7.4184719999266235,
+        "p95": 11.638100499976645,
+        "p99": 12.5568694399999,
+        "max": 12.595233999945776
+      },
+      "response_ms": {
+        "n": 74,
+        "mean": 21.455091378376792,
+        "min": 2.488153000058446,
+        "p05": 2.624830949957868,
+        "p50": 9.00880949996008,
+        "p95": 80.0,
+        "p99": 80.0,
+        "max": 80.0
+      },
+      "planner_ms": {
+        "n": 74,
+        "mean": 7.2184709189256155,
+        "min": 2.40096899983655,
+        "p05": 2.476651500035132,
+        "p50": 7.2524375000284635,
+        "p95": 11.326421250066687,
+        "p99": 11.667552079886718,
+        "max": 11.685585999885006
+      },
+      "backup_validation_ms": {
+        "n": 74,
+        "mean": 0.4386112973038139,
+        "min": 0.0,
+        "p05": 0.0,
+        "p50": 0.7006194999803483,
+        "p95": 0.8613324998805182,
+        "p99": 0.8836926699518698,
+        "max": 0.9033450000970333
+      },
+      "executor_only_ms": {
+        "n": 14,
+        "mean": 0.007490785719710402,
+        "min": 0.00657600003250991,
+        "p05": 0.006718350005030516,
+        "p50": 0.007337000056395482,
+        "p95": 0.008719299921722266,
+        "p99": 0.01018466003188223,
+        "max": 0.010551000059422222
+      },
+      "sequence_rms_mps": {
+        "n": 87,
+        "mean": 0.004806777776167097,
+        "min": 0.0,
+        "p05": 0.0,
+        "p50": 0.0,
+        "p95": 0.0,
+        "p99": 0.05854655331371547,
+        "max": 0.4181896665265374
+      },
+      "command_sign_flips": 0,
+      "acceleration_mps2": {
+        "n": 440,
+        "mean": 0.16090909090909103,
+        "min": 0.0,
+        "p05": 0.0,
+        "p50": 0.0,
+        "p95": 0.8000000000000018,
+        "p99": 0.8000000000000018,
+        "max": 0.8000000000000018
+      },
+      "jerk_mps3": {
+        "n": 440,
+        "mean": 1.8181818181818237,
+        "min": 0.0,
+        "p05": 0.0,
+        "p50": 0.0,
+        "p95": 0.0,
+        "p99": 64.40000000000224,
+        "max": 160.00000000000037
+      },
+      "hold_ttc_margin_s": {
+        "n": 62,
+        "mean": 1.449516129032258,
+        "min": -0.05,
+        "p05": 0.10250000000000002,
+        "p50": 1.475,
+        "p95": 2.747499999999999,
+        "p99": 2.8695,
+        "max": 2.9
+      },
+      "replacement_count": 0,
+      "first_rejections": [
+        {
+          "t": 2.4999999999999907,
+          "reason": "unavailable",
+          "backup_id": null
+        },
+        {
+          "t": 2.55,
+          "reason": "unavailable",
+          "backup_id": null
+        },
+        {
+          "t": 2.65,
+          "reason": "unavailable",
+          "backup_id": null
+        },
+        {
+          "t": 2.75,
+          "reason": "planner_deadline_rejected",
+          "backup_id": null
+        },
+        {
+          "t": 3.05,
+          "reason": "planner_deadline_rejected",
+          "backup_id": null
+        },
+        {
+          "t": 3.35,
+          "reason": "planner_deadline_rejected",
+          "backup_id": null
+        },
+        {
+          "t": 3.65,
+          "reason": "planner_deadline_rejected",
+          "backup_id": null
+        },
+        {
+          "t": 3.95,
+          "reason": "planner_deadline_rejected",
+          "backup_id": null
+        }
+      ],
+      "consumer_cpu_s": 0.46,
+      "consumer_rss_peak_sum_mib": 8.0,
+      "harness_cpu_s": 0.20508028900000008,
+      "planner_update_hz": 16.818181818181785,
+      "executor_update_hz": 19.999999999999957,
+      "initialization_ms": 0.24435199998151802
+    },
+    {
+      "run": "fixture_01",
+      "arm": "C1",
+      "condition": "late",
+      "status": "initialization_unavailable",
+      "executed": false,
+      "collision": null,
+      "completion": false,
+      "minimum_clearance_m": null,
+      "traversal_s": null,
+      "arrival_s": null,
+      "initialization_ms": 0.2495149999504065,
+      "calls": 0,
+      "injected_calls": 0,
+      "intrinsic_ms": {
+        "n": 1,
+        "mean": 0.2495149999504065,
+        "min": 0.2495149999504065,
+        "p05": 0.2495149999504065,
+        "p50": 0.2495149999504065,
+        "p95": 0.2495149999504065,
+        "p99": 0.2495149999504065,
+        "max": 0.2495149999504065
+      },
+      "response_ms": {
+        "n": null,
+        "mean": null,
+        "min": null,
+        "p05": null,
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "max": null
+      },
+      "planner_ms": {
+        "n": null,
+        "mean": null,
+        "min": null,
+        "p05": null,
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "max": null
+      },
+      "backup_validation_ms": {
+        "n": 1,
+        "mean": 0.2495149999504065,
+        "min": 0.2495149999504065,
+        "p05": 0.2495149999504065,
+        "p50": 0.2495149999504065,
+        "p95": 0.2495149999504065,
+        "p99": 0.2495149999504065,
+        "max": 0.2495149999504065
+      },
+      "intrinsic_deadline_misses": 0,
+      "response_deadline_misses": 0,
+      "timeout_brakes": 0,
+      "backup_dispatches": 0,
+      "late_backup_dispatches": 0,
+      "invalid": [
+        {
+          "t": 2.4999999999999907,
+          "reason": "initialization_unavailable"
+        }
+      ],
+      "persistence_tested": false,
+      "note": "No executable reserve at exact fixture start. No plant rollout or lateness exposure."
+    },
+    {
+      "run": "fixture_confirmation",
+      "arm": "B",
+      "condition": "normal",
+      "collision": true,
+      "completion": false,
+      "minimum_clearance_m": -0.001566721530527282,
+      "worst": {
+        "t": 6.82,
+        "state": [
+          1.3975667215305267,
+          -0.0055211396190927315,
+          0.0,
+          0.0
+        ],
+        "clearance_m": -0.001566721530527282
+      },
+      "arrival_s": null,
+      "traversal_s": null,
+      "end_s": 6.82,
+      "wait_s": 3.3399999999999728,
+      "stop_count": 1,
+      "unnecessary_stop_s": null,
+      "deadlock": null,
+      "calls": 87,
+      "control_slots": 87,
+      "accepted": 87,
+      "rejected": 0,
+      "initialized": null,
+      "backup_dispatches": 0,
+      "late_backup_dispatches": 0,
+      "invalid": [],
+      "timeout_brakes": 0,
+      "injected_calls": 0,
+      "intrinsic_deadline_misses": 0,
+      "response_deadline_misses": 0,
+      "intrinsic_ms": {
+        "n": 87,
+        "mean": 7.107147367812114,
+        "min": 2.425278999908187,
+        "p05": 2.4703422999664326,
+        "p50": 7.2910590001811215,
+        "p95": 11.34796210001241,
+        "p99": 11.978095340059554,
+        "max": 12.014242000077502
+      },
+      "response_ms": {
+        "n": 87,
+        "mean": 7.107147367812114,
+        "min": 2.425278999908187,
+        "p05": 2.4703422999664326,
+        "p50": 7.2910590001811215,
+        "p95": 11.34796210001241,
+        "p99": 11.978095340059554,
+        "max": 12.014242000077502
+      },
+      "planner_ms": {
+        "n": 87,
+        "mean": 7.089058689659615,
+        "min": 2.4123619998590584,
+        "p05": 2.458457300031114,
+        "p50": 7.273639999993975,
+        "p95": 11.323121899999933,
+        "p99": 11.94204436003929,
+        "max": 11.969886000088081
+      },
+      "backup_validation_ms": {
+        "n": 87,
+        "mean": 0.0,
+        "min": 0.0,
+        "p05": 0.0,
+        "p50": 0.0,
+        "p95": 0.0,
+        "p99": 0.0,
+        "max": 0.0
+      },
+      "executor_only_ms": {
+        "n": null,
+        "mean": null,
+        "min": null,
+        "p05": null,
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "max": null
+      },
+      "sequence_rms_mps": {
+        "n": 86,
+        "mean": 0.006053193661457733,
+        "min": 0.0,
+        "p05": 0.0,
+        "p50": 0.0,
+        "p95": 0.0,
+        "p99": 0.13752543681796386,
+        "max": 0.4356614569065691
+      },
+      "command_sign_flips": 0,
+      "acceleration_mps2": {
+        "n": 432,
+        "mean": 0.11853112474060878,
+        "min": 0.0,
+        "p05": 0.0,
+        "p50": 0.0,
+        "p95": 0.7999999999999988,
+        "p99": 0.8000000000000002,
+        "max": 0.8000000000000002
+      },
+      "jerk_mps3": {
+        "n": 432,
+        "mean": 0.9284471703439791,
+        "min": 0.0,
+        "p05": 0.0,
+        "p50": 0.0,
+        "p95": 0.0,
+        "p99": 48.254862513862335,
+        "max": 79.99999999999989
+      },
+      "hold_ttc_margin_s": {
+        "n": 66,
+        "mean": 1.4686363636363635,
+        "min": -0.08,
+        "p05": 0.0825,
+        "p50": 1.545,
+        "p95": 2.7074999999999996,
+        "p99": 2.8374999999999995,
+        "max": 2.8699999999999997
+      },
+      "replacement_count": 0,
+      "first_rejections": [],
+      "consumer_cpu_s": 0.52,
+      "consumer_rss_peak_sum_mib": 4.13671875,
+      "harness_cpu_s": 0.202083627,
+      "planner_update_hz": 20.138888888888847,
+      "executor_update_hz": 20.138888888888847,
+      "initialization_ms": null
+    },
+    {
+      "run": "fixture_confirmation",
+      "arm": "C0",
+      "condition": "normal",
+      "collision": true,
+      "completion": false,
+      "minimum_clearance_m": -0.003282005123152798,
+      "worst": {
+        "t": 6.75,
+        "state": [
+          1.4307820051231526,
+          -0.026521046368133218,
+          0.0,
+          0.0
+        ],
+        "clearance_m": -0.003282005123152798
+      },
+      "arrival_s": null,
+      "traversal_s": null,
+      "end_s": 6.75,
+      "wait_s": 3.1699999999999764,
+      "stop_count": 1,
+      "unnecessary_stop_s": null,
+      "deadlock": null,
+      "calls": 85,
+      "control_slots": 85,
+      "accepted": 54,
+      "rejected": 31,
+      "initialized": false,
+      "backup_dispatches": 0,
+      "late_backup_dispatches": 0,
+      "invalid": [
+        {
+          "t": 2.4999999999999907,
+          "reason": "initialization_unavailable"
+        }
+      ],
+      "timeout_brakes": 0,
+      "injected_calls": 0,
+      "intrinsic_deadline_misses": 0,
+      "response_deadline_misses": 0,
+      "intrinsic_ms": {
+        "n": 86,
+        "mean": 7.633756081389059,
+        "min": 0.2340739999908692,
+        "p05": 2.5657834999606166,
+        "p50": 7.671635500059892,
+        "p95": 11.999631749915807,
+        "p99": 12.966588100016464,
+        "max": 14.908425000157877
+      },
+      "response_ms": {
+        "n": 85,
+        "mean": 7.720811164699626,
+        "min": 2.4312210000516643,
+        "p05": 2.5742561998413294,
+        "p50": 7.704057000182729,
+        "p95": 12.004742199906104,
+        "p99": 12.989433240018109,
+        "max": 14.908425000157877
+      },
+      "planner_ms": {
+        "n": 85,
+        "mean": 7.147079835286765,
+        "min": 2.345958999967479,
+        "p05": 2.479823400017267,
+        "p50": 7.087584999908358,
+        "p95": 11.48553159991934,
+        "p99": 12.203496760075714,
+        "max": 14.547882999977446
+      },
+      "backup_validation_ms": {
+        "n": 85,
+        "mean": 0.5416051058867143,
+        "min": 0.06588699989151792,
+        "p05": 0.0788313999237289,
+        "p50": 0.7355879999977333,
+        "p95": 0.8492993999880127,
+        "p99": 0.9179059599864556,
+        "max": 0.9682060001523496
+      },
+      "executor_only_ms": {
+        "n": null,
+        "mean": null,
+        "min": null,
+        "p05": null,
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "max": null
+      },
+      "sequence_rms_mps": {
+        "n": 84,
+        "mean": 0.004978448411030207,
+        "min": 0.0,
+        "p05": 0.0,
+        "p50": 0.0,
+        "p95": 0.0,
+        "p99": 0.07109224330951207,
+        "max": 0.4181896665265374
+      },
+      "command_sign_flips": 0,
+      "acceleration_mps2": {
+        "n": 425,
+        "mean": 0.18310431074314348,
+        "min": 0.0,
+        "p05": 0.0,
+        "p50": 0.0,
+        "p95": 0.8000000000000018,
+        "p99": 0.8000000000000018,
+        "max": 0.8000000000000018
+      },
+      "jerk_mps3": {
+        "n": 425,
+        "mean": 2.147877646627955,
+        "min": 0.0,
+        "p05": 0.0,
+        "p50": 0.0,
+        "p95": 2.11288981220927e-14,
+        "p99": 80.00000000000018,
+        "max": 160.00000000000037
+      },
+      "hold_ttc_margin_s": {
+        "n": 65,
+        "mean": 1.4772307692307691,
+        "min": -0.05,
+        "p05": 0.11000000000000001,
+        "p50": 1.55,
+        "p95": 2.7399999999999993,
+        "p99": 2.868,
+        "max": 2.9
+      },
+      "replacement_count": 0,
+      "first_rejections": [
+        {
+          "t": 2.4999999999999907,
+          "reason": "unavailable",
+          "backup_id": null
+        },
+        {
+          "t": 2.55,
+          "reason": "unavailable",
+          "backup_id": null
+        },
+        {
+          "t": 2.65,
+          "reason": "unavailable",
+          "backup_id": null
+        },
+        {
+          "t": 5.35,
+          "reason": "unavailable",
+          "backup_id": null
+        },
+        {
+          "t": 5.4,
+          "reason": "unavailable",
+          "backup_id": null
+        },
+        {
+          "t": 5.45,
+          "reason": "unavailable",
+          "backup_id": null
+        },
+        {
+          "t": 5.5,
+          "reason": "unavailable",
+          "backup_id": null
+        },
+        {
+          "t": 5.55,
+          "reason": "unavailable",
+          "backup_id": null
+        }
+      ],
+      "consumer_cpu_s": 0.53,
+      "consumer_rss_peak_sum_mib": 7.91015625,
+      "harness_cpu_s": 0.21789194500000003,
+      "planner_update_hz": 19.999999999999957,
+      "executor_update_hz": 19.999999999999957,
+      "initialization_ms": 0.23106200001166144
+    },
+    {
+      "run": "fixture_confirmation",
+      "arm": "C1",
+      "condition": "normal",
+      "status": "initialization_unavailable",
+      "executed": false,
+      "collision": null,
+      "completion": false,
+      "minimum_clearance_m": null,
+      "traversal_s": null,
+      "arrival_s": null,
+      "initialization_ms": 0.23203599994303659,
+      "calls": 0,
+      "injected_calls": 0,
+      "intrinsic_ms": {
+        "n": 1,
+        "mean": 0.23203599994303659,
+        "min": 0.23203599994303659,
+        "p05": 0.23203599994303659,
+        "p50": 0.23203599994303659,
+        "p95": 0.23203599994303659,
+        "p99": 0.23203599994303659,
+        "max": 0.23203599994303659
+      },
+      "response_ms": {
+        "n": null,
+        "mean": null,
+        "min": null,
+        "p05": null,
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "max": null
+      },
+      "planner_ms": {
+        "n": null,
+        "mean": null,
+        "min": null,
+        "p05": null,
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "max": null
+      },
+      "backup_validation_ms": {
+        "n": 1,
+        "mean": 0.23203599994303659,
+        "min": 0.23203599994303659,
+        "p05": 0.23203599994303659,
+        "p50": 0.23203599994303659,
+        "p95": 0.23203599994303659,
+        "p99": 0.23203599994303659,
+        "max": 0.23203599994303659
+      },
+      "intrinsic_deadline_misses": 0,
+      "response_deadline_misses": 0,
+      "timeout_brakes": 0,
+      "backup_dispatches": 0,
+      "late_backup_dispatches": 0,
+      "invalid": [
+        {
+          "t": 2.4999999999999907,
+          "reason": "initialization_unavailable"
+        }
+      ],
+      "persistence_tested": false,
+      "note": "No executable reserve at exact fixture start. No plant rollout or lateness exposure."
+    },
+    {
+      "run": "fixture_confirmation",
+      "arm": "B",
+      "condition": "late",
+      "collision": true,
+      "completion": false,
+      "minimum_clearance_m": -0.0005059282379984431,
+      "worst": {
+        "t": 6.84,
+        "state": [
+          1.3875059282379985,
+          -0.006949001235740266,
+          0.0,
+          0.0
+        ],
+        "clearance_m": -0.0005059282379984431
+      },
+      "arrival_s": null,
+      "traversal_s": null,
+      "end_s": 6.84,
+      "wait_s": 3.379999999999972,
+      "stop_count": 1,
+      "unnecessary_stop_s": null,
+      "deadlock": null,
+      "calls": 73,
+      "control_slots": 87,
+      "accepted": 59,
+      "rejected": 0,
+      "initialized": null,
+      "backup_dispatches": 0,
+      "late_backup_dispatches": 0,
+      "invalid": [],
+      "timeout_brakes": 14,
+      "injected_calls": 14,
+      "intrinsic_deadline_misses": 0,
+      "response_deadline_misses": 14,
+      "intrinsic_ms": {
+        "n": 73,
+        "mean": 7.181693931508487,
+        "min": 2.4663990000135527,
+        "p05": 2.5144155998987117,
+        "p50": 7.177194999940184,
+        "p95": 11.347967400070047,
+        "p99": 12.051072200038108,
+        "max": 12.677285000108895
+      },
+      "response_ms": {
+        "n": 73,
+        "mean": 21.205519068489966,
+        "min": 2.4663990000135527,
+        "p05": 2.5161064000258193,
+        "p50": 8.08257800008505,
+        "p95": 80.0,
+        "p99": 80.0,
+        "max": 80.0
+      },
+      "planner_ms": {
+        "n": 73,
+        "mean": 7.163630342472048,
+        "min": 2.453631000207679,
+        "p05": 2.4996648000524146,
+        "p50": 7.160057999954006,
+        "p95": 11.323541599949749,
+        "p99": 12.01895580006749,
+        "max": 12.64613700004702
+      },
+      "backup_validation_ms": {
+        "n": 73,
+        "mean": 0.0,
+        "min": 0.0,
+        "p05": 0.0,
+        "p50": 0.0,
+        "p95": 0.0,
+        "p99": 0.0,
+        "max": 0.0
+      },
+      "executor_only_ms": {
+        "n": 14,
+        "mean": 0.007147642820979984,
+        "min": 0.006001999963700655,
+        "p05": 0.006303600025603373,
+        "p50": 0.007120999953258433,
+        "p95": 0.00833854996926675,
+        "p99": 0.008355710024261498,
+        "max": 0.008360000038010185
+      },
+      "sequence_rms_mps": {
+        "n": 86,
+        "mean": 0.005707829081416207,
+        "min": 0.0,
+        "p05": 0.0,
+        "p50": 0.0,
+        "p95": 0.0,
+        "p99": 0.13307023373542803,
+        "max": 0.4059601030229979
+      },
+      "command_sign_flips": 0,
+      "acceleration_mps2": {
+        "n": 434,
+        "mean": 0.11678758110446154,
+        "min": 0.0,
+        "p05": 0.0,
+        "p50": 0.0,
+        "p95": 0.7999999999999992,
+        "p99": 0.8000000000000005,
+        "max": 0.8000000000000005
+      },
+      "jerk_mps3": {
+        "n": 434,
+        "mean": 0.6847051609844779,
+        "min": 0.0,
+        "p05": 0.0,
+        "p50": 0.0,
+        "p95": 0.0,
+        "p99": 26.799999999998548,
+        "max": 79.99999999999991
+      },
+      "hold_ttc_margin_s": {
+        "n": 65,
+        "mean": 1.4776923076923076,
+        "min": -0.060000000000000005,
+        "p05": 0.1,
+        "p50": 1.54,
+        "p95": 2.7299999999999995,
+        "p99": 2.8579999999999997,
+        "max": 2.8899999999999997
+      },
+      "replacement_count": 0,
+      "first_rejections": [
+        {
+          "t": 2.75,
+          "reason": "planner_deadline_rejected",
+          "backup_id": null
+        },
+        {
+          "t": 3.05,
+          "reason": "planner_deadline_rejected",
+          "backup_id": null
+        },
+        {
+          "t": 3.35,
+          "reason": "planner_deadline_rejected",
+          "backup_id": null
+        },
+        {
+          "t": 3.65,
+          "reason": "planner_deadline_rejected",
+          "backup_id": null
+        },
+        {
+          "t": 3.95,
+          "reason": "planner_deadline_rejected",
+          "backup_id": null
+        },
+        {
+          "t": 4.25,
+          "reason": "planner_deadline_rejected",
+          "backup_id": null
+        },
+        {
+          "t": 4.55,
+          "reason": "planner_deadline_rejected",
+          "backup_id": null
+        },
+        {
+          "t": 4.85,
+          "reason": "planner_deadline_rejected",
+          "backup_id": null
+        }
+      ],
+      "consumer_cpu_s": 0.44,
+      "consumer_rss_peak_sum_mib": 4.0859375,
+      "harness_cpu_s": 0.18699086600000003,
+      "planner_update_hz": 16.82027649769582,
+      "executor_update_hz": 20.046082949308715,
+      "initialization_ms": null
+    },
+    {
+      "run": "fixture_confirmation",
+      "arm": "C0",
+      "condition": "late",
+      "collision": true,
+      "completion": false,
+      "minimum_clearance_m": -0.0036805769097150165,
+      "worst": {
+        "t": 6.9,
+        "state": [
+          1.3636805769097144,
+          -0.009291436868164065,
+          0.0,
+          0.0
+        ],
+        "clearance_m": -0.0036805769097150165
+      },
+      "arrival_s": null,
+      "traversal_s": null,
+      "end_s": 6.9,
+      "wait_s": 3.45999999999997,
+      "stop_count": 1,
+      "unnecessary_stop_s": null,
+      "deadlock": null,
+      "calls": 74,
+      "control_slots": 88,
+      "accepted": 38,
+      "rejected": 22,
+      "initialized": false,
+      "backup_dispatches": 0,
+      "late_backup_dispatches": 0,
+      "invalid": [
+        {
+          "t": 2.4999999999999907,
+          "reason": "initialization_unavailable"
+        }
+      ],
+      "timeout_brakes": 14,
+      "injected_calls": 14,
+      "intrinsic_deadline_misses": 0,
+      "response_deadline_misses": 14,
+      "intrinsic_ms": {
+        "n": 75,
+        "mean": 7.603649759991337,
+        "min": 0.23814700011826062,
+        "p05": 2.5383872000020347,
+        "p50": 7.519430999991528,
+        "p95": 11.880207099989093,
+        "p99": 12.447109559871024,
+        "max": 12.554080999962025
+      },
+      "response_ms": {
+        "n": 74,
+        "mean": 21.463600216205712,
+        "min": 2.5022350000654114,
+        "p05": 2.580218199909723,
+        "p50": 8.907732500006205,
+        "p95": 80.0,
+        "p99": 80.0,
+        "max": 80.0
+      },
+      "planner_ms": {
+        "n": 74,
+        "mean": 7.239886716221819,
+        "min": 2.403896000032546,
+        "p05": 2.459049149990733,
+        "p50": 7.289619499943001,
+        "p95": 11.478252050153515,
+        "p99": 11.853179969900793,
+        "max": 11.906769999995959
+      },
+      "backup_validation_ms": {
+        "n": 74,
+        "mean": 0.43327587838969006,
+        "min": 0.0,
+        "p05": 0.0,
+        "p50": 0.6955524999057161,
+        "p95": 0.8330885500527074,
+        "p99": 0.8691020699802721,
+        "max": 0.8722710001620726
+      },
+      "executor_only_ms": {
+        "n": 14,
+        "mean": 0.0072945000186207054,
+        "min": 0.006661000043095555,
+        "p05": 0.006868999912512663,
+        "p50": 0.007344000096054515,
+        "p95": 0.007614950038714596,
+        "p99": 0.007623790063462366,
+        "max": 0.007626000069649308
+      },
+      "sequence_rms_mps": {
+        "n": 87,
+        "mean": 0.004806777776167097,
+        "min": 0.0,
+        "p05": 0.0,
+        "p50": 0.0,
+        "p95": 0.0,
+        "p99": 0.05854655331371547,
+        "max": 0.4181896665265374
+      },
+      "command_sign_flips": 0,
+      "acceleration_mps2": {
+        "n": 440,
+        "mean": 0.16090909090909103,
+        "min": 0.0,
+        "p05": 0.0,
+        "p50": 0.0,
+        "p95": 0.8000000000000018,
+        "p99": 0.8000000000000018,
+        "max": 0.8000000000000018
+      },
+      "jerk_mps3": {
+        "n": 440,
+        "mean": 1.8181818181818237,
+        "min": 0.0,
+        "p05": 0.0,
+        "p50": 0.0,
+        "p95": 0.0,
+        "p99": 64.40000000000224,
+        "max": 160.00000000000037
+      },
+      "hold_ttc_margin_s": {
+        "n": 62,
+        "mean": 1.449516129032258,
+        "min": -0.05,
+        "p05": 0.10250000000000002,
+        "p50": 1.475,
+        "p95": 2.747499999999999,
+        "p99": 2.8695,
+        "max": 2.9
+      },
+      "replacement_count": 0,
+      "first_rejections": [
+        {
+          "t": 2.4999999999999907,
+          "reason": "unavailable",
+          "backup_id": null
+        },
+        {
+          "t": 2.55,
+          "reason": "unavailable",
+          "backup_id": null
+        },
+        {
+          "t": 2.65,
+          "reason": "unavailable",
+          "backup_id": null
+        },
+        {
+          "t": 2.75,
+          "reason": "planner_deadline_rejected",
+          "backup_id": null
+        },
+        {
+          "t": 3.05,
+          "reason": "planner_deadline_rejected",
+          "backup_id": null
+        },
+        {
+          "t": 3.35,
+          "reason": "planner_deadline_rejected",
+          "backup_id": null
+        },
+        {
+          "t": 3.65,
+          "reason": "planner_deadline_rejected",
+          "backup_id": null
+        },
+        {
+          "t": 3.95,
+          "reason": "planner_deadline_rejected",
+          "backup_id": null
+        }
+      ],
+      "consumer_cpu_s": 0.46,
+      "consumer_rss_peak_sum_mib": 7.99609375,
+      "harness_cpu_s": 0.20518372000000007,
+      "planner_update_hz": 16.818181818181785,
+      "executor_update_hz": 19.999999999999957,
+      "initialization_ms": 0.23528799988525861
+    },
+    {
+      "run": "fixture_confirmation",
+      "arm": "C1",
+      "condition": "late",
+      "status": "initialization_unavailable",
+      "executed": false,
+      "collision": null,
+      "completion": false,
+      "minimum_clearance_m": null,
+      "traversal_s": null,
+      "arrival_s": null,
+      "initialization_ms": 0.24481000014020537,
+      "calls": 0,
+      "injected_calls": 0,
+      "intrinsic_ms": {
+        "n": 1,
+        "mean": 0.24481000014020537,
+        "min": 0.24481000014020537,
+        "p05": 0.24481000014020537,
+        "p50": 0.24481000014020537,
+        "p95": 0.24481000014020537,
+        "p99": 0.24481000014020537,
+        "max": 0.24481000014020537
+      },
+      "response_ms": {
+        "n": null,
+        "mean": null,
+        "min": null,
+        "p05": null,
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "max": null
+      },
+      "planner_ms": {
+        "n": null,
+        "mean": null,
+        "min": null,
+        "p05": null,
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "max": null
+      },
+      "backup_validation_ms": {
+        "n": 1,
+        "mean": 0.24481000014020537,
+        "min": 0.24481000014020537,
+        "p05": 0.24481000014020537,
+        "p50": 0.24481000014020537,
+        "p95": 0.24481000014020537,
+        "p99": 0.24481000014020537,
+        "max": 0.24481000014020537
+      },
+      "intrinsic_deadline_misses": 0,
+      "response_deadline_misses": 0,
+      "timeout_brakes": 0,
+      "backup_dispatches": 0,
+      "late_backup_dispatches": 0,
+      "invalid": [
+        {
+          "t": 2.4999999999999907,
+          "reason": "initialization_unavailable"
+        }
+      ],
+      "persistence_tested": false,
+      "note": "No executable reserve at exact fixture start. No plant rollout or lateness exposure."
+    }
+  ]
+}
