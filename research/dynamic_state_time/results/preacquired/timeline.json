@@ -1,0 +1,1381 @@
+{
+  "normal": {
+    "representative_events": [
+      {
+        "label": "start",
+        "t": 0.0,
+        "state": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "proposal": [
+          0.16000000000000003,
+          0.0
+        ],
+        "accepted": true,
+        "committed": [
+          0.16000000000000003,
+          0.0
+        ],
+        "reason": "splice_old",
+        "backup_id": 1,
+        "lineage": 0,
+        "acquired_epoch": 0.0,
+        "absolute_backup_controls": [
+          [
+            0.15,
+            0.0,
+            -0.5
+          ],
+          [
+            1.500000000000001,
+            0,
+            0
+          ]
+        ],
+        "switch_time": 0.15,
+        "cursor": 0,
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.04450241911848418,
+          "epoch": 2.439999999999992,
+          "state": [
+            0.013540606470521268,
+            -0.6745024191184842,
+            0.0,
+            0.0
+          ]
+        },
+        "validity": "valid",
+        "executed_command": [
+          0.0,
+          0.0
+        ],
+        "executed_owner": null
+      },
+      {
+        "label": "historical_epoch_2.5",
+        "t": 2.5,
+        "state": [
+          1.0248777373090694,
+          -0.030739984532162198,
+          0.4999990213860262,
+          -0.000989248712973617
+        ],
+        "proposal": [
+          0.49999967765874354,
+          -0.0005677509599655154
+        ],
+        "accepted": true,
+        "committed": [
+          0.49999967765874354,
+          -0.0005677509599655154
+        ],
+        "reason": "new_backup",
+        "backup_id": 48,
+        "lineage": 48,
+        "acquired_epoch": 2.5,
+        "absolute_backup_controls": [
+          [
+            2.65,
+            0.0,
+            -0.5
+          ],
+          [
+            4.050000000000001,
+            0,
+            0
+          ]
+        ],
+        "switch_time": 2.65,
+        "cursor": 1,
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.03649540539676299,
+          "epoch": 4.989999999999991,
+          "state": [
+            1.320729242149421,
+            -0.666495405396763,
+            0.0,
+            0.0
+          ]
+        },
+        "validity": "valid",
+        "executed_command": [
+          0.4999994383526921,
+          -0.0007494311125480169
+        ],
+        "executed_owner": {
+          "backup": false,
+          "id": 46,
+          "lineage": 46
+        }
+      },
+      {
+        "label": "historical_epoch_3.55",
+        "t": 3.55,
+        "state": [
+          1.4058774764383668,
+          -0.03118380226005014,
+          0.019999987106350064,
+          -2.2710038398621e-05
+        ],
+        "proposal": [
+          0.0,
+          0.0
+        ],
+        "accepted": true,
+        "committed": [
+          0.0,
+          0.0
+        ],
+        "reason": "splice_old",
+        "backup_id": 69,
+        "lineage": 67,
+        "acquired_epoch": 3.45,
+        "absolute_backup_controls": [
+          [
+            3.6999999999999997,
+            0.0,
+            -0.5
+          ],
+          [
+            5.000000000000002,
+            0,
+            0
+          ]
+        ],
+        "switch_time": 3.6999999999999997,
+        "cursor": 1,
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.05118409749054953,
+          "epoch": 5.939999999999992,
+          "state": [
+            1.4061374762707495,
+            -0.6811840974905495,
+            0.0,
+            0.0
+          ]
+        },
+        "validity": "valid",
+        "executed_command": [
+          0.0,
+          0.0
+        ],
+        "executed_owner": {
+          "backup": false,
+          "id": 67,
+          "lineage": 67
+        }
+      },
+      {
+        "label": "historical_epoch_6.3",
+        "t": 6.3,
+        "state": [
+          1.3995429389360396,
+          -0.14451954652233337,
+          -0.02746499104869915,
+          -0.05444800014617525
+        ],
+        "proposal": [
+          0.0,
+          0.0
+        ],
+        "accepted": false,
+        "committed": null,
+        "reason": "unavailable",
+        "backup_id": 112,
+        "lineage": 112,
+        "acquired_epoch": 6.15,
+        "absolute_backup_controls": [
+          [
+            6.300000000000001,
+            -0.35355339059327373,
+            -0.35355339059327373
+          ],
+          [
+            7.700000000000001,
+            0,
+            0
+          ]
+        ],
+        "switch_time": 6.300000000000001,
+        "cursor": 4,
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.037261478239142054,
+          "epoch": 8.639999999999992,
+          "state": [
+            0.88426385527703,
+            -0.6672614782391421,
+            0.0,
+            0.0
+          ]
+        },
+        "validity": "valid",
+        "executed_command": [
+          -0.35355339059327373,
+          -0.35355339059327373
+        ],
+        "executed_owner": {
+          "backup": true,
+          "id": 112,
+          "lineage": 112
+        }
+      },
+      {
+        "label": "first_rejection",
+        "t": 0.5,
+        "state": [
+          0.06400000000000003,
+          0.0,
+          0.32000000000000023,
+          0.0
+        ],
+        "proposal": [
+          0.5,
+          0.0
+        ],
+        "accepted": false,
+        "committed": null,
+        "reason": "unavailable",
+        "backup_id": 10,
+        "lineage": 10,
+        "acquired_epoch": 0.45,
+        "absolute_backup_controls": [
+          [
+            0.6,
+            0.0,
+            -0.5
+          ],
+          [
+            2.0000000000000013,
+            0,
+            0
+          ]
+        ],
+        "switch_time": 0.6,
+        "cursor": 2,
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.02616119540763362,
+          "epoch": 2.939999999999991,
+          "state": [
+            0.2600790436738931,
+            -0.6561611954076336,
+            0.0,
+            0.0
+          ]
+        },
+        "validity": "valid",
+        "executed_command": [
+          0.48000000000000026,
+          0.0
+        ],
+        "executed_owner": {
+          "backup": false,
+          "id": 9,
+          "lineage": 9
+        }
+      }
+    ],
+    "execution_phase_transitions": [
+      {
+        "t": 0.65,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 12,
+        "executed_owner": {
+          "backup": true,
+          "id": 10,
+          "lineage": 10
+        }
+      },
+      {
+        "t": 0.8,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 14,
+        "executed_owner": {
+          "backup": true,
+          "id": 12,
+          "lineage": 12
+        }
+      },
+      {
+        "t": 0.95,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 16,
+        "executed_owner": {
+          "backup": true,
+          "id": 14,
+          "lineage": 14
+        }
+      },
+      {
+        "t": 5.55,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 105,
+        "executed_owner": {
+          "backup": true,
+          "id": 105,
+          "lineage": 103
+        }
+      },
+      {
+        "t": 6.1,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 111,
+        "executed_owner": {
+          "backup": true,
+          "id": 109,
+          "lineage": 109
+        }
+      },
+      {
+        "t": 6.25,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 112,
+        "executed_owner": {
+          "backup": true,
+          "id": 111,
+          "lineage": 111
+        }
+      },
+      {
+        "t": 6.35,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 112,
+        "executed_owner": {
+          "backup": true,
+          "id": 112,
+          "lineage": 112
+        }
+      }
+    ],
+    "note": "REVALIDATED/REPLACED per-cycle records remain in external raw lifecycle files"
+  },
+  "late": {
+    "representative_events": [
+      {
+        "label": "start",
+        "t": 0.0,
+        "state": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "proposal": [
+          0.16000000000000003,
+          0.0
+        ],
+        "accepted": true,
+        "committed": [
+          0.16000000000000003,
+          0.0
+        ],
+        "reason": "splice_old",
+        "backup_id": 1,
+        "lineage": 0,
+        "acquired_epoch": 0.0,
+        "absolute_backup_controls": [
+          [
+            0.15,
+            0.0,
+            -0.5
+          ],
+          [
+            1.500000000000001,
+            0,
+            0
+          ]
+        ],
+        "switch_time": 0.15,
+        "cursor": 0,
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.04450241911848418,
+          "epoch": 2.439999999999992,
+          "state": [
+            0.013540606470521268,
+            -0.6745024191184842,
+            0.0,
+            0.0
+          ]
+        },
+        "validity": "valid",
+        "executed_command": [
+          0.0,
+          0.0
+        ],
+        "executed_owner": null
+      },
+      {
+        "label": "historical_epoch_2.5",
+        "t": 2.5,
+        "state": [
+          0.9003039211155057,
+          -0.0597663209728247,
+          0.4711941199149209,
+          0.011985615778709196
+        ],
+        "proposal": [
+          0.4873391068977427,
+          0.11180605926384574
+        ],
+        "accepted": true,
+        "committed": [
+          0.4873391068977427,
+          0.11180605926384574
+        ],
+        "reason": "new_backup",
+        "backup_id": 35,
+        "lineage": 35,
+        "acquired_epoch": 2.5,
+        "absolute_backup_controls": [
+          [
+            2.65,
+            0.0,
+            -0.5
+          ],
+          [
+            4.050000000000001,
+            0,
+            0
+          ]
+        ],
+        "switch_time": 2.65,
+        "cursor": 1,
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.029916156984669984,
+          "epoch": 4.989999999999991,
+          "state": [
+            1.1846358085332,
+            -0.65991615698467,
+            0.0,
+            0.0
+          ]
+        },
+        "validity": "valid",
+        "executed_command": [
+          0.0,
+          -0.5
+        ],
+        "executed_owner": {
+          "backup": true,
+          "id": 33,
+          "lineage": 33
+        }
+      },
+      {
+        "label": "historical_epoch_3.55",
+        "t": 3.55,
+        "state": [
+          1.3168853848735644,
+          -0.0990788255932407,
+          0.16939483185929283,
+          -0.08630918482511152
+        ],
+        "proposal": [
+          0.0,
+          0.0
+        ],
+        "accepted": false,
+        "committed": null,
+        "reason": "planner_deadline_rejected",
+        "backup_id": 48,
+        "lineage": 44,
+        "acquired_epoch": 3.2,
+        "absolute_backup_controls": [
+          [
+            3.65,
+            0.0,
+            -0.5
+          ],
+          [
+            4.750000000000002,
+            0,
+            0
+          ]
+        ],
+        "switch_time": 3.65,
+        "cursor": 2,
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.05260311600580059,
+          "epoch": 5.689999999999998,
+          "state": [
+            1.3585063167199083,
+            -0.6826031160058006,
+            0.0,
+            0.0
+          ]
+        },
+        "validity": "valid",
+        "executed_command": [
+          0.0,
+          0.0
+        ],
+        "executed_owner": {
+          "backup": false,
+          "id": 47,
+          "lineage": 44
+        }
+      },
+      {
+        "label": "historical_epoch_6.3",
+        "t": 6.3,
+        "state": [
+          1.329934360816717,
+          -0.1839192874086527,
+          0.0,
+          0.0
+        ],
+        "proposal": null,
+        "accepted": false,
+        "committed": null,
+        "reason": "planner_busy",
+        "backup_id": 84,
+        "lineage": 83,
+        "acquired_epoch": 6.15,
+        "absolute_backup_controls": [
+          [
+            6.3500000000000005,
+            -0.35355339059327373,
+            -0.35355339059327373
+          ],
+          [
+            7.700000000000001,
+            0,
+            0
+          ]
+        ],
+        "switch_time": 6.3500000000000005,
+        "cursor": 3,
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.031216364709573563,
+          "epoch": 8.639999999999992,
+          "state": [
+            0.8526372835158024,
+            -0.6612163647095736,
+            0.0,
+            0.0
+          ]
+        },
+        "validity": "valid",
+        "executed_command": [
+          0.0,
+          0.0
+        ],
+        "executed_owner": {
+          "backup": false,
+          "id": 84,
+          "lineage": 83
+        }
+      },
+      {
+        "label": "first_rejection",
+        "t": 0.25,
+        "state": [
+          0.009000000000000005,
+          0.0,
+          0.12000000000000005,
+          0.0
+        ],
+        "proposal": [
+          0.36000000000000015,
+          0.0
+        ],
+        "accepted": false,
+        "committed": null,
+        "reason": "planner_deadline_rejected",
+        "backup_id": 5,
+        "lineage": 4,
+        "acquired_epoch": 0.15,
+        "absolute_backup_controls": [
+          [
+            0.35,
+            0.0,
+            -0.5
+          ],
+          [
+            1.700000000000001,
+            0,
+            0
+          ]
+        ],
+        "switch_time": 0.35,
+        "cursor": 2,
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.032965592146929734,
+          "epoch": 2.639999999999992,
+          "state": [
+            0.0923177631412282,
+            -0.6629655921469297,
+            0.0,
+            0.0
+          ]
+        },
+        "validity": "valid",
+        "executed_command": [
+          0.2800000000000001,
+          0.0
+        ],
+        "executed_owner": {
+          "backup": false,
+          "id": 4,
+          "lineage": 4
+        }
+      },
+      {
+        "label": "first_late",
+        "t": 0.25,
+        "state": [
+          0.009000000000000005,
+          0.0,
+          0.12000000000000005,
+          0.0
+        ],
+        "proposal": [
+          0.36000000000000015,
+          0.0
+        ],
+        "accepted": false,
+        "committed": null,
+        "reason": "planner_deadline_rejected",
+        "backup_id": 5,
+        "lineage": 4,
+        "acquired_epoch": 0.15,
+        "absolute_backup_controls": [
+          [
+            0.35,
+            0.0,
+            -0.5
+          ],
+          [
+            1.700000000000001,
+            0,
+            0
+          ]
+        ],
+        "switch_time": 0.35,
+        "cursor": 2,
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.032965592146929734,
+          "epoch": 2.639999999999992,
+          "state": [
+            0.0923177631412282,
+            -0.6629655921469297,
+            0.0,
+            0.0
+          ]
+        },
+        "validity": "valid",
+        "executed_command": [
+          0.2800000000000001,
+          0.0
+        ],
+        "executed_owner": {
+          "backup": false,
+          "id": 4,
+          "lineage": 4
+        }
+      },
+      {
+        "label": "first_busy",
+        "t": 0.3,
+        "state": [
+          0.016000000000000007,
+          0.0,
+          0.1600000000000001,
+          0.0
+        ],
+        "proposal": null,
+        "accepted": false,
+        "committed": null,
+        "reason": "planner_busy",
+        "backup_id": 5,
+        "lineage": 4,
+        "acquired_epoch": 0.15,
+        "absolute_backup_controls": [
+          [
+            0.35,
+            0.0,
+            -0.5
+          ],
+          [
+            1.700000000000001,
+            0,
+            0
+          ]
+        ],
+        "switch_time": 0.35,
+        "cursor": 3,
+        "safe_rest": {
+          "certified": true,
+          "cv_ray_clearance_m": 0.032965592146929734,
+          "epoch": 2.639999999999992,
+          "state": [
+            0.0923177631412282,
+            -0.6629655921469297,
+            0.0,
+            0.0
+          ]
+        },
+        "validity": "valid",
+        "executed_command": [
+          0.3200000000000001,
+          0.0
+        ],
+        "executed_owner": {
+          "backup": false,
+          "id": 5,
+          "lineage": 4
+        }
+      }
+    ],
+    "execution_phase_transitions": [
+      {
+        "t": 0.4,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 6,
+        "executed_owner": {
+          "backup": true,
+          "id": 5,
+          "lineage": 4
+        }
+      },
+      {
+        "t": 0.7,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 10,
+        "executed_owner": {
+          "backup": true,
+          "id": 9,
+          "lineage": 6
+        }
+      },
+      {
+        "t": 1.0,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 14,
+        "executed_owner": {
+          "backup": true,
+          "id": 13,
+          "lineage": 10
+        }
+      },
+      {
+        "t": 1.3,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 18,
+        "executed_owner": {
+          "backup": true,
+          "id": 17,
+          "lineage": 14
+        }
+      },
+      {
+        "t": 1.6,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 22,
+        "executed_owner": {
+          "backup": true,
+          "id": 21,
+          "lineage": 21
+        }
+      },
+      {
+        "t": 1.9,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 26,
+        "executed_owner": {
+          "backup": true,
+          "id": 25,
+          "lineage": 25
+        }
+      },
+      {
+        "t": 2.2,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 30,
+        "executed_owner": {
+          "backup": true,
+          "id": 29,
+          "lineage": 29
+        }
+      },
+      {
+        "t": 2.5,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 34,
+        "executed_owner": {
+          "backup": true,
+          "id": 33,
+          "lineage": 33
+        }
+      },
+      {
+        "t": 2.75,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 36,
+        "executed_owner": {
+          "backup": true,
+          "id": 36,
+          "lineage": 36
+        }
+      },
+      {
+        "t": 3.1,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 41,
+        "executed_owner": {
+          "backup": true,
+          "id": 40,
+          "lineage": 40
+        }
+      },
+      {
+        "t": 3.4,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 45,
+        "executed_owner": {
+          "backup": true,
+          "id": 44,
+          "lineage": 44
+        }
+      },
+      {
+        "t": 3.7,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 49,
+        "executed_owner": {
+          "backup": true,
+          "id": 48,
+          "lineage": 44
+        }
+      },
+      {
+        "t": 4.0,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 53,
+        "executed_owner": {
+          "backup": true,
+          "id": 52,
+          "lineage": 49
+        }
+      },
+      {
+        "t": 4.3,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 57,
+        "executed_owner": {
+          "backup": true,
+          "id": 56,
+          "lineage": 55
+        }
+      },
+      {
+        "t": 4.6,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 61,
+        "executed_owner": {
+          "backup": true,
+          "id": 60,
+          "lineage": 55
+        }
+      },
+      {
+        "t": 4.9,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 65,
+        "executed_owner": {
+          "backup": true,
+          "id": 64,
+          "lineage": 62
+        }
+      },
+      {
+        "t": 5.2,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 69,
+        "executed_owner": {
+          "backup": true,
+          "id": 68,
+          "lineage": 62
+        }
+      },
+      {
+        "t": 5.5,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 73,
+        "executed_owner": {
+          "backup": true,
+          "id": 72,
+          "lineage": 72
+        }
+      },
+      {
+        "t": 5.8,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 77,
+        "executed_owner": {
+          "backup": true,
+          "id": 76,
+          "lineage": 76
+        }
+      },
+      {
+        "t": 6.1,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 81,
+        "executed_owner": {
+          "backup": true,
+          "id": 80,
+          "lineage": 79
+        }
+      },
+      {
+        "t": 6.4,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 84,
+        "executed_owner": {
+          "backup": true,
+          "id": 84,
+          "lineage": 83
+        }
+      },
+      {
+        "t": 6.7,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 85,
+        "executed_owner": {
+          "backup": true,
+          "id": 85,
+          "lineage": 85
+        }
+      },
+      {
+        "t": 7.0,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 87,
+        "executed_owner": {
+          "backup": true,
+          "id": 86,
+          "lineage": 85
+        }
+      },
+      {
+        "t": 7.3,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 91,
+        "executed_owner": {
+          "backup": true,
+          "id": 90,
+          "lineage": 85
+        }
+      },
+      {
+        "t": 7.6,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 95,
+        "executed_owner": {
+          "backup": true,
+          "id": 94,
+          "lineage": 85
+        }
+      },
+      {
+        "t": 7.9,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 99,
+        "executed_owner": {
+          "backup": true,
+          "id": 98,
+          "lineage": 85
+        }
+      },
+      {
+        "t": 8.2,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 103,
+        "executed_owner": {
+          "backup": true,
+          "id": 102,
+          "lineage": 85
+        }
+      },
+      {
+        "t": 8.5,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 107,
+        "executed_owner": {
+          "backup": true,
+          "id": 106,
+          "lineage": 85
+        }
+      },
+      {
+        "t": 8.8,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 111,
+        "executed_owner": {
+          "backup": true,
+          "id": 110,
+          "lineage": 85
+        }
+      },
+      {
+        "t": 9.1,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 115,
+        "executed_owner": {
+          "backup": true,
+          "id": 114,
+          "lineage": 85
+        }
+      },
+      {
+        "t": 9.4,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 119,
+        "executed_owner": {
+          "backup": true,
+          "id": 118,
+          "lineage": 85
+        }
+      },
+      {
+        "t": 9.7,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 123,
+        "executed_owner": {
+          "backup": true,
+          "id": 122,
+          "lineage": 85
+        }
+      },
+      {
+        "t": 10.0,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 127,
+        "executed_owner": {
+          "backup": true,
+          "id": 126,
+          "lineage": 85
+        }
+      },
+      {
+        "t": 10.3,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 131,
+        "executed_owner": {
+          "backup": true,
+          "id": 130,
+          "lineage": 85
+        }
+      },
+      {
+        "t": 10.6,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 135,
+        "executed_owner": {
+          "backup": true,
+          "id": 134,
+          "lineage": 85
+        }
+      },
+      {
+        "t": 10.9,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 139,
+        "executed_owner": {
+          "backup": true,
+          "id": 138,
+          "lineage": 85
+        }
+      },
+      {
+        "t": 11.2,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 143,
+        "executed_owner": {
+          "backup": true,
+          "id": 142,
+          "lineage": 85
+        }
+      },
+      {
+        "t": 11.5,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 147,
+        "executed_owner": {
+          "backup": true,
+          "id": 146,
+          "lineage": 85
+        }
+      },
+      {
+        "t": 11.8,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 151,
+        "executed_owner": {
+          "backup": true,
+          "id": 150,
+          "lineage": 85
+        }
+      },
+      {
+        "t": 12.1,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 155,
+        "executed_owner": {
+          "backup": true,
+          "id": 154,
+          "lineage": 85
+        }
+      },
+      {
+        "t": 12.4,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 159,
+        "executed_owner": {
+          "backup": true,
+          "id": 158,
+          "lineage": 85
+        }
+      },
+      {
+        "t": 12.7,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 163,
+        "executed_owner": {
+          "backup": true,
+          "id": 162,
+          "lineage": 85
+        }
+      },
+      {
+        "t": 13.0,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 167,
+        "executed_owner": {
+          "backup": true,
+          "id": 166,
+          "lineage": 85
+        }
+      },
+      {
+        "t": 13.3,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 171,
+        "executed_owner": {
+          "backup": true,
+          "id": 170,
+          "lineage": 85
+        }
+      },
+      {
+        "t": 13.6,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 175,
+        "executed_owner": {
+          "backup": true,
+          "id": 174,
+          "lineage": 85
+        }
+      },
+      {
+        "t": 13.9,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 179,
+        "executed_owner": {
+          "backup": true,
+          "id": 178,
+          "lineage": 85
+        }
+      },
+      {
+        "t": 14.2,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 183,
+        "executed_owner": {
+          "backup": true,
+          "id": 182,
+          "lineage": 85
+        }
+      },
+      {
+        "t": 14.5,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 187,
+        "executed_owner": {
+          "backup": true,
+          "id": 186,
+          "lineage": 85
+        }
+      },
+      {
+        "t": 14.8,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 191,
+        "executed_owner": {
+          "backup": true,
+          "id": 190,
+          "lineage": 85
+        }
+      },
+      {
+        "t": 15.1,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 195,
+        "executed_owner": {
+          "backup": true,
+          "id": 194,
+          "lineage": 85
+        }
+      },
+      {
+        "t": 15.4,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 199,
+        "executed_owner": {
+          "backup": true,
+          "id": 198,
+          "lineage": 85
+        }
+      },
+      {
+        "t": 15.7,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 203,
+        "executed_owner": {
+          "backup": true,
+          "id": 202,
+          "lineage": 85
+        }
+      },
+      {
+        "t": 16.0,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 207,
+        "executed_owner": {
+          "backup": true,
+          "id": 206,
+          "lineage": 85
+        }
+      },
+      {
+        "t": 16.3,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 211,
+        "executed_owner": {
+          "backup": true,
+          "id": 210,
+          "lineage": 85
+        }
+      },
+      {
+        "t": 16.6,
+        "state": "EXECUTING_BACKUP",
+        "reason": "actual_command_owner",
+        "backup_id": 215,
+        "executed_owner": {
+          "backup": true,
+          "id": 214,
+          "lineage": 85
+        }
+      },
+      {
+        "t": 16.9,
+        "state": "SAFE_REST",
+        "reason": "current_refuge_certified",
+        "backup_id": 219,
+        "executed_owner": {
+          "backup": true,
+          "id": 218,
+          "lineage": 85
+        }
+      },
+      {
+        "t": 17.2,
+        "state": "SAFE_REST",
+        "reason": "current_refuge_certified",
+        "backup_id": 223,
+        "executed_owner": {
+          "backup": true,
+          "id": 222,
+          "lineage": 85
+        }
+      }
+    ],
+    "note": "REVALIDATED/REPLACED per-cycle records remain in external raw lifecycle files"
+  }
+}

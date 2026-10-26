@@ -29,7 +29,8 @@ struct ReserveChecker:Planner {
       {"controls",events},{"backup_controls",backup_controls},{"switch_time",switch_time},
       {"execution_cursor",0},{"reference_states",samples},
       {"prediction",{{"epoch",epoch},{"source_epoch",q["source_epoch"]},{"version",q["source_version"]},{"actors",q["actors"]}}},
-      {"assumptions",{{"model","exact CV + frozen plant"},{"numerical_tolerance",1e-7},{"maximum_source_age_s",.15},{"wall",wall}}},
+      {"assumptions",{{"model","exact CV + frozen plant"},{"numerical_tolerance",1e-7},{"maximum_source_age_s",.15},{"wall",wall},
+        {"dynamics",q.value("dynamics",J::array({DT,VMAX,AMAX,HX,HY}))}}},
       {"safe_rest",{{"epoch",epoch+n.t},{"state",state_json(n.s)},{"cv_ray_clearance_m",rest_clear},{"certified",true}}}};
   }
   std::string valid(const J&q,const J&b){
@@ -39,6 +40,9 @@ struct ReserveChecker:Planner {
     double offset=now-b["epoch"].get<double>();
     if(offset< -1e-8||std::abs(offset/DT-std::round(offset/DT))>1e-6)return "clock_mismatch";
     if(q["wall"]!=b["assumptions"]["wall"])return "geometry_changed";
+    if(q.value("dynamics",J::array({DT,VMAX,AMAX,HX,HY}))!=b["assumptions"]["dynamics"])return "dynamics_changed";
+    if(q["queue_version"].get<int>()<b["immutable_queue_version"].get<int>())return "queue_version_regressed";
+    if(q["source_version"].get<int>()<b["prediction"]["version"].get<int>())return "prediction_version_regressed";
     const auto&samples=b["reference_states"];
     auto expected=samples[std::min(size_t(std::llround(offset/DT)),samples.size()-1)];
     for(int j=0;j<4;j++)if(std::abs(q["state"][j].get<double>()-expected[j].get<double>())>1e-7)return "state_deviation";
@@ -61,7 +65,7 @@ struct ReserveChecker:Planner {
     auto begin=std::chrono::steady_clock::now();actors.clear();wall=q["wall"];
     for(const auto&a:q["actors"])actors.push_back({a[0],a[1],a[2],a[3],a[4]});
     std::string op=q["op"],reason="unavailable";J cert=nullptr;
-    if(op=="validate")return {{"reason",valid(q,q["backup"])}};
+    if(op=="validate")return {{"reason",valid(q,q["backup"])},{"stationary_refuge",refuge(Node{state_from(q["state"])})}};
     Node n{state_from(q["state"])};V u=q["target"].get<V>();double epoch=q["epoch"];
     J events=ordered(q["queue"]);bool ok=true;
     for(int k=0;k<10&&ok;k++){u=control_at(events,epoch+n.t+DT/2,u);ok=segment(n,u,1);}

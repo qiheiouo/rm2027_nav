@@ -1,0 +1,16 @@
+{
+  "base_commit":"62f74cba89fb1918ed99ec590d95edff731e5626",
+  "stage":"Research; original head_on_13 full episode only",
+  "hypothesis":"Acquire the frozen backup while margin exists at the original episode start, then preserve it across admitted main actions, rejections and planner lateness.",
+  "only_experimental_change":"start at original t=0 state [0,0,0,0], target [0,0], empty queue/previous; no fixture warm start. Added lifecycle and timing instrumentation, version/dynamics validation and transaction deadline rollback do not change the frozen model or action selection.",
+  "frozen":"original head_on seed13, ideal source-age-corrected CV, search proposal/beam64/horizon2s/cost, nine backup actions, .1s delay/.05s control/.01s plant, vmax .5/amax .8, original padded checker and CV safe-rest certificate; physical clearance >=.05m",
+  "arms":["B","C0","C1"],
+  "normal_first":"Initial acquisition unavailable stops all full-episode runs. Run normal B/C0/C1; inspect lifecycle and one unchanged confirmation. No lateness while normal C1 has collision, invalid reserve or intrinsic deadline failure.",
+  "lateness":"same 80ms availability every sixth control slot as archived experiment; busy planner skips a slot, C1 executor continues. Require a normal results.json proof with C1 initialization, cross-cycle hold, no collision/invalid and total p99<=40/max<=50 before running.",
+  "metrics":"planner, revalidation, acquisition/replacement and total per-cycle latency including IPC/transaction/executor preparation; mean/min/p05/p50/p95/p99/max; initialization separately. Report injected response misses separately, never erase them.",
+  "lifecycle":"INITIALIZING, HELD, REVALIDATED, REPLACED, EXECUTING_BACKUP, SAFE_REST, INVALID, UNAVAILABLE; reason, plan revision, backup lineage/acquired epoch, absolute events/cursor, immutable queue/version, source/version, assumptions and certificate. Actual execution owner is carried through immutable queue.",
+  "gate":{"collision":0,"minimum_clearance_m":0.05,"completion":"original 40s absolute timeout, .15m goal and 3s observation","p99_ms":40,"max_ms":50,"intrinsic_misses":0},
+  "decision":"Go-to-36 only after safe completed normal/late episodes, explanatory persistence and full budget. Modify for bounded non-scenario transaction/lifecycle defect with signal. Stop for unavailable start, collision, mechanism invalidation, deadline failure, timeout-brake-only benefit or need for parameter/library/fixture changes. No automatic 36 dispatch.",
+  "repeat":"one minimal implementation audit and unchanged confirmation on failure; no tuning rescue",
+  "data":"raw trajectories/full lifecycle/full logs/build external; only small summaries/manifest/report in Git"
+}
