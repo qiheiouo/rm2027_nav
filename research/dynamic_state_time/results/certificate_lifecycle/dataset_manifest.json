@@ -1,0 +1,310 @@
+{
+  "dataset_id": "certificate_lifecycle_20261026",
+  "archive_commit": "f1203c3949f8d48237a9ea0125c895f7f5a8ef2c",
+  "convention": "<external holdout root>/<case>_C1/C1_normal.jsonl.gz",
+  "sources": [
+    {
+      "dataset_id": "static_10001_C1",
+      "path": "/home/qihei/.codex/visualizations/2026/10/25/01a1708d-d064-7252-86b0-5e92a75657dc/dynamic_preacquired_holdout_20261026/holdout_120/static_10001_C1/C1_normal.jsonl.gz",
+      "size_bytes": 23893,
+      "sha256": "994ea01ed8da48c7bbdadf7591e96d9d509cd52aa83a9387cbfb42d5b8c6a52d",
+      "origin": "f1203c3 holdout synthetic controller trace",
+      "generated": true,
+      "purpose": "two snapshots around first invalidation",
+      "required_experiment": "certificate contract replay"
+    },
+    {
+      "dataset_id": "stop_start_10300_C1",
+      "path": "/home/qihei/.codex/visualizations/2026/10/25/01a1708d-d064-7252-86b0-5e92a75657dc/dynamic_preacquired_holdout_20261026/holdout_120/stop_start_10300_C1/C1_normal.jsonl.gz",
+      "size_bytes": 25050,
+      "sha256": "2ea9ee827e9ff3f854234c7bf162e7cff581b34241529e7555ef49315ab3e1cd",
+      "origin": "f1203c3 holdout synthetic controller trace",
+      "generated": true,
+      "purpose": "two snapshots around first invalidation",
+      "required_experiment": "certificate contract replay"
+    },
+    {
+      "dataset_id": "occlusion_reappearance_10500_C1",
+      "path": "/home/qihei/.codex/visualizations/2026/10/25/01a1708d-d064-7252-86b0-5e92a75657dc/dynamic_preacquired_holdout_20261026/holdout_120/occlusion_reappearance_10500_C1/C1_normal.jsonl.gz",
+      "size_bytes": 20183,
+      "sha256": "1106b213050d1ff9bc460626c6acbfe637bbc953793d178d5555023c05176656",
+      "origin": "f1203c3 holdout synthetic controller trace",
+      "generated": true,
+      "purpose": "two snapshots around first invalidation",
+      "required_experiment": "certificate contract replay"
+    },
+    {
+      "dataset_id": "stale_observation_10801_C1",
+      "path": "/home/qihei/.codex/visualizations/2026/10/25/01a1708d-d064-7252-86b0-5e92a75657dc/dynamic_preacquired_holdout_20261026/holdout_120/stale_observation_10801_C1/C1_normal.jsonl.gz",
+      "size_bytes": 22422,
+      "sha256": "14454ef5f60057e1f366a0ecdc02aa1b795c39cfbb7e20b587210e4e487381fe",
+      "origin": "f1203c3 holdout synthetic controller trace",
+      "generated": true,
+      "purpose": "two snapshots around first invalidation",
+      "required_experiment": "certificate contract replay"
+    },
+    {
+      "dataset_id": "stale_observation_10802_C1",
+      "path": "/home/qihei/.codex/visualizations/2026/10/25/01a1708d-d064-7252-86b0-5e92a75657dc/dynamic_preacquired_holdout_20261026/holdout_120/stale_observation_10802_C1/C1_normal.jsonl.gz",
+      "size_bytes": 21750,
+      "sha256": "d2eb077dfc47a0c64d93488409b00f9d351da9bfed2e4d15d7d43fbcdd50338e",
+      "origin": "f1203c3 holdout synthetic controller trace",
+      "generated": true,
+      "purpose": "two snapshots around first invalidation",
+      "required_experiment": "certificate contract replay"
+    },
+    {
+      "dataset_id": "stale_observation_10803_C1",
+      "path": "/home/qihei/.codex/visualizations/2026/10/25/01a1708d-d064-7252-86b0-5e92a75657dc/dynamic_preacquired_holdout_20261026/holdout_120/stale_observation_10803_C1/C1_normal.jsonl.gz",
+      "size_bytes": 21158,
+      "sha256": "257bf80eb84b6fadb03ec71061e4b941fbc7187d290a752d97931ed267a4fe3c",
+      "origin": "f1203c3 holdout synthetic controller trace",
+      "generated": true,
+      "purpose": "two snapshots around first invalidation",
+      "required_experiment": "certificate contract replay"
+    },
+    {
+      "dataset_id": "stale_observation_10805_C1",
+      "path": "/home/qihei/.codex/visualizations/2026/10/25/01a1708d-d064-7252-86b0-5e92a75657dc/dynamic_preacquired_holdout_20261026/holdout_120/stale_observation_10805_C1/C1_normal.jsonl.gz",
+      "size_bytes": 21977,
+      "sha256": "321098e5daf0b7a9cc0287519bcc545983057e377076728277a90bd179b76930",
+      "origin": "f1203c3 holdout synthetic controller trace",
+      "generated": true,
+      "purpose": "two snapshots around first invalidation",
+      "required_experiment": "certificate contract replay"
+    },
+    {
+      "dataset_id": "stale_observation_10806_C1",
+      "path": "/home/qihei/.codex/visualizations/2026/10/25/01a1708d-d064-7252-86b0-5e92a75657dc/dynamic_preacquired_holdout_20261026/holdout_120/stale_observation_10806_C1/C1_normal.jsonl.gz",
+      "size_bytes": 19463,
+      "sha256": "757248d3603035a13d956a940586cca097d6b20f49b31574fb1d4ce818550780",
+      "origin": "f1203c3 holdout synthetic controller trace",
+      "generated": true,
+      "purpose": "two snapshots around first invalidation",
+      "required_experiment": "certificate contract replay"
+    },
+    {
+      "dataset_id": "stale_observation_10807_C1",
+      "path": "/home/qihei/.codex/visualizations/2026/10/25/01a1708d-d064-7252-86b0-5e92a75657dc/dynamic_preacquired_holdout_20261026/holdout_120/stale_observation_10807_C1/C1_normal.jsonl.gz",
+      "size_bytes": 19865,
+      "sha256": "b3ef5f3a6120ea360332d5cfd1379b4e693b7faf5118daa5f6f1c961c836e64d",
+      "origin": "f1203c3 holdout synthetic controller trace",
+      "generated": true,
+      "purpose": "two snapshots around first invalidation",
+      "required_experiment": "certificate contract replay"
+    },
+    {
+      "dataset_id": "stale_observation_10809_C1",
+      "path": "/home/qihei/.codex/visualizations/2026/10/25/01a1708d-d064-7252-86b0-5e92a75657dc/dynamic_preacquired_holdout_20261026/holdout_120/stale_observation_10809_C1/C1_normal.jsonl.gz",
+      "size_bytes": 22371,
+      "sha256": "18af2a7ad6f86b6e1a5471b84b424b8b21418d01f5d35c7969f2b699e18eb14e",
+      "origin": "f1203c3 holdout synthetic controller trace",
+      "generated": true,
+      "purpose": "two snapshots around first invalidation",
+      "required_experiment": "certificate contract replay"
+    },
+    {
+      "dataset_id": "stale_observation_10810_C1",
+      "path": "/home/qihei/.codex/visualizations/2026/10/25/01a1708d-d064-7252-86b0-5e92a75657dc/dynamic_preacquired_holdout_20261026/holdout_120/stale_observation_10810_C1/C1_normal.jsonl.gz",
+      "size_bytes": 19586,
+      "sha256": "f6d4e7e0164d46ac1c6d46238d70b0c76770f9cad181127cfe430999555da3ba",
+      "origin": "f1203c3 holdout synthetic controller trace",
+      "generated": true,
+      "purpose": "two snapshots around first invalidation",
+      "required_experiment": "certificate contract replay"
+    },
+    {
+      "dataset_id": "stale_observation_10811_C1",
+      "path": "/home/qihei/.codex/visualizations/2026/10/25/01a1708d-d064-7252-86b0-5e92a75657dc/dynamic_preacquired_holdout_20261026/holdout_120/stale_observation_10811_C1/C1_normal.jsonl.gz",
+      "size_bytes": 20901,
+      "sha256": "45700bb015272cc9ad9c5c9c1d547cd8e71b48394ba88d5e884809147890c377",
+      "origin": "f1203c3 holdout synthetic controller trace",
+      "generated": true,
+      "purpose": "two snapshots around first invalidation",
+      "required_experiment": "certificate contract replay"
+    }
+  ],
+  "fixture": {
+    "path": "failure_fixtures.json",
+    "generated": true,
+    "size_bytes": 38700,
+    "sha256": "5286958e6e128b1606b15a583a2bab2e1ce2b4a435bf5b0897e797b5e5175159",
+    "purpose": "12 minimal before/failure controller snapshots, no full trajectory; reference states regenerated from frozen plant"
+  },
+  "metadata_note": "receive_time/set-version/frame/clock were absent in archive: receive=t except frozen stale received at 2 s; set version 0 before, 1 after observed removal; domains 0. No actor value or command is changed.",
+  "contract_evidence_root": "/home/qihei/.codex/visualizations/2026/10/25/01a1708d-d064-7252-86b0-5e92a75657dc/dynamic_certificate_lifecycle_20261026",
+  "contract_evidence": [
+    {
+      "dataset_id": "certificate_replay_01_summary.json",
+      "path": "/home/qihei/.codex/visualizations/2026/10/25/01a1708d-d064-7252-86b0-5e92a75657dc/dynamic_certificate_lifecycle_20261026/replay_01/summary.json",
+      "size_bytes": 20519,
+      "sha256": "f0952fb7006a06d0570f54a712d4f585e4a3a1fa4ab0d548948b7607385f4f21",
+      "origin": "local synthetic contract validation",
+      "purpose": "retain measurements and bounded executor evidence",
+      "generated": true,
+      "required_experiment": "certificate lifecycle"
+    },
+    {
+      "dataset_id": "certificate_replay_final_summary.json",
+      "path": "/home/qihei/.codex/visualizations/2026/10/25/01a1708d-d064-7252-86b0-5e92a75657dc/dynamic_certificate_lifecycle_20261026/replay_final/summary.json",
+      "size_bytes": 23008,
+      "sha256": "2f2fa98ba20e12a6fa7dd556e1d334934042290989a993b136f4b8e145de8cbc",
+      "origin": "local synthetic contract validation",
+      "purpose": "retain measurements and bounded executor evidence",
+      "generated": true,
+      "required_experiment": "certificate lifecycle"
+    },
+    {
+      "dataset_id": "certificate_replay_01_measurements.json",
+      "path": "/home/qihei/.codex/visualizations/2026/10/25/01a1708d-d064-7252-86b0-5e92a75657dc/dynamic_certificate_lifecycle_20261026/replay_01/measurements.json",
+      "size_bytes": 49759,
+      "sha256": "74d9721bd919bbec77cab7c4a96800cb4d8a70609e36abd560e1ab4780e1be5f",
+      "origin": "local synthetic contract validation",
+      "purpose": "retain measurements and bounded executor evidence",
+      "generated": true,
+      "required_experiment": "certificate lifecycle"
+    },
+    {
+      "dataset_id": "certificate_replay_final_measurements.json",
+      "path": "/home/qihei/.codex/visualizations/2026/10/25/01a1708d-d064-7252-86b0-5e92a75657dc/dynamic_certificate_lifecycle_20261026/replay_final/measurements.json",
+      "size_bytes": 49767,
+      "sha256": "1cc3f12a68a5a3946aa4cf0d96b946f5684b89a6a5504a972c9c8494a951d105",
+      "origin": "local synthetic contract validation",
+      "purpose": "retain measurements and bounded executor evidence",
+      "generated": true,
+      "required_experiment": "certificate lifecycle"
+    },
+    {
+      "dataset_id": "certificate_contracts_01_contracts.json",
+      "path": "/home/qihei/.codex/visualizations/2026/10/25/01a1708d-d064-7252-86b0-5e92a75657dc/dynamic_certificate_lifecycle_20261026/contracts_01/contracts.json",
+      "size_bytes": 674,
+      "sha256": "6e88bccc8af91520a599fc63d6c08abf1b95820d944c1be6683c8ce36e755dca",
+      "origin": "local synthetic contract validation",
+      "purpose": "retain measurements and bounded executor evidence",
+      "generated": true,
+      "required_experiment": "certificate lifecycle"
+    },
+    {
+      "dataset_id": "certificate_harness_contracts_summary.json",
+      "path": "/home/qihei/.codex/visualizations/2026/10/25/01a1708d-d064-7252-86b0-5e92a75657dc/dynamic_certificate_lifecycle_20261026/harness_contracts/summary.json",
+      "size_bytes": 1749,
+      "sha256": "2fd26f69ee0419fc699985ecc7157bf9c1a5f641f30551ab0241057b96030dc2",
+      "origin": "local synthetic contract validation",
+      "purpose": "retain measurements and bounded executor evidence",
+      "generated": true,
+      "required_experiment": "certificate lifecycle"
+    },
+    {
+      "dataset_id": "certificate_harness_contracts_final_summary.json",
+      "path": "/home/qihei/.codex/visualizations/2026/10/25/01a1708d-d064-7252-86b0-5e92a75657dc/dynamic_certificate_lifecycle_20261026/harness_contracts_final/summary.json",
+      "size_bytes": 1738,
+      "sha256": "78a85a5a803cdc081a7a4e4dd15c0535bd746a8e7a2b8708d389f3478084cf50",
+      "origin": "local synthetic contract validation",
+      "purpose": "retain measurements and bounded executor evidence",
+      "generated": true,
+      "required_experiment": "certificate lifecycle"
+    },
+    {
+      "dataset_id": "certificate_initial_only_initial_gate.json",
+      "path": "/home/qihei/.codex/visualizations/2026/10/25/01a1708d-d064-7252-86b0-5e92a75657dc/dynamic_certificate_lifecycle_20261026/initial_only/initial_gate.json",
+      "size_bytes": 24110,
+      "sha256": "ffb526485a387f9596282bb7f7546f85493717c18e9aec4bd5411134a1469d16",
+      "origin": "local synthetic contract validation",
+      "purpose": "retain measurements and bounded executor evidence",
+      "generated": true,
+      "required_experiment": "certificate lifecycle"
+    },
+    {
+      "dataset_id": "certificate_harness_contracts_prediction_C1_normal.jsonl.gz",
+      "path": "/home/qihei/.codex/visualizations/2026/10/25/01a1708d-d064-7252-86b0-5e92a75657dc/dynamic_certificate_lifecycle_20261026/harness_contracts/prediction/C1_normal.jsonl.gz",
+      "size_bytes": 1902,
+      "sha256": "5e8e080a520a72ce9c5ef6dc7d250798a1512d64401457dd3ed0018f4021f164",
+      "origin": "local synthetic contract validation",
+      "purpose": "retain measurements and bounded executor evidence",
+      "generated": true,
+      "required_experiment": "certificate lifecycle"
+    },
+    {
+      "dataset_id": "certificate_harness_contracts_set_C1_normal.jsonl.gz",
+      "path": "/home/qihei/.codex/visualizations/2026/10/25/01a1708d-d064-7252-86b0-5e92a75657dc/dynamic_certificate_lifecycle_20261026/harness_contracts/set/C1_normal.jsonl.gz",
+      "size_bytes": 1882,
+      "sha256": "06ae97eec6028aea3e25aa54658e9f6454a8a067264d5b961b511299bf399d32",
+      "origin": "local synthetic contract validation",
+      "purpose": "retain measurements and bounded executor evidence",
+      "generated": true,
+      "required_experiment": "certificate lifecycle"
+    },
+    {
+      "dataset_id": "certificate_harness_contracts_stale_recovery_C1_normal.jsonl.gz",
+      "path": "/home/qihei/.codex/visualizations/2026/10/25/01a1708d-d064-7252-86b0-5e92a75657dc/dynamic_certificate_lifecycle_20261026/harness_contracts/stale_recovery/C1_normal.jsonl.gz",
+      "size_bytes": 1829,
+      "sha256": "04052b609c19f22c6cda566a75674f3c1700a0b28e25ccdc27ef9433f353f0bf",
+      "origin": "local synthetic contract validation",
+      "purpose": "retain measurements and bounded executor evidence",
+      "generated": true,
+      "required_experiment": "certificate lifecycle"
+    },
+    {
+      "dataset_id": "certificate_harness_contracts_final_prediction_C1_normal.jsonl.gz",
+      "path": "/home/qihei/.codex/visualizations/2026/10/25/01a1708d-d064-7252-86b0-5e92a75657dc/dynamic_certificate_lifecycle_20261026/harness_contracts_final/prediction/C1_normal.jsonl.gz",
+      "size_bytes": 1908,
+      "sha256": "bd04a123cb80ca34a0ac63e9bff8e9ae59b14f4056d735023ff5a1539f4ac5c5",
+      "origin": "local synthetic contract validation",
+      "purpose": "retain measurements and bounded executor evidence",
+      "generated": true,
+      "required_experiment": "certificate lifecycle"
+    },
+    {
+      "dataset_id": "certificate_harness_contracts_final_set_C1_normal.jsonl.gz",
+      "path": "/home/qihei/.codex/visualizations/2026/10/25/01a1708d-d064-7252-86b0-5e92a75657dc/dynamic_certificate_lifecycle_20261026/harness_contracts_final/set/C1_normal.jsonl.gz",
+      "size_bytes": 1890,
+      "sha256": "72fe70ba8fad8131d6d113ea7363cc359ce2ce4949dd4262ed5e58cba37f3817",
+      "origin": "local synthetic contract validation",
+      "purpose": "retain measurements and bounded executor evidence",
+      "generated": true,
+      "required_experiment": "certificate lifecycle"
+    },
+    {
+      "dataset_id": "certificate_harness_contracts_final_stale_recovery_C1_normal.jsonl.gz",
+      "path": "/home/qihei/.codex/visualizations/2026/10/25/01a1708d-d064-7252-86b0-5e92a75657dc/dynamic_certificate_lifecycle_20261026/harness_contracts_final/stale_recovery/C1_normal.jsonl.gz",
+      "size_bytes": 1810,
+      "sha256": "8547d39e5be8bf03e73bc14a6b81a73b2b76768d8338d1f6f742e918a160336e",
+      "origin": "local synthetic contract validation",
+      "purpose": "retain measurements and bounded executor evidence",
+      "generated": true,
+      "required_experiment": "certificate lifecycle"
+    },
+    {
+      "dataset_id": "certificate_reason_confirmation_summary.json",
+      "path": "/home/qihei/.codex/visualizations/2026/10/25/01a1708d-d064-7252-86b0-5e92a75657dc/dynamic_certificate_lifecycle_20261026/reason_confirmation/summary.json",
+      "size_bytes": 22909,
+      "sha256": "d60f29c6c3d0f74f21b89e23b6e105767a617ebf5fd084c11feb4d5da54c91dc",
+      "origin": "final contract reason verification",
+      "purpose": "final focused confirmation, not episode rerun",
+      "generated": true,
+      "required_experiment": "certificate lifecycle"
+    },
+    {
+      "dataset_id": "certificate_reason_confirmation_measurements.json",
+      "path": "/home/qihei/.codex/visualizations/2026/10/25/01a1708d-d064-7252-86b0-5e92a75657dc/dynamic_certificate_lifecycle_20261026/reason_confirmation/measurements.json",
+      "size_bytes": 2484,
+      "sha256": "b8c55a58d74333bbb55f0f61fa3e061f9cdaa9b895e1607be065231de258fa4e",
+      "origin": "final contract reason verification",
+      "purpose": "final focused confirmation, not episode rerun",
+      "generated": true,
+      "required_experiment": "certificate lifecycle"
+    },
+    {
+      "dataset_id": "certificate_contracts_final_contracts.json",
+      "path": "/home/qihei/.codex/visualizations/2026/10/25/01a1708d-d064-7252-86b0-5e92a75657dc/dynamic_certificate_lifecycle_20261026/contracts_final/contracts.json",
+      "size_bytes": 731,
+      "sha256": "419e5a30140cf8410220de92bc9dc9f15332ebea4eb6fdec8d8280d60094604e",
+      "origin": "final contract reason verification",
+      "purpose": "final focused confirmation, not episode rerun",
+      "generated": true,
+      "required_experiment": "certificate lifecycle"
+    }
+  ],
+  "final_measurements": "replay_final/measurements.json",
+  "notes": "replay_01 precedes extra timestamp/duplicate-publish assertions; all outcomes retained. harness_contracts first stale test actually supplied a regressed version; final test freezes same source to isolate stale expiry. Neither run is a full navigation episode. Build binaries and complete logs stay external."
+}

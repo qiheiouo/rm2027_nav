@@ -1,0 +1,925 @@
+{
+  "fixtures": [
+    {
+      "id": "static_10001",
+      "reason": "prediction_changed",
+      "original_accepted": true,
+      "original_terminated": true,
+      "accepted": true,
+      "authorized": true,
+      "state": "NEW_VALID",
+      "source_epoch": 2.0,
+      "receive_time": 2.1,
+      "age_s": 0.10000000000000009,
+      "certificate_source_version": 12000000,
+      "next_cycle_validity": "valid",
+      "queued_commands_preserved": true,
+      "certificate_issued": true,
+      "latency_ms": {
+        "transaction_ms": {
+          "n": 20,
+          "mean": 3.0450251499587466,
+          "min": 2.952126000309363,
+          "p05": 2.963165949768154,
+          "p50": 3.0388325003514183,
+          "p95": 3.1445057496512163,
+          "p99": 3.168928350232818,
+          "max": 3.1750340003782185
+        },
+        "added_ms": {
+          "n": 20,
+          "mean": 1.8390852499123866,
+          "min": 1.7474060005042702,
+          "p05": 1.7716234001454723,
+          "p50": 1.8312910001441196,
+          "p95": 1.9260838999343832,
+          "p99": 1.9868367802791909,
+          "max": 2.0020250003653928
+        },
+        "total_ms": {
+          "n": 20,
+          "mean": 14.568141300105708,
+          "min": 14.404905000446888,
+          "p05": 14.423031000569608,
+          "p50": 14.54618500019933,
+          "p95": 14.760134750395082,
+          "p99": 14.815671750257025,
+          "max": 14.82955600022251
+        }
+      }
+    },
+    {
+      "id": "stop_start_10300",
+      "reason": "prediction_changed",
+      "original_accepted": true,
+      "original_terminated": true,
+      "accepted": true,
+      "authorized": true,
+      "state": "NEW_VALID",
+      "source_epoch": 2.5,
+      "receive_time": 2.6,
+      "age_s": 0.10000000000000009,
+      "certificate_source_version": 12500000,
+      "next_cycle_validity": "valid",
+      "queued_commands_preserved": true,
+      "certificate_issued": true,
+      "latency_ms": {
+        "transaction_ms": {
+          "n": 20,
+          "mean": 3.1593530499776534,
+          "min": 3.0301029992187978,
+          "p05": 3.0897810501301137,
+          "p50": 3.164657499837631,
+          "p95": 3.2416962501883972,
+          "p99": 3.2599096500780433,
+          "max": 3.264463000050455
+        },
+        "added_ms": {
+          "n": 20,
+          "mean": 1.9203520001155994,
+          "min": 1.7855949990916997,
+          "p05": 1.8535466002049361,
+          "p50": 1.9331694998072635,
+          "p95": 1.9921881002574082,
+          "p99": 1.9954880199202307,
+          "max": 1.9963129998359364
+        },
+        "total_ms": {
+          "n": 20,
+          "mean": 14.320250500031761,
+          "min": 14.201752999724704,
+          "p05": 14.208943549283504,
+          "p50": 14.30568149953615,
+          "p95": 14.449283699468651,
+          "p99": 14.552411140284676,
+          "max": 14.578193000488682
+        }
+      }
+    },
+    {
+      "id": "occlusion_reappearance_10500",
+      "reason": "obstacle_set_changed",
+      "original_accepted": true,
+      "original_terminated": true,
+      "accepted": true,
+      "authorized": true,
+      "state": "NEW_VALID",
+      "source_epoch": 2.0,
+      "receive_time": 2.1,
+      "age_s": 0.10000000000000009,
+      "certificate_source_version": 12000000,
+      "next_cycle_validity": "valid",
+      "queued_commands_preserved": true,
+      "certificate_issued": true,
+      "latency_ms": {
+        "transaction_ms": {
+          "n": 20,
+          "mean": 3.101786849902055,
+          "min": 3.027308999662637,
+          "p05": 3.0274106498836773,
+          "p50": 3.120901499642059,
+          "p95": 3.163717200004612,
+          "p99": 3.1826898398139747,
+          "max": 3.1874329997663153
+        },
+        "added_ms": {
+          "n": 20,
+          "mean": 1.8684558999211731,
+          "min": 1.7078179998861742,
+          "p05": 1.722995200088917,
+          "p50": 1.8976675000885734,
+          "p95": 1.9798898502813245,
+          "p99": 1.9864539703303308,
+          "max": 1.9880950003425824
+        },
+        "total_ms": {
+          "n": 20,
+          "mean": 13.656248799679815,
+          "min": 13.576721999925212,
+          "p05": 13.592113900449476,
+          "p50": 13.650159499775327,
+          "p95": 13.702286199213631,
+          "p99": 13.867954039442338,
+          "max": 13.909370999499515
+        }
+      }
+    },
+    {
+      "id": "stale_observation_10801",
+      "reason": "stale_observation",
+      "original_accepted": true,
+      "original_terminated": true,
+      "accepted": false,
+      "authorized": false,
+      "state": "INVALID",
+      "source_epoch": 1.9,
+      "receive_time": 2.0,
+      "age_s": 0.20000000000000018,
+      "certificate_source_version": 11900000,
+      "next_cycle_validity": null,
+      "queued_commands_preserved": true,
+      "certificate_issued": false,
+      "latency_ms": {
+        "transaction_ms": {
+          "n": 20,
+          "mean": 0.2073872999062587,
+          "min": 0.16304700056934962,
+          "p05": 0.1665401494847174,
+          "p50": 0.20932000006723683,
+          "p95": 0.24265845008812903,
+          "p99": 0.24348609066692006,
+          "max": 0.24369300081161782
+        },
+        "added_ms": {
+          "n": 20,
+          "mean": -1.9393335001041123,
+          "min": -2.041706000454724,
+          "p05": -2.0378661004542664,
+          "p50": -1.920531999985542,
+          "p95": -1.883384099437535,
+          "p99": -1.879342420015746,
+          "max": -1.8783320001602988
+        },
+        "total_ms": {
+          "n": 20,
+          "mean": 11.213451949925002,
+          "min": 11.064768000323966,
+          "p05": 11.09777290034799,
+          "p50": 11.193775499577896,
+          "p95": 11.366388749956968,
+          "p99": 11.40129935090954,
+          "max": 11.410027001147682
+        }
+      }
+    },
+    {
+      "id": "stale_observation_10802",
+      "reason": "stale_observation",
+      "original_accepted": true,
+      "original_terminated": true,
+      "accepted": false,
+      "authorized": false,
+      "state": "INVALID",
+      "source_epoch": 1.9,
+      "receive_time": 2.0,
+      "age_s": 0.20000000000000018,
+      "certificate_source_version": 11900000,
+      "next_cycle_validity": null,
+      "queued_commands_preserved": true,
+      "certificate_issued": false,
+      "latency_ms": {
+        "transaction_ms": {
+          "n": 20,
+          "mean": 0.19495375004225934,
+          "min": 0.15552300010313047,
+          "p05": 0.15798919994267635,
+          "p50": 0.2019120001932606,
+          "p95": 0.2344629502204043,
+          "p99": 0.24887179025427028,
+          "max": 0.2524740002627368
+        },
+        "added_ms": {
+          "n": 20,
+          "mean": -1.947999249887289,
+          "min": -2.050926000265463,
+          "p05": -2.041639749540991,
+          "p50": -1.9421120000515657,
+          "p95": -1.8790916999023466,
+          "p99": -1.8746183395160188,
+          "max": -1.8734999994194368
+        },
+        "total_ms": {
+          "n": 20,
+          "mean": 11.177360750161824,
+          "min": 11.051539000618504,
+          "p05": 11.093907100121214,
+          "p50": 11.174396500791772,
+          "p95": 11.282617800770822,
+          "p99": 11.28925716106096,
+          "max": 11.290917001133494
+        }
+      }
+    },
+    {
+      "id": "stale_observation_10803",
+      "reason": "stale_observation",
+      "original_accepted": true,
+      "original_terminated": true,
+      "accepted": false,
+      "authorized": false,
+      "state": "INVALID",
+      "source_epoch": 1.9,
+      "receive_time": 2.0,
+      "age_s": 0.20000000000000018,
+      "certificate_source_version": 11900000,
+      "next_cycle_validity": null,
+      "queued_commands_preserved": true,
+      "certificate_issued": false,
+      "latency_ms": {
+        "transaction_ms": {
+          "n": 20,
+          "mean": 0.21282244997564703,
+          "min": 0.17616700006328756,
+          "p05": 0.17692319984234928,
+          "p50": 0.21440149976115208,
+          "p95": 0.23366235018329462,
+          "p99": 0.23714847029623343,
+          "max": 0.23802000032446813
+        },
+        "added_ms": {
+          "n": 20,
+          "mean": -1.9665303499550646,
+          "min": -2.0502270008364576,
+          "p05": -2.0035896006902476,
+          "p50": -1.962882499810803,
+          "p95": -1.9225059501877695,
+          "p99": -1.9181579902033263,
+          "max": -1.9170710002072155
+        },
+        "total_ms": {
+          "n": 20,
+          "mean": 11.24890349992711,
+          "min": 11.117571999420761,
+          "p05": 11.137717700648864,
+          "p50": 11.240169999837235,
+          "p95": 11.371599200128912,
+          "p99": 11.545551039844213,
+          "max": 11.589038999773038
+        }
+      }
+    },
+    {
+      "id": "stale_observation_10805",
+      "reason": "stale_observation",
+      "original_accepted": true,
+      "original_terminated": true,
+      "accepted": false,
+      "authorized": false,
+      "state": "INVALID",
+      "source_epoch": 1.9,
+      "receive_time": 2.0,
+      "age_s": 0.20000000000000018,
+      "certificate_source_version": 11900000,
+      "next_cycle_validity": null,
+      "queued_commands_preserved": true,
+      "certificate_issued": false,
+      "latency_ms": {
+        "transaction_ms": {
+          "n": 20,
+          "mean": 0.1967712499663321,
+          "min": 0.15926700052659726,
+          "p05": 0.16231840022555843,
+          "p50": 0.20758250002472778,
+          "p95": 0.22550014928128803,
+          "p99": 0.22904403016582364,
+          "max": 0.22993000038695754
+        },
+        "added_ms": {
+          "n": 20,
+          "mean": -1.988387550045445,
+          "min": -2.1066760000394424,
+          "p05": -2.070994951100147,
+          "p50": -1.983248999749776,
+          "p95": -1.916965449026975,
+          "p99": -1.9155282900555903,
+          "max": -1.9151690003127442
+        },
+        "total_ms": {
+          "n": 20,
+          "mean": 11.23103154995988,
+          "min": 11.104654000519076,
+          "p05": 11.138458799860018,
+          "p50": 11.219895999602159,
+          "p95": 11.407240551079667,
+          "p99": 11.424956910695983,
+          "max": 11.429386000600061
+        }
+      }
+    },
+    {
+      "id": "stale_observation_10806",
+      "reason": "stale_observation",
+      "original_accepted": true,
+      "original_terminated": true,
+      "accepted": false,
+      "authorized": false,
+      "state": "INVALID",
+      "source_epoch": 1.9,
+      "receive_time": 2.0,
+      "age_s": 0.20000000000000018,
+      "certificate_source_version": 11900000,
+      "next_cycle_validity": null,
+      "queued_commands_preserved": true,
+      "certificate_issued": false,
+      "latency_ms": {
+        "transaction_ms": {
+          "n": 20,
+          "mean": 0.21280470000419882,
+          "min": 0.18624299991643056,
+          "p05": 0.19844289963657502,
+          "p50": 0.21159149991945014,
+          "p95": 0.23092939995876804,
+          "p99": 0.2330634802001441,
+          "max": 0.23359700026048813
+        },
+        "added_ms": {
+          "n": 20,
+          "mean": -1.9266616500317468,
+          "min": -2.022085000135121,
+          "p05": -1.9655552496260498,
+          "p50": -1.9269345007160155,
+          "p95": -1.8918857994322025,
+          "p99": -1.875269159590971,
+          "max": -1.871114999630663
+        },
+        "total_ms": {
+          "n": 20,
+          "mean": 11.317560049974418,
+          "min": 11.1955799993666,
+          "p05": 11.219517149811509,
+          "p50": 11.316280500068387,
+          "p95": 11.417758999732541,
+          "p99": 11.450302199109501,
+          "max": 11.458437998953741
+        }
+      }
+    },
+    {
+      "id": "stale_observation_10807",
+      "reason": "stale_observation",
+      "original_accepted": true,
+      "original_terminated": true,
+      "accepted": false,
+      "authorized": false,
+      "state": "INVALID",
+      "source_epoch": 1.9,
+      "receive_time": 2.0,
+      "age_s": 0.20000000000000018,
+      "certificate_source_version": 11900000,
+      "next_cycle_validity": null,
+      "queued_commands_preserved": true,
+      "certificate_issued": false,
+      "latency_ms": {
+        "transaction_ms": {
+          "n": 20,
+          "mean": 0.21349215007830935,
+          "min": 0.16206300006160745,
+          "p05": 0.17121150008279074,
+          "p50": 0.21624700002575992,
+          "p95": 0.2302465002230747,
+          "p99": 0.23350690030383703,
+          "max": 0.2343220003240276
+        },
+        "added_ms": {
+          "n": 20,
+          "mean": -1.9622492497092026,
+          "min": -2.0630740000342485,
+          "p05": -2.0497397993494815,
+          "p50": -1.950165999460296,
+          "p95": -1.9117994995667686,
+          "p99": -1.899419099163424,
+          "max": -1.896323999062588
+        },
+        "total_ms": {
+          "n": 20,
+          "mean": 11.26882454996121,
+          "min": 11.123231000055966,
+          "p05": 11.131428550197597,
+          "p50": 11.233110999910423,
+          "p95": 11.47678444972371,
+          "p99": 11.62471768983778,
+          "max": 11.661700999866298
+        }
+      }
+    },
+    {
+      "id": "stale_observation_10809",
+      "reason": "stale_observation",
+      "original_accepted": true,
+      "original_terminated": true,
+      "accepted": false,
+      "authorized": false,
+      "state": "INVALID",
+      "source_epoch": 1.9,
+      "receive_time": 2.0,
+      "age_s": 0.20000000000000018,
+      "certificate_source_version": 11900000,
+      "next_cycle_validity": null,
+      "queued_commands_preserved": true,
+      "certificate_issued": false,
+      "latency_ms": {
+        "transaction_ms": {
+          "n": 20,
+          "mean": 0.19859400003952032,
+          "min": 0.16184800006158184,
+          "p05": 0.1660413006447925,
+          "p50": 0.2071320000140986,
+          "p95": 0.23405675001413329,
+          "p99": 0.23806575012713438,
+          "max": 0.23906800015538465
+        },
+        "added_ms": {
+          "n": 20,
+          "mean": -1.9760900999699516,
+          "min": -2.112533999934385,
+          "p05": -2.06016525035011,
+          "p50": -1.9517379996614181,
+          "p95": -1.8960617002903746,
+          "p99": -1.8879859399839916,
+          "max": -1.8859669999073958
+        },
+        "total_ms": {
+          "n": 20,
+          "mean": 11.259175850000247,
+          "min": 11.09786799952417,
+          "p05": 11.116668500289961,
+          "p50": 11.223083500226494,
+          "p95": 11.419673300679278,
+          "p99": 11.502943459981907,
+          "max": 11.523760999807564
+        }
+      }
+    },
+    {
+      "id": "stale_observation_10810",
+      "reason": "stale_observation",
+      "original_accepted": true,
+      "original_terminated": true,
+      "accepted": false,
+      "authorized": false,
+      "state": "INVALID",
+      "source_epoch": 1.9,
+      "receive_time": 2.0,
+      "age_s": 0.20000000000000018,
+      "certificate_source_version": 11900000,
+      "next_cycle_validity": null,
+      "queued_commands_preserved": true,
+      "certificate_issued": false,
+      "latency_ms": {
+        "transaction_ms": {
+          "n": 20,
+          "mean": 0.20890289997623768,
+          "min": 0.15654100025130901,
+          "p05": 0.15720980009064078,
+          "p50": 0.2119330001733033,
+          "p95": 0.232462400026634,
+          "p99": 0.2443244796904764,
+          "max": 0.24728999960643705
+        },
+        "added_ms": {
+          "n": 20,
+          "mean": -1.9477971499782143,
+          "min": -2.0574389991452335,
+          "p05": -2.0298234495840006,
+          "p50": -1.9333765003466397,
+          "p95": -1.8855924503895949,
+          "p99": -1.8846112893606914,
+          "max": -1.8843659991034656
+        },
+        "total_ms": {
+          "n": 20,
+          "mean": 11.358321499983504,
+          "min": 11.209881000468158,
+          "p05": 11.211919700508588,
+          "p50": 11.341347999405116,
+          "p95": 11.568769250197874,
+          "p99": 11.608992250266965,
+          "max": 11.619048000284238
+        }
+      }
+    },
+    {
+      "id": "stale_observation_10811",
+      "reason": "stale_observation",
+      "original_accepted": true,
+      "original_terminated": true,
+      "accepted": false,
+      "authorized": false,
+      "state": "INVALID",
+      "source_epoch": 1.9,
+      "receive_time": 2.0,
+      "age_s": 0.20000000000000018,
+      "certificate_source_version": 11900000,
+      "next_cycle_validity": null,
+      "queued_commands_preserved": true,
+      "certificate_issued": false,
+      "latency_ms": {
+        "transaction_ms": {
+          "n": 20,
+          "mean": 0.20030725004289707,
+          "min": 0.15598200025124243,
+          "p05": 0.1590248496086133,
+          "p50": 0.21398400031102938,
+          "p95": 0.22596100029659283,
+          "p99": 0.22760260021641443,
+          "max": 0.22801300019636983
+        },
+        "added_ms": {
+          "n": 20,
+          "mean": -2.0132448499225575,
+          "min": -2.1070220000183326,
+          "p05": -2.098655349936962,
+          "p50": -2.0134970000071917,
+          "p95": -1.944726199417346,
+          "p99": -1.9318700398980582,
+          "max": -1.9286560000182362
+        },
+        "total_ms": {
+          "n": 20,
+          "mean": 11.365218650053066,
+          "min": 11.24461900053575,
+          "p05": 11.245159549571326,
+          "p50": 11.341795999669557,
+          "p95": 11.490549250265758,
+          "p99": 11.527580250221945,
+          "max": 11.536838000210992
+        }
+      }
+    }
+  ],
+  "repeats": 20,
+  "transactions": 240,
+  "accepted_without_valid_backup": 0,
+  "stale_certificates_issued": 0,
+  "stale_admissions": 0,
+  "latency_ms": {
+    "legacy_ms": {
+      "n": 240,
+      "mean": 1.9327167749603784,
+      "min": 1.1730090000128257,
+      "p05": 1.201236750193857,
+      "p50": 2.1419975000753766,
+      "p95": 2.2443251999447966,
+      "p99": 2.282200959925831,
+      "max": 2.295934999892779
+    },
+    "transaction_ms": {
+      "n": 240,
+      "mean": 0.929350066655843,
+      "min": 0.15552300010313047,
+      "p05": 0.16275674943244667,
+      "p50": 0.216300500142097,
+      "p95": 3.1629280500055756,
+      "p99": 3.20610975022646,
+      "max": 3.264463000050455
+    },
+    "added_ms": {
+      "n": 240,
+      "mean": -1.0033667083045354,
+      "min": -2.112533999934385,
+      "p05": -2.0574105003106524,
+      "p50": -1.9328695002513996,
+      "p95": 1.9431009508025454,
+      "p99": 1.9904593603041576,
+      "max": 2.0020250003653928
+    },
+    "planner_ms": {
+      "n": 240,
+      "mean": 11.069357345824452,
+      "min": 10.457943999426789,
+      "p05": 10.564234650564686,
+      "p50": 11.06848599965815,
+      "p95": 11.481434100323895,
+      "p99": 11.69117007020759,
+      "max": 11.736277000636619
+    },
+    "total_ms": {
+      "n": 240,
+      "mean": 11.998707412480295,
+      "min": 11.051539000618504,
+      "p05": 11.117247149468312,
+      "p50": 11.311435499465006,
+      "p95": 14.53013169998485,
+      "p99": 14.693010589953701,
+      "max": 14.82955600022251
+    }
+  },
+  "latency_by_input": {
+    "fresh_replacement": {
+      "legacy_ms": {
+        "n": 60,
+        "mean": 1.226090633296432,
+        "min": 1.1730090000128257,
+        "p05": 1.1828612497538415,
+        "p50": 1.2233530001140025,
+        "p95": 1.2736153497826308,
+        "p99": 1.3314894599898253,
+        "max": 1.335269000264816
+      },
+      "transaction_ms": {
+        "n": 60,
+        "mean": 3.1020550166128182,
+        "min": 2.952126000309363,
+        "p05": 2.977486149256947,
+        "p50": 3.1093785000848584,
+        "p95": 3.2028197506406286,
+        "p99": 3.2503236501361243,
+        "max": 3.264463000050455
+      },
+      "added_ms": {
+        "n": 60,
+        "mean": 1.8759643833163864,
+        "min": 1.7078179998861742,
+        "p05": 1.7672068497631699,
+        "p50": 1.881840500573162,
+        "p95": 1.9882888003394328,
+        "p99": 1.9986549200530135,
+        "max": 2.0020250003653928
+      },
+      "total_ms": {
+        "n": 60,
+        "mean": 14.181546866605762,
+        "min": 13.576721999925212,
+        "p05": 13.616169949909818,
+        "p50": 14.30568149953615,
+        "p95": 14.667127949405767,
+        "p99": 14.786441750329686,
+        "max": 14.82955600022251
+      }
+    },
+    "stale_rejection": {
+      "legacy_ms": {
+        "n": 180,
+        "mean": 2.1682588221816936,
+        "min": 2.0880170004602405,
+        "p05": 2.1046680498784553,
+        "p50": 2.1619829994961037,
+        "p95": 2.2603056004754762,
+        "p99": 2.283954100048504,
+        "max": 2.295934999892779
+      },
+      "transaction_ms": {
+        "n": 180,
+        "mean": 0.20511508333685116,
+        "min": 0.15552300010313047,
+        "p05": 0.16205225006160617,
+        "p50": 0.21115750041644787,
+        "p95": 0.23360550021607196,
+        "p99": 0.2444483705585299,
+        "max": 0.2524740002627368
+      },
+      "added_ms": {
+        "n": 180,
+        "mean": -1.9631437388448427,
+        "min": -2.112533999934385,
+        "p05": -2.065108100305224,
+        "p50": -1.9505309992382536,
+        "p95": -1.8918646006113704,
+        "p99": -1.8773172800047178,
+        "max": -1.871114999630663
+      },
+      "total_ms": {
+        "n": 180,
+        "mean": 11.27109426110514,
+        "min": 11.051539000618504,
+        "p05": 11.106021049454284,
+        "p50": 11.254574999838951,
+        "p95": 11.46730939972258,
+        "p99": 11.59534088988039,
+        "max": 11.661700999866298
+      }
+    }
+  },
+  "deadline_misses": 0,
+  "worst": {
+    "fixture": "static_10001",
+    "repeat": 15,
+    "legacy_ms": 1.2097910002921708,
+    "transaction_ms": 3.1318780002038693,
+    "added_ms": 1.9220869999116985,
+    "planner_ms": 11.69767800001864,
+    "total_ms": 14.82955600022251
+  },
+  "scope": "saved snapshots and one 50 ms execution step only; no completion/safety or full holdout claim",
+  "contracts": {
+    "passed": [
+      "A_fresh_prediction_atomic_replacement",
+      "B_fresh_set_add_and_remove",
+      "C_construction_failure_no_motion_admission",
+      "D_stale_generation_revalidation_replacement_admission_blocked",
+      "E_stale_to_fresh_recovery",
+      "F_late_observation_cannot_replace_newer",
+      "G_obstacle_set_version_cannot_roll_back",
+      "H_queue_generation_binding_and_transaction_append",
+      "coordinate_and_clock_reset_fail_closed",
+      "deadline_keeps_old_absolute_reserve",
+      "freshness_threshold_unchanged_150ms",
+      "timestamp_order_checked"
+    ],
+    "count": 12,
+    "admission_checks": 13,
+    "accepted_without_valid_backup": 0,
+    "note": "Assertions at every positive/negative admission; no episode safety claim"
+  },
+  "environment": {
+    "platform": "Linux-7.0.0-38-generic-x86_64-with-glibc2.39",
+    "python": "3.12.3",
+    "affinity": [
+      0
+    ]
+  },
+  "consumer_usage": {
+    "current": {
+      "cpu_s": 0.33,
+      "peak_rss_mib": 3.796875
+    },
+    "legacy": {
+      "cpu_s": 0.26,
+      "peak_rss_mib": 3.8984375
+    },
+    "planner": {
+      "cpu_s": 2.48,
+      "peak_rss_mib": 4.04296875
+    }
+  },
+  "harness_contracts": [
+    {
+      "case": "prediction",
+      "control_ticks": 3,
+      "accepted_without_valid_backup": 0,
+      "admission": [
+        true,
+        true,
+        true
+      ],
+      "validity": [
+        "valid",
+        "prediction_changed",
+        "valid"
+      ],
+      "ended_by_test_bound": true,
+      "completion_claim": false,
+      "total_cycle_ms": {
+        "n": 3,
+        "mean": 19.972152333139093,
+        "min": 18.649057999937213,
+        "p05": 18.71346199995969,
+        "p50": 19.29309800016199,
+        "p95": 21.706180699402466,
+        "p99": 21.920676939334953,
+        "max": 21.974300999318075
+      }
+    },
+    {
+      "case": "set",
+      "control_ticks": 3,
+      "accepted_without_valid_backup": 0,
+      "admission": [
+        true,
+        true,
+        true
+      ],
+      "validity": [
+        "valid",
+        "obstacle_set_changed",
+        "valid"
+      ],
+      "ended_by_test_bound": true,
+      "completion_claim": false,
+      "total_cycle_ms": {
+        "n": 3,
+        "mean": 17.072682666973076,
+        "min": 14.923165000254812,
+        "p05": 15.209021100235987,
+        "p50": 17.781726000066556,
+        "p95": 18.440013900544727,
+        "p99": 18.49852838058723,
+        "max": 18.513157000597857
+      }
+    },
+    {
+      "case": "stale_recovery",
+      "control_ticks": 3,
+      "accepted_without_valid_backup": 0,
+      "admission": [
+        true,
+        false,
+        true
+      ],
+      "validity": [
+        "valid",
+        "stale_observation",
+        "valid"
+      ],
+      "ended_by_test_bound": true,
+      "completion_claim": false,
+      "total_cycle_ms": {
+        "n": 3,
+        "mean": 16.916925333437877,
+        "min": 12.056245999701787,
+        "p05": 12.75955859973692,
+        "p50": 19.089372000053118,
+        "p95": 19.55357940050817,
+        "p99": 19.59484228054862,
+        "max": 19.60515800055873
+      }
+    }
+  ],
+  "decision": "Go-to-holdout-rerun",
+  "decision_scope": "Software contracts and saved fixture snapshots only; full rerun not started; frozen holdout Stop unchanged.",
+  "input_checks": {
+    "causality": 1200,
+    "frozen_input_parity": 960,
+    "initial_certificate_gate": true
+  },
+  "archive_commit": "f1203c3949f8d48237a9ea0125c895f7f5a8ef2c",
+  "final_reason_confirmation": {
+    "transactions": 12,
+    "accepted_without_valid_backup": 0,
+    "stale_admissions": 0,
+    "latency_ms": {
+      "legacy_ms": {
+        "n": 12,
+        "mean": 2.046479583365605,
+        "min": 1.2794770000255085,
+        "p05": 1.303069249888722,
+        "p50": 2.248817500003497,
+        "p95": 2.3792513502939983,
+        "p99": 2.424291070392428,
+        "max": 2.4355510004170355
+      },
+      "transaction_ms": {
+        "n": 12,
+        "mean": 0.9627982500054107,
+        "min": 0.177331000486447,
+        "p05": 0.17969270052162756,
+        "p50": 0.22129400031190016,
+        "p95": 3.2642320002196357,
+        "p99": 3.280881600221619,
+        "max": 3.285044000222115
+      },
+      "added_ms": {
+        "n": 12,
+        "mean": -1.0836813333601942,
+        "min": -2.250068000648753,
+        "p05": -2.19436785068865,
+        "p50": -2.0442524996724387,
+        "p95": 1.9649467503313645,
+        "p99": 1.967170950219952,
+        "max": 1.9677270001920988
+      },
+      "planner_ms": {
+        "n": 12,
+        "mean": 11.613597583239729,
+        "min": 11.133433999930276,
+        "p05": 11.270116700097788,
+        "p50": 11.582038999677025,
+        "p95": 12.087218049919102,
+        "p99": 12.381159609749375,
+        "max": 12.454644999706943
+      },
+      "total_ms": {
+        "n": 12,
+        "mean": 12.576395833245138,
+        "min": 11.563573000785254,
+        "p05": 11.612133600465313,
+        "p50": 11.835438999241887,
+        "p95": 15.295326749765081,
+        "p99": 15.59040614956757,
+        "max": 15.664175999518193
+      }
+    },
+    "deadline_misses": 0,
+    "note": "After correcting construction-failure reason propagation; each saved fixture replayed once. Original 240 timing samples retained, no selection by latency."
+  }
+}

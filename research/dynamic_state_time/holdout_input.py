@@ -46,7 +46,14 @@ class CausalInput:
             for a,v in zip(actors,velocities):a[2:4]=v
         current=[[a[0],a[1],a[4]] for a in actors]
         predicted=[[x+vx*(t-source),y+vy*(t-source),vx,vy,r] for x,y,vx,vy,r in actors]
+        # Synthetic input transport metadata; versions change only on a delivered
+        # set/identity change. This does not add tracking or alter actor states.
+        set_version = int(changed) if d['kind']=='id_relabel' else 0
+        if d['kind']=='occlusion':
+            set_version = int(source>=d['start_s']) + int(source>=d['start_s']+d['duration_s'])
+        receive_time = min(t,d['start_s']) if d['kind']=='stale' and d['start_s']<=t<d['start_s']+d['duration_s'] else t
         metadata=dict(source_epoch=source,source_version=round((source+10)*1000000),
+                      receive_time=receive_time,obstacle_set_version=set_version,
                       age_s=t-source,track_ids=ids,evaluation_actor_indices=indices,
                       source_states=actors,kind=d['kind'])
         return current,predicted,metadata

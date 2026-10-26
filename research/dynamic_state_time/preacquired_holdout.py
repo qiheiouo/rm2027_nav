@@ -47,7 +47,7 @@ def main():
         print(f"{i+1}/{len(jobs)} {case['id']} {case['mode']} {arm}",flush=True)
         r=trial(args.build,out,arm,'normal',full_episode=True,cfg=case['scene'],observation_source=CausalInput(case))
         r.update(id=out.name,case_id=case['id'],category=case['category'],seed=case['seed'],input_mode=case['mode'],disturbance=case['input'])
-        r['terminated_on_invalidation']=bool(arm=='C1' and r['invalid'])
+        r['terminated_on_invalidation']=r.get('terminated_on_invalidation',False)
         r['collision_observation_censored']=bool(r['terminated_on_invalidation'] or r.get('status')=='initialization_unavailable')
         results.append(r)
         (args.output/'results.json').write_text(json.dumps(results,indent=2)+'\n')

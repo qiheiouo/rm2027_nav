@@ -10,8 +10,17 @@ V control_at(const J&events,double t,V initial){
   return initial;
 }
 J ordered(J events){std::stable_sort(events.begin(),events.end(),[](const J&a,const J&b){return a[0].get<double>()<b[0].get<double>();});return events;}
+// One contract for generation, revalidation and admission (simulation clock).
+std::string freshness(const J&q){
+  double now=q.at("epoch"),source=q.at("source_epoch"),received=q.at("receive_time");
+  if(!std::isfinite(now)||!std::isfinite(source)||!std::isfinite(received)||
+     source>received+1e-9||received>now+1e-9)return "observation_time_invalid";
+  if(now-source>.15+1e-9)return "stale_observation";
+  return "valid";
+}
 struct ReserveChecker:Planner {
   J certify(const J&q,J events,double switch_time,const J&backup_controls){
+    if(freshness(q)!="valid")return nullptr;
     const double epoch=q["epoch"];Node n{state_from(q["state"])};
     V u=q["target"].get<V>();events=ordered(events);
     double end=std::max(epoch,events.back()[0].get<double>())+VMAX/AMAX+.31;
@@ -28,21 +37,28 @@ struct ReserveChecker:Planner {
       {"immutable_queue_version",q["queue_version"]},{"immutable_queue",q["queue"]},
       {"controls",events},{"backup_controls",backup_controls},{"switch_time",switch_time},
       {"execution_cursor",0},{"reference_states",samples},
-      {"prediction",{{"epoch",epoch},{"source_epoch",q["source_epoch"]},{"version",q["source_version"]},{"actors",q["actors"]}}},
+      {"prediction",{{"epoch",epoch},{"source_epoch",q["source_epoch"]},{"receive_time",q["receive_time"]},
+        {"version",q["source_version"]},{"obstacle_set_version",q["obstacle_set_version"]},
+        {"frame_epoch",q["frame_epoch"]},{"clock_epoch",q["clock_epoch"]},{"actors",q["actors"]}}},
       {"assumptions",{{"model","exact CV + frozen plant"},{"numerical_tolerance",1e-7},{"maximum_source_age_s",.15},{"wall",wall},
         {"dynamics",q.value("dynamics",J::array({DT,VMAX,AMAX,HX,HY}))}}},
       {"safe_rest",{{"epoch",epoch+n.t},{"state",state_json(n.s)},{"cv_ray_clearance_m",rest_clear},{"certified",true}}}};
   }
   std::string valid(const J&q,const J&b){
     if(b.is_null())return "unavailable";
-    double now=q["epoch"],age=now-q["source_epoch"].get<double>();
-    if(age<0||age>.15+1e-9)return "stale_observation";
+    auto fresh=freshness(q);if(fresh!="valid")return fresh;
+    double now=q["epoch"];
+    if(q["frame_epoch"]!=b["prediction"]["frame_epoch"])return "coordinate_reset";
+    if(q["clock_epoch"]!=b["prediction"]["clock_epoch"])return "time_reset";
     double offset=now-b["epoch"].get<double>();
     if(offset< -1e-8||std::abs(offset/DT-std::round(offset/DT))>1e-6)return "clock_mismatch";
     if(q["wall"]!=b["assumptions"]["wall"])return "geometry_changed";
     if(q.value("dynamics",J::array({DT,VMAX,AMAX,HX,HY}))!=b["assumptions"]["dynamics"])return "dynamics_changed";
     if(q["queue_version"].get<int>()<b["immutable_queue_version"].get<int>())return "queue_version_regressed";
+    if(q["queue_version"]!=b["immutable_queue_version"])return "queue_version_changed";
     if(q["source_version"].get<int>()<b["prediction"]["version"].get<int>())return "prediction_version_regressed";
+    if(q["obstacle_set_version"].get<int>()<b["prediction"]["obstacle_set_version"].get<int>())return "obstacle_set_version_regressed";
+    if(q["obstacle_set_version"]!=b["prediction"]["obstacle_set_version"])return "obstacle_set_changed";
     const auto&samples=b["reference_states"];
     auto expected=samples[std::min(size_t(std::llround(offset/DT)),samples.size()-1)];
     for(int j=0;j<4;j++)if(std::abs(q["state"][j].get<double>()-expected[j].get<double>())>1e-7)return "state_deviation";
@@ -55,6 +71,9 @@ struct ReserveChecker:Planner {
     V expected_u=control_at(b["controls"],now-DT/2,b["initial_target"].get<V>());
     V actual=q["target"].get<V>();
     if(std::hypot(expected_u[0]-actual[0],expected_u[1]-actual[1])>1e-7)return "executed_command_mismatch";
+    J pending=J::array();
+    for(const auto&e:b["immutable_queue"])if(e[0].get<double>()>=now-DT/2-1e-9)pending.push_back(e);
+    if(pending!=q["queue"])return "immutable_queue_mismatch";
     for(const auto&e:q["queue"]){
       V v=control_at(b["controls"],e[0],b["initial_target"].get<V>());
       if(std::hypot(v[0]-e[1].get<double>(),v[1]-e[2].get<double>())>1e-7)return "immutable_queue_mismatch";
@@ -65,7 +84,11 @@ struct ReserveChecker:Planner {
     auto begin=std::chrono::steady_clock::now();actors.clear();wall=q["wall"];
     for(const auto&a:q["actors"])actors.push_back({a[0],a[1],a[2],a[3],a[4]});
     std::string op=q["op"],reason="unavailable";J cert=nullptr;
+    if(op=="freshness")return {{"reason",freshness(q)}};
     if(op=="validate")return {{"reason",valid(q,q["backup"])},{"stationary_refuge",refuge(Node{state_from(q["state"])})}};
+    reason=freshness(q);
+    if(reason!="valid")return {{"reason",reason},{"certificate",nullptr},{"available",false}};
+    reason="unavailable";
     Node n{state_from(q["state"])};V u=q["target"].get<V>();double epoch=q["epoch"];
     J events=ordered(q["queue"]);bool ok=true;
     for(int k=0;k<10&&ok;k++){u=control_at(events,epoch+n.t+DT/2,u);ok=segment(n,u,1);}

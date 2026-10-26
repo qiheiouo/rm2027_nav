@@ -13,6 +13,7 @@ from pathlib import Path
 import time
 from run import Consumer, hold_ttc
 from world import advance, actors_at, clearance, observed, static_grid, stats
+from certificate_lifecycle import CertificateLifecycle
 
 ROOT = Path(__file__).resolve().parent
 FIXTURE = json.loads((ROOT / "results/failure_fixture.json").read_text())
@@ -31,7 +32,8 @@ def at(events, stamp, initial):
 def question(state, target, queue, epoch, actors, version, slot, wall=None):
     return dict(state=state, target=target, queue=queue, epoch=epoch,
                 actors=actors, wall=FIXTURE["wall"] if wall is None else wall, queue_version=version,
-                source_epoch=epoch-.1, source_version=slot, dynamics=[.01,.5,.8,.355,.330])
+                source_epoch=epoch-.1, source_version=slot, receive_time=epoch,
+                obstacle_set_version=0, frame_epoch=0, clock_epoch=0, dynamics=[.01,.5,.8,.355,.330])
 
 
 def compact(backup, epoch):
@@ -117,10 +119,11 @@ def sanity(build, out):
             c.close()
 
 
-def trial(build, out, arm, condition, full_episode=False, cfg=None, observation_source=None):
+def trial(build, out, arm, condition, full_episode=False, cfg=None, observation_source=None, max_control_steps=None):
     name = f"{arm}_{condition}"
     planner = Consumer(build/"search_baseline", "search", out/f"{name}_planner.log")
     checker = None if arm == "B" else Consumer(build/"reserve_consumer", "reserve", out/f"{name}_reserve.log")
+    transaction = CertificateLifecycle(checker) if arm == "C1" else None
     cpu0 = planner.usage()[0] + (checker.usage()[0] if checker else 0)
     own_cpu = time.process_time()
     if cfg is not None and not full_episode:
@@ -159,8 +162,8 @@ def trial(build, out, arm, condition, full_episode=False, cfg=None, observation_
             _, initial_actors, input_metadata = input_at(epoch)
             rq = question(state, target, queue, epoch, initial_actors, queue_version, slot, cfg["wall"])
             if input_metadata:
-                rq.update(source_epoch=input_metadata["source_epoch"], source_version=input_metadata["source_version"])
-            t0 = time.perf_counter(); initial = checker.call(rq | {"op": "init"})
+                rq.update({k: input_metadata[k] for k in ("source_epoch", "source_version", "receive_time", "obstacle_set_version")})
+            t0 = time.perf_counter(); initial = transaction.initialize(rq) if transaction else checker.call(rq | {"op": "init"})
             init_ms = (time.perf_counter()-t0)*1000
             intrinsic.append(init_ms)
             if initial["available"] and init_ms <= 50:
@@ -192,21 +195,23 @@ def trial(build, out, arm, condition, full_episode=False, cfg=None, observation_
                 _, actors, input_metadata = input_at(epoch)
                 rq = question(state, target, queue, epoch, actors, queue_version, slot, cfg["wall"])
                 if input_metadata:
-                    rq.update(source_epoch=input_metadata["source_epoch"], source_version=input_metadata["source_version"])
+                    rq.update({k: input_metadata[k] for k in ("source_epoch", "source_version", "receive_time", "obstacle_set_version")})
                 validity_ms = 0.; validation_ms = 0.; validity = "not_held"
                 lifecycle_start = len(lifecycle)
-                if arm == "C1" and backup is not None:
-                    vr = checker.call(rq | {"op": "validate", "backup": backup})
-                    validity_ms = vr["roundtrip_ms"]; validity = vr["reason"]
+                if arm == "C1":
+                    valid_begin = time.perf_counter()
+                    vr = transaction.begin(rq)
+                    validity_ms = (time.perf_counter()-valid_begin)*1000
+                    validity = vr["reason"]
                     if validity != "valid":
-                        invalid.append({"t": epoch, "reason": validity, "id": backup["id"]})
-                        transition("INVALID", validity)
-                        backup = None
+                        invalid.append({"t": epoch, "reason": validity, "id": backup["id"] if backup else None})
+                        transition("INVALID" if backup else "UNAVAILABLE", validity)
+                        # Retain the object until commit; it no longer authorizes dispatch.
                     else:
                         held_cycles += 1
                         backup["execution_cursor"] = sum(e[0] <= epoch+1e-8 for e in backup["controls"])
                         transition("REVALIDATED", "measured_state_queue_and_CV_agree",
-                                   cursor=backup["execution_cursor"], observation_version=slot)
+                                   cursor=backup["execution_cursor"], observation_version=rq["source_version"])
                         actual_phase = "SAFE_REST" if vr["stationary_refuge"] else (
                             "EXECUTING_BACKUP" if owner and owner["backup"] else "HELD")
                         if actual_phase != phase:
@@ -229,7 +234,7 @@ def trial(build, out, arm, condition, full_episode=False, cfg=None, observation_
                     forced = condition == "late" and slot % 6 == 5
                     # Late output is never used for admission, even though its values can be logged.
                     if checker and not forced and plan_ms <= 50:
-                        cr = checker.call(rq | {"op": "admit", "command": proposal["command"], "backup": backup})
+                        cr = transaction.prepare(proposal["command"]) if transaction else checker.call(rq | {"op": "admit", "command": proposal["command"], "backup": None})
                         validation_ms = cr["roundtrip_ms"]
                         candidate = cr["certificate"]; reason = cr["reason"]
                     elif arm == "B":
@@ -243,47 +248,53 @@ def trial(build, out, arm, condition, full_episode=False, cfg=None, observation_
                     observed_misses += int(response_ms > 50)
                     late = response_ms > 50
                     busy_until = epoch+response_ms/1000
-                    if late:
-                        reason = "planner_deadline_rejected"
-                        if arm != "C1":
+                    if arm != "C1":
+                        if late:
+                            reason = "planner_deadline_rejected"
                             queue.append([epoch+response_ms/1000+.05, 0., 0.]); queue_version += 1
                             timeout_brakes += 1
                             previous = [[epoch+response_ms/1000+.05, 0., 0.]]
-                    elif arm == "B" or candidate is not None:
-                        admitted = True; accepted += 1
-                        previous = [[epoch+e[0], *e[1:]] for e in proposal["schedule"]]
-                        if arm == "C1":
-                            old = compact(backup, epoch); backup_id += 1
-                            backup = candidate; backup["id"] = backup_id
-                            backup["lineage"] = old["lineage"] if old and reason=="splice_old" else backup_id
-                            backup["acquired_epoch"] = old["acquired_epoch"] if old and reason=="splice_old" else epoch
-                            replacements.append({"t": epoch, "old_switch": old["switch_time"] if old else None,
-                                                 "new_switch": backup["switch_time"], "reason": reason})
-                            transition("REPLACED", reason, parent_id=old["id"] if old else None,
-                                       lineage=backup["lineage"], old_switch=old["switch_time"] if old else None,
-                                       new_switch=backup["switch_time"])
-                        else:
+                        elif arm == "B" or candidate is not None:
+                            admitted = True; accepted += 1
+                            previous = [[epoch+e[0], *e[1:]] for e in proposal["schedule"]]
                             queue.append([epoch+.1, *proposal["command"]]); queue_version += 1
-                    else:
-                        rejected += 1
-                        if arm == "C0":
+                        else:
+                            rejected += 1
                             queue.append([epoch+.1, 0., 0.]); queue_version += 1
-                    if not admitted:
-                        events.append({"t": epoch, "reason": reason, "backup_id": backup["id"] if backup else None})
-                        if arm == "C1" and backup is not None:
-                            transition("HELD", "proposal_rejected_keep_reserve", rejection=reason)
                 else:
                     maintenance_lat.append((time.perf_counter()-begin)*1000)
+                transaction_record = None
                 if arm == "C1":
-                    if backup is not None:
-                        command = at(backup["controls"], epoch+.1, backup["initial_target"])
-                        from_backup = epoch+.1 >= backup["switch_time"]-1e-8
-                        active_exec += int(from_backup); late_exec += int(from_backup and (not available or response_ms and response_ms > 50))
-                    else:
-                        command = [0., 0.]; from_backup = False
-                    queue.append([epoch+.1, *command]); queue_version += 1
-                    owners[round(epoch+.1,10)] = dict(backup=from_backup, id=backup["id"] if backup else None,
-                                                    lineage=backup["lineage"] if backup else None)
+                    old = compact(backup, epoch)
+                    chosen = candidate if available and not late else None
+                    tr = transaction.finish(chosen, deadline=begin+.05)
+                    admitted = tr["accepted"]
+                    backup = tr["certificate"]
+                    queue, queue_version = tr["queue"], tr["queue_version"]
+                    from_backup = tr["from_backup"]
+                    if admitted:
+                        accepted += 1; backup_id += 1
+                        backup["id"] = backup_id
+                        backup["lineage"] = old["lineage"] if old and reason=="splice_old" else backup_id
+                        backup["acquired_epoch"] = old["acquired_epoch"] if old and reason=="splice_old" else epoch
+                        previous = [[epoch+e[0], *e[1:]] for e in proposal["schedule"]]
+                        replacements.append({"t":epoch,"old_switch":old["switch_time"] if old else None,
+                                             "new_switch":backup["switch_time"],"reason":reason})
+                        transition("REPLACED",reason,parent_id=old["id"] if old else None,
+                                   lineage=backup["lineage"],old_switch=old["switch_time"] if old else None,
+                                   new_switch=backup["switch_time"])
+                    elif proposal is not None:
+                        rejected += 1
+                        reason = ("planner_deadline_rejected" if late else
+                                  tr["reason"] if candidate is not None or tr["reason"]!="valid" else reason)
+                        events.append({"t":epoch,"reason":reason,"backup_id":backup["id"] if backup else None})
+                        transition("HELD" if tr["authorized"] else tr["state"],reason)
+                    if tr["authorized"]:
+                        active_exec += int(from_backup)
+                        late_exec += int(from_backup and (not available or response_ms and response_ms>50))
+                        owners[round(epoch+.1,10)] = dict(backup=from_backup,id=backup["id"],lineage=backup["lineage"])
+                    transaction_record = {k:tr[k] for k in ("accepted","authorized","state","source_epoch","receive_time",
+                                                            "age_s","certificate_source_version")}
                 else:
                     from_backup = False
                 queue.sort(key=lambda e: e[0])
@@ -294,23 +305,13 @@ def trial(build, out, arm, condition, full_episode=False, cfg=None, observation_
                     intrinsic_misses += int(full_ms>50)-int(compute_ms>50)
                     response_ms = max(full_ms, 80. if forced else 0.)
                     response_lat[-1] = response_ms
-                    if admitted and full_ms>50:
+                    if arm != "C1" and admitted and full_ms>50:
                         # Roll back the still-private draft, never an already executed queue entry.
                         backup, previous = old_backup, old_previous
                         queue, queue_version = old_queue, old_queue_version
                         admitted = False; accepted -= 1; observed_misses += int(not late)
                         reason = "transaction_deadline_rejected"
-                        if arm == "C1":
-                            replacements.pop()
-                            lifecycle[:] = [e for e in lifecycle[:lifecycle_start]] + [e for e in lifecycle[lifecycle_start:] if e["state"]!="REPLACED"]
-                            command = at(backup["controls"],epoch+.1,backup["initial_target"]) if backup else [0.,0.]
-                            from_backup = backup is not None and epoch+.1>=backup["switch_time"]-1e-8
-                            queue.append([epoch+.1,*command]);queue_version += 1
-                            owners[round(epoch+.1,10)] = dict(backup=from_backup,id=backup["id"] if backup else None,
-                                                            lineage=backup["lineage"] if backup else None)
-                            transition("HELD", reason)
-                        else:
-                            queue.append([epoch+response_ms/1000+.05,0.,0.]);queue_version += 1;timeout_brakes += 1
+                        queue.append([epoch+response_ms/1000+.05,0.,0.]);queue_version += 1;timeout_brakes += 1
                         queue.sort(key=lambda e:e[0])
                     busy_until = epoch+response_ms/1000
                 elif maintenance_lat:
@@ -327,7 +328,9 @@ def trial(build, out, arm, condition, full_episode=False, cfg=None, observation_
                 record = dict(t=epoch, state=state.copy(), target=target.copy(), queue_version=queue_version,
                               immutable_queue=copy.deepcopy(queue), proposed=proposal,
                               accepted=admitted, committed_action=proposal["command"] if admitted else None,
-                              active_backup=compact(backup, epoch), candidate_available=candidate is not None,
+                              active_backup=compact(backup, epoch) if arm != "C1" or transaction.authorized else None,
+                              retained_invalid_backup=compact(backup, epoch) if arm == "C1" and not transaction.authorized else None,
+                              certificate_transaction=transaction_record, candidate_available=candidate is not None,
                               reason=reason, validity=validity, planner_ms=plan_ms,
                               revalidation_ms=validity_ms, acquisition_replacement_ms=validation_ms,
                               backup_validation_ms=validity_ms+validation_ms, response_ms=response_ms,
@@ -362,10 +365,13 @@ def trial(build, out, arm, condition, full_episode=False, cfg=None, observation_
                     if collision: break
                 trace.write(json.dumps(record, separators=(",", ":"), allow_nan=False)+"\n")
                 slot += 1
-                if collision or (arm == "C1" and invalid): break
+                if collision or (max_control_steps is not None and slot>=max_control_steps): break
+                # Invalidation history is evidence, not a permanent abort latch.
         completed = arrival is not None and epoch >= arrival+3-1e-8 and math.dist(state[:2], cfg["goal"]) <= .15
         usage = [planner.usage()] + ([checker.usage()] if checker else [])
         result = dict(arm=arm, condition=condition, collision=collision, completion=completed,
+                      terminated_on_invalidation=False,
+                      contract_prefix_only=max_control_steps is not None,
                       minimum_clearance_m=minimum, worst=worst, arrival_s=arrival if completed else None,
                       traversal_s=arrival-start_epoch if completed else None, start_epoch_s=start_epoch,
                       end_s=epoch, wait_s=wait, stop_count=stops,
