@@ -63,6 +63,7 @@ docs/
 
 ## 运行与维护
 
+- 统一仿真：[构建、source、启动与 smoke](operations/simulation.md)（唯一推荐 Jazzy / Harmonic workflow）。
 - 环境：[Docker 用法](operations/docker_usage.md)。按实际修改范围选择验证，不默认执行其全部构建示例。
 - 总入口：[runtime profiles](operations/runtime_profiles.md)。每个 ROS domain 只选一个 operating mode。
 - 地图：[部署](operations/map_deployment.md)、[受控建图](operations/managed_mapping.md)。candidate 不等于 approved。

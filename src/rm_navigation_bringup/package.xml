@@ -30,6 +30,7 @@
   <exec_depend>rm_pursuit</exec_depend>
   <exec_depend>rm_serial_driver</exec_depend>
   <exec_depend>rm_simulation</exec_depend>
+  <exec_depend condition="$ROS_DISTRO == 'jazzy'">rm_new_car_simulation</exec_depend>
   <exec_depend>rm_system_monitor</exec_depend>
   <exec_depend>ros2bag</exec_depend>
 

@@ -1,6 +1,9 @@
 # rm_simulation
 
-Phase 1.5 Gazebo Fortress simulation boundary for the 2027 sentry.
+Historical Humble / Gazebo Fortress simulation components for the 2027 sentry.
+The supported Jazzy/Harmonic workflow is [unified simulation](../../docs/operations/simulation.md).
+The former top-level scenario dispatcher is now `humble_scenarios.launch.py` in this package.
+The commands and results below describe the historical Fortress environment only.
 
 The first milestone intentionally contains only:
 
@@ -45,7 +48,7 @@ fixtures at the same candidate positions so the geometry is visible in the
 GUI; the points remain synthetic and do not come from the Gazebo GPU lidar.
 
 ```bash
-ros2 launch rm_navigation_bringup simulation.launch.py \
+ros2 launch rm_simulation humble_scenarios.launch.py \
   scenario:=ramp_perception headless:=false use_rviz:=true
 ```
 

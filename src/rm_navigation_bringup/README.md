@@ -30,18 +30,11 @@ also publishes only a gated global pose. It is mutually exclusive with AMCL.
   `rm_map_tools` bundle and starts `nav2_map_server`.
 - `map_deployment.launch.py`: validates a bundle and starts only the Nav2 map
   server lifecycle. It does not own localization TF or start hardware.
-- `simulation.launch.py`: selects the basic, static-course, dynamic-course,
-  point-cloud, new-car dog-hole, or ramp-perception Gazebo scenario without
-  starting hardware.
-  The `dog_hole` scenario passes through geometry, automatic-start, and gimbal
-  motion arguments and defaults to the chassis-heading LIO fusion path. Basic,
-  course, and dog-hole MPPI simulations accept
-  `heading_policy:=baseline|path_aligned` for a reversible chassis-heading A/B.
-  `scenario:=ramp_perception` generates representative 11/15-degree returns
-  in a continuously rotating LiDAR frame, spawns matching visible Gazebo ramp
-  fixtures, and compares raw versus shadow-only expected-plane filtering. Its
-  filtered topic is deliberately not connected to Nav2. Use
-  `scenario:=dog_hole` for the separate physical tunnel scene.
+- `simulation.launch.py`: supported Jazzy/Harmonic static-scene simulation with
+  Nav2, physics-truth localization, robot model, optional Gazebo GUI and RViz.
+  See the single [build/source/run/smoke workflow](../../docs/operations/simulation.md).
+  The former Humble scenario dispatcher is preserved in
+  `rm_simulation/launch/humble_scenarios.launch.py` for historical reproduction.
 - `bag_replay.launch.py`: replays either raw sensors or backend-private raw
   odometry while preserving canonical TF ownership.
 - `mapping.launch.py`: an explicit opt-in managed mapping backend. It starts

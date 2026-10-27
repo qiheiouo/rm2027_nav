@@ -3,7 +3,14 @@
 这个包只保存面向日常使用的启动入口，不实现驱动、定位、规划、串口或行为树逻辑。
 实际节点仍由各自原包拥有，避免在用户 launch 中复制实现。
 
-## 日常入口
+## 当前仿真入口
+
+Jazzy / Harmonic 使用 [统一仿真 workflow](../../docs/operations/simulation.md) 中的
+`rm_navigation_bringup/simulation.launch.py`。本包的两个 field geometry launch 属于
+Humble / Fortress 历史组合；在 Jazzy 中安装它们不表示其硬件/旧仿真依赖已构建。
+以下命令与场地验证描述只适用于原 Humble 环境，不是当前统一仿真操作说明。
+
+## 历史 Humble 入口
 
 | 用途 | launch |
 | --- | --- |
@@ -51,7 +58,7 @@ mission。`FEATURES.add(...)` 每行都是一个模块，注释对应行即可�
 mock；同一 `serial_transport_node` 使用已确认的 `hpm_crc_v1` 接收当前下位机 45 字节
 状态帧并发布 `/referee/state_raw`。
 
-### RMUC 2026 场地仿真（两个性能入口）
+### 历史 RMUC 2026 场地仿真（Humble / Fortress）
 
 两者共用 `rmuc2026_navigation_field.sdf`、坐标、机器人模型、斜坡过滤配置和狗洞
 流程，功能上没有删减。轻量版适合当前 NUC：

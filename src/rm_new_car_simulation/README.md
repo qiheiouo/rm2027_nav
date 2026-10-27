@@ -1,12 +1,9 @@
 # rm_new_car_simulation
 
-ROS 2 Jazzy / Gazebo Harmonic 的独立新车Research候选入口。
-
-```bash
-ros2 launch rm_new_car_simulation baseline.launch.py
-ros2 launch rm_new_car_simulation baseline.launch.py field:=competition2025_reference
-ros2 launch rm_new_car_simulation baseline.launch.py lidar:=B sensors:=true use_nav2:=true
-```
+ROS 2 Jazzy / Gazebo Harmonic 仿真组件，保留现有 S2 物理和导航基线。
+日常使用只遵循 [统一仿真的 build/source/run/smoke](../../docs/operations/simulation.md)。
+`baseline.launch.py` 是底层专项测试组件；默认仍不启动 Nav2，统一入口显式启用它。
+`use_rviz` 只控制显示，不改变算法或物理模型。
 
 四轮顺序FL/FR/RL/RR；实际wheel joint速度和理想方向接触驱动车体。CAD8点polygon、轮轴和A/B原点来自保存的用户接受基线；mass/inertia/轮安装方向/摩擦/完整外参仍为假设。
 

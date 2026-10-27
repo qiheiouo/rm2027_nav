@@ -14,6 +14,11 @@
 
 两种ROS环境分别构建/运行，不相互source overlay，不同domain/partition。不能把S2的Jazzy Goal成功写成Humble全栈或真实定位通过。S2可选包不在Humble目标包集合；Humble默认全仓colcon会发现该包并缺Gazebo8，必须使用文档的目标路径，不冒充全仓构建。没有自动升级共享镜像/库。
 
+2026-10-27 统一仿真入口 `rm_navigation_bringup/simulation.launch.py` 复用上述 S2 owner、
+消息与命令路由，显式开启 Nav2，场景选已有 `rules2026_course` 静态测试场，支持 RViz。
+它与 `new_car_software.launch.py mode:=s2` 的平地专项入口互斥；两者都不启动真实定位或硬件。
+构建/启动和本轮静态场景验证见[统一仿真](../operations/simulation.md)，不改变原物理/导航算法及接受边界。
+
 ## 第一版真实新车候选链（尚不执行）
 
 | 边界/owner | 源码实际候选 | 未闭合条件 |

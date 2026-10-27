@@ -63,6 +63,8 @@
 
 ## Simulation-Only Topics
 
+下表为原 Humble/Fortress Phase 1.5 链；当前 Jazzy 统一入口使用文末 S2 补充，不能混用两套 owner。
+
 | Topic | Type | Producer | Consumer | Meaning |
 | --- | --- | --- | --- | --- |
 | `/simulation/chassis/cmd_vel` | `geometry_msgs/msg/Twist` | `chassis_interface_stub` in simulation mode | `ros_gz_bridge`, Gazebo chassis | Limited and watchdog-protected simulation command; not a real-hardware API |
@@ -248,3 +250,14 @@ No new motion, serial or TF owner is introduced by this interface.
 ## 新车软件基线补充（2026-10-12）
 
 实际S2 controller/behavior→cmd_vel_nav→velocity_smoother→cmd_vel→模拟车，唯一最终publisher已在定向smoke核对。LocalizationStatus保持完整AUD-001接口；S2不把truth生成该状态。V2 codec测试单独运行，无Nav2/Goal→serial链或硬件授权。候选source、无mode来源和禁用功能见[合同](new_car_software_20261012.md)。
+
+当前统一入口 `rm_navigation_bringup/simulation.launch.py` 采用同一 S2 路由：
+
+| Topic | Type | Producer → Consumer | Meaning |
+| --- | --- | --- | --- |
+| `/simulation/ground_truth/odom` | `nav_msgs/msg/Odometry` | Gazebo bridge → `new_car_simulation_truth_tf` | 物理真值原始输入，不是 LIO |
+| `/odometry/simulation` | `nav_msgs/msg/Odometry` | 唯一 simulation oracle → Nav2 / RViz | `odom` / `base_link`，米/弧度，Gazebo clock |
+| `/points/simulation_raw` | `sensor_msgs/msg/PointCloud2` | Gazebo bridge → RViz / smoke | `sim_lidar_link`，GPU LiDAR 几何代理；不接 Nav2 obstacle layer |
+| `/map` | `nav_msgs/msg/OccupancyGrid` | map_server → Nav2 / RViz | `map`，同 revision 静态场景的保守投影 |
+
+`/cmd_vel` 仍由 velocity_smoother 唯一发布，bridge 只发送到模拟底盘；不经过真实串口。

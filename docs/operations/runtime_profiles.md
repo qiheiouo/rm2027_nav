@@ -136,25 +136,17 @@ intentionally expose no PCD path.
 
 ## Simulation
 
-```bash
-ros2 launch rm_navigation_bringup simulation.launch.py \
-  scenario:=basic headless:=true
-```
+当前统一入口为 `rm_navigation_bringup/simulation.launch.py`，运行环境固定为
+Jazzy / Gazebo Harmonic。Build、source、启动与 headless/RViz smoke 的唯一操作说明见
+[统一仿真](simulation.md)。默认启动静态测试场、仿真真值 TF/odometry、地图、Nav2、
+模拟底盘、LiDAR 代理和 RViz；不启动真实 MID360、串口或 referee IO。
 
-Available scenarios are `basic`, `course_static`, `course_dynamic`,
-`pointcloud`, and `dog_hole`. The `dog_hole` scenario starts the new-car
-placeholder, rotating-gimbal chassis-heading LIO fusion, Nav2, and the dedicated
-tunnel controller; it never starts real serial or MID360 IO.
-The MPPI-backed `basic`, course, and `dog_hole` scenarios also accept
-`heading_policy:=baseline|path_aligned`; the default remains `baseline` until
-the documented A/B gate is complete.
-Simulation never starts the real MID360 driver, serial, or referee interface.
-The dynamic course is a regression tool, not proof of real competition dynamic
-obstacle safety.
+TF 由 S2 physics oracle 和 robot_state_publisher 分工持有，不启动 canonical LIO adapter
+或第二套定位源。Nav2 继续使用现有 static + inflation；没有加入动态导航功能。
+该场景只证明静态平地软件链，不能提升真实定位/硬件/多层场地结论。
 
-`scenario:=pointcloud` disables the simulation `/scan` adapter and publishes a
-synthetic `PointCloud2` obstacle on `/points/obstacles`. It validates the Nav2
-VoxelLayer boundary before real MID360 data is available.
+原 Humble/Fortress `scenario:=...` 分发保存在
+`rm_simulation/humble_scenarios.launch.py`，仅作为历史专项复验入口，不能与本 profile 同图运行。
 
 ## Bag Replay
 

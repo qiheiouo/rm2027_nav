@@ -7,6 +7,7 @@ from ament_index_python.packages import get_package_share_directory, get_package
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, ExecuteProcess, OpaqueFunction, LogInfo
 from launch.substitutions import LaunchConfiguration
+from launch.conditions import IfCondition
 from launch_ros.actions import Node
 
 
@@ -52,6 +53,10 @@ def setup(context):
         'publish_truth_tf':LaunchConfiguration('publish_truth_tf').perform(context)=='true'}],output='screen'),
       Node(package='robot_state_publisher',executable='robot_state_publisher',parameters=[{'robot_description':(output/'robot.urdf').read_text(),
         'use_sim_time':True,'publish_frequency':100.}],output='screen')]
+    nodes.append(Node(package='rviz2', executable='rviz2', name='rviz2',
+        arguments=['-d', str(root/'config/simulation.rviz')],
+        parameters=[{'use_sim_time': True}],
+        condition=IfCondition(LaunchConfiguration('use_rviz')), output='screen'))
     if LaunchConfiguration('use_nav2').perform(context)=='true':
         config=Path(get_package_share_directory('rm_nav_config'))/'config/nav2_phase1_5_mppi.yaml'
         data=yaml.safe_load(config.read_text())
@@ -98,6 +103,7 @@ def generate_launch_description():
       DeclareLaunchArgument('profile',default_value='deformed',choices=['deformed','undeformed']),
       DeclareLaunchArgument('sensors',default_value='false'),
       DeclareLaunchArgument('headless',default_value='true'),
+      DeclareLaunchArgument('use_rviz',default_value='false'),
       DeclareLaunchArgument('use_nav2',default_value='false'),
       DeclareLaunchArgument('publish_truth_tf',default_value='true'),
       DeclareLaunchArgument('physics_config',default_value=''),

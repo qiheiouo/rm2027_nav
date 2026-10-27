@@ -30,8 +30,17 @@ def main():
     p=argparse.ArgumentParser();p.add_argument('--output',type=Path,required=True);p.add_argument('--no-nav2',action='store_true')
     p.add_argument('--no-sensors',action='store_true')
     p.add_argument('--software-entry',action='store_true')
+    p.add_argument('--unified',action='store_true',help='Test the supported rm_navigation_bringup simulation entry')
+    p.add_argument('--rviz',action='store_true',help='Include RViz in the unified-entry smoke (requires a display)')
     args=p.parse_args();args.output.mkdir(parents=True,exist_ok=True)
     log=(args.output/'launch.log').open('w')
+    if args.rviz and not args.unified: p.error('--rviz requires --unified')
+    if args.unified and args.software_entry: p.error('select only one launch entry')
+    if args.unified and args.no_nav2: p.error('the unified profile always includes Nav2')
+    os.environ['ROS_DOMAIN_ID']=str(50+os.getpid()%100)
+    os.environ['ROS_AUTOMATIC_DISCOVERY_RANGE']='LOCALHOST'
+    os.environ['GZ_PARTITION']=f'rm2027-smoke-{os.getpid()}'
+    os.environ['ROS_LOG_DIR']=str(args.output/'ros_log')
     env=dict(os.environ)
     command=['ros2','launch','rm_new_car_simulation','baseline.launch.py',
       'sensors:='+str(not args.no_sensors).lower(),'use_nav2:='+str(not args.no_nav2).lower(),'spawn:=-3,-3,.002,0,0,0',
@@ -39,8 +48,13 @@ def main():
     if args.software_entry:
         if not args.no_sensors or args.no_nav2:raise ValueError('software entry is Nav2 with no synthetic lidar')
         command=['ros2','launch','rm_navigation_bringup','new_car_software.launch.py','mode:=s2','enable_test:=true','output:='+str(args.output/'scene')]
+    if args.unified:
+        command=['ros2','launch','rm_navigation_bringup','simulation.launch.py',
+            'headless:=true','use_rviz:='+str(args.rviz).lower(),
+            'sensors:='+str(not args.no_sensors).lower(),'output:='+str(args.output/'scene')]
+    rclpy.init()
     child=subprocess.Popen(command,stdout=log,stderr=subprocess.STDOUT,env=env,start_new_session=True)
-    rclpy.init();node=Node('new_car_baseline_smoke');clouds=[];poses=[];maps=[];transform_errors=[]
+    node=Node('new_car_baseline_smoke');clouds=[];poses=[];maps=[];transform_errors=[]
     buffer=Buffer();listener=TransformListener(buffer,node)
     sub=node.create_subscription(PointCloud2,'/points/simulation_raw',clouds.append,10)
     odom=node.create_subscription(Odometry,'/simulation/ground_truth/odom',poses.append,20)
@@ -79,6 +93,17 @@ def main():
         if maps:
             m=maps[-1];result['map_metadata']={'frame':m.header.frame_id,'origin':[m.info.origin.position.x,m.info.origin.position.y],
               'resolution':m.info.resolution,'size':[m.info.width,m.info.height]}
+        if args.unified and maps:
+            manifest=json.loads((args.output/'scene/manifest.json').read_text())
+            with (args.output/'scene/field.pgm').open('rb') as pgm:
+                pgm.readline(); width,height=map(int,pgm.readline().split());pgm.readline()
+                expected=np.flipud(np.frombuffer(pgm.read(),dtype=np.uint8).reshape(height,width))==0
+            result['scene_revision']=manifest['revision']
+            result['static_scene_gate']=bool(manifest['field']=='rules2026_course' and
+                maps[-1].header.frame_id=='map' and
+                [maps[-1].info.width,maps[-1].info.height]==manifest['size'] and
+                abs(maps[-1].info.resolution-manifest['resolution_m'])<1e-6 and
+                np.array_equal(np.asarray(maps[-1].data).reshape(height,width)==100,expected))
         result['nav2_action_ready']=action.server_is_ready()
         if not args.no_nav2 and action.server_is_ready():
             state_client=node.create_client(GetState,'/bt_navigator/get_state')
@@ -140,17 +165,48 @@ def main():
         result['tf_owner_gids']=owners
         result['tf_owner_gate']=all(len(owners.get(e,[]))==1 for e in ('map>odom','odom>base_link'))
         result['node_graph']=[list(x) for x in node.get_node_names_and_namespaces()]
-        result['no_serial_or_mission']=not any('serial' in name or 'mission' in name for name,ns in result['node_graph'])
+        result['no_serial_or_mission']=not any(any(key in name for key in ('serial','mission','livox','laserMapping')) for name,ns in result['node_graph'])
+        result['rviz_started']=any(name=='rviz2' for name,ns in result['node_graph'])
         result['nav2_gate']=bool(result.get('nav2_status')==4 and result.get('goal_distance_m',100)<.2 and result.get('controller_odom_gate') and result['route_gate'] and result['tf_owner_gate'] and result['no_serial_or_mission'] and result.get('behavior_gate'))
-        (args.output/'result.json').write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(result,indent=2))
+        if args.unified:
+            result['nav2_gate'] = bool(result['nav2_gate'] and result.get('static_scene_gate') and
+                (not args.rviz or result['rviz_started']))
     finally:
-        node.destroy_node();rclpy.try_shutdown();child.send_signal(signal.SIGINT)
-        try:child.wait(timeout=12)
-        except subprocess.TimeoutExpired:os.killpg(child.pid,signal.SIGTERM);child.wait(timeout=5)
+        node.destroy_node();rclpy.try_shutdown()
+        forced=False
+        if child.poll() is None: child.send_signal(signal.SIGINT)
+        try: child.wait(timeout=15)
+        except subprocess.TimeoutExpired:
+            forced=True;os.killpg(child.pid,signal.SIGTERM)
+            try: child.wait(timeout=5)
+            except subprocess.TimeoutExpired: os.killpg(child.pid,signal.SIGKILL);child.wait()
+        def remaining():
+            processes=[]
+            for path in Path('/proc').glob('[0-9]*/stat'):
+                try:
+                    stat=path.read_text(); fields=stat[stat.rfind(')')+2:].split()
+                    if int(fields[2])==child.pid and fields[0]!='Z': processes.append(int(path.parent.name))
+                except (FileNotFoundError,ProcessLookupError): pass
+            return processes
+        deadline=time.monotonic()+3
+        while remaining() and time.monotonic()<deadline:time.sleep(.1)
+        result['shutdown_residual_pids']=remaining()
+        result['clean_shutdown']=not forced and not result['shutdown_residual_pids']
+        if result['shutdown_residual_pids']:
+            os.killpg(child.pid,signal.SIGKILL)
+        result['launch_returncode']=child.returncode
         audit.terminate()
         try:audit.wait(timeout=3)
         except subprocess.TimeoutExpired:audit.kill();audit.wait()
         log.close()
+        lines=(args.output/'launch.log').read_text().splitlines()
+        result['process_errors']=[line for line in lines if 'process has died' in line]
+        result['rviz_errors']=[line for line in lines if '[rviz2' in line and '[ERROR]' in line]
+        (args.output/'result.json').write_text(json.dumps(result,indent=2)+'\n')
+        print(json.dumps(result,indent=2))
+    if not result['clean_shutdown']:raise SystemExit(3)
+    if result['process_errors'] or result['rviz_errors']:raise SystemExit(2)
+    if not args.no_sensors and not result.get('pointcloud_gate'):raise SystemExit(2)
     if not args.no_nav2 and not result.get('nav2_gate'):raise SystemExit(2)
 
 

@@ -4,6 +4,10 @@
 
 This project provides a Phase 1 ROS2 Humble Docker environment for build and minimum launch validation.
 
+The current Jazzy/Harmonic simulation uses the separate
+[unified simulation workflow](simulation.md). The Humble commands below are
+legacy hardware-stack instructions, not an alternative simulation build.
+
 The container is for development and validation only. It does not connect real MID360, serial, referee, or competition BT by default.
 
 The image installs Livox-SDK2 during `docker compose build`, so `livox_ros_driver2` can be built inside the container after the driver submodule is initialized.

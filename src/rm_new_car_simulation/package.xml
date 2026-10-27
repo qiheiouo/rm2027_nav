@@ -24,7 +24,11 @@
   <depend>tf2_msgs</depend>
   <depend>rclcpp</depend>
   <exec_depend>rosgraph_msgs</exec_depend>
+  <exec_depend>launch</exec_depend>
   <exec_depend>launch_ros</exec_depend>
+  <exec_depend>ament_index_python</exec_depend>
+  <exec_depend>rviz2</exec_depend>
+  <exec_depend>nav2_rviz_plugins</exec_depend>
   <exec_depend>nav2_controller</exec_depend>
   <exec_depend>nav2_velocity_smoother</exec_depend>
   <exec_depend>nav2_mppi_controller</exec_depend>

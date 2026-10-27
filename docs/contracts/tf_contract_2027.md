@@ -179,6 +179,10 @@ health. TF ownership and the correction equation are unchanged.
 
 S2 oracle独占map→odom与odom→base_link，RSP只发模型joint/sensor树；真值输出命名odometry/simulation，不代表定位验收。真实候选lio_adapter与global bridge各自独占对应canonical edge，必须关闭stub/oracle；动态Full-base/heading与真实外参尚未通过。见[新车软件合同](new_car_software_20261012.md)。
 
+当前 `rm_navigation_bringup/simulation.launch.py` 使用上述 S2 owner 分工，全部动态数据使用
+Gazebo `/clock` 时间域；不启动 `lio_adapter` 或 `map_odom_stub`。旧 Phase 1.5 TF 规则
+只适用于 `rm_simulation/humble_scenarios.launch.py`，两套仿真不得在同一 ROS domain 运行。
+
 ## Opt-in dynamic raw parent reference (2026-10-13)
 
 For a stable raw parent, define `R(t)=raw_parent<-sensor(t)` and

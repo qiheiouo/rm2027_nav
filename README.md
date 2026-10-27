@@ -22,6 +22,7 @@ Global localization → timestamped global pose → canonical map → odom owner
 
 ## 按任务阅读
 
+- 统一仿真：[固定构建、source、启动与 smoke](docs/operations/simulation.md)（Jazzy / Harmonic）。
 - 运行与调试：[runtime profiles](docs/operations/runtime_profiles.md)。运行组合互斥，硬件、串口和运动显式 opt-in。
 - 地图：[受控建图](docs/operations/managed_mapping.md)、[部署](docs/operations/map_deployment.md)。地图 candidate 不等于 approved。
 - 旧车操作：[比赛 bringup](docs/operations/competition_bringup.md)、[现场调试](docs/operations/field_debug_competition_tutorial.md)。

@@ -2,6 +2,7 @@
 """Explicit simulation oracle. Never claims to be LIO or wheel odometry."""
 import rclpy
 from rclpy.node import Node
+from rclpy.signals import SignalHandlerOptions
 from geometry_msgs.msg import TransformStamped
 from nav_msgs.msg import Odometry
 from tf2_ros import TransformBroadcaster, StaticTransformBroadcaster
@@ -30,7 +31,9 @@ class SimulationTF(Node):
 
 
 def main():
-    rclpy.init();node=SimulationTF()
+    # Let KeyboardInterrupt stop spin before destroying the ROS context. The
+    # default asynchronous shutdown can invalidate a subscription mid-callback.
+    rclpy.init(signal_handler_options=SignalHandlerOptions.NO);node=SimulationTF()
     try: rclpy.spin(node)
     except KeyboardInterrupt: pass
     finally: node.destroy_node();rclpy.try_shutdown()

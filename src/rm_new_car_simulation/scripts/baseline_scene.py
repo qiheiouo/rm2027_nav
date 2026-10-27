@@ -449,7 +449,7 @@ def generate(root,out,field='rules2026_course',selection='A',profile='deformed',
     obj += ['f '+' '.join(str(i+1) for i in range(n-1,-1,-1)),
             'f '+' '.join(str(i+n+1) for i in range(n))]
     visual_mesh=(out/'chassis_proxy.obj').resolve();visual_mesh.write_text('\n'.join(obj)+'\n')
-    (out/'robot.urdf').write_text(robot_urdf(cad,cfg,selection,profile,visual_mesh))
+    (out/'robot.urdf').write_text(robot_urdf(cad,cfg,selection,profile,visual_mesh.as_uri()))
     manifest=export_maps(out,triangles,cfg,revision)
     center,offset=sensor_geometry(cad,cfg,selection)
     manifest.update(robot_revision=cfg['robot_revision'],field=field,lidar_selection=selection,
