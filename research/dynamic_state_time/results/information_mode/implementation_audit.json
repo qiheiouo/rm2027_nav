@@ -1,0 +1,25 @@
+{
+  "phase1_event_evaluator_correction": {
+    "initial_stop_start_onsets": "20/24",
+    "corrected": "24/24",
+    "mode_rows_unchanged": true,
+    "mode_content_sha256": "4b3a06ebe513e461f6c3745fb25d75367087385322e558b3b4d681b7e6a52ac3",
+    "algorithm_parameters_changed": false
+  },
+  "phase2_missing_coverage_correction": {
+    "initial_supported": 577,
+    "corrected_supported": 472,
+    "removed_invalid_coverage": 105,
+    "initial_truth_unsafe": 23,
+    "corrected_truth_unsafe": 5,
+    "initial_known29_opportunities": 13,
+    "corrected_known29_opportunities": 7,
+    "admission_decisions_unchanged": true,
+    "algorithm_parameters_changed": false
+  },
+  "queue_version_audit": {
+    "supported_snapshots": 472,
+    "pretransaction_version_mismatch": 0
+  },
+  "no_closed_loop_execution": true
+}

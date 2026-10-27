@@ -1,0 +1,11 @@
+category,safe_admissions,unsafe_admissions,safe_vetoed,unsafe_vetoed,safe_admitted,unsafe_admitted,stable_success_safe_admissions,stable_success_safe_vetoed,restriction_cycles,proposals_vetoed,old_retention_supported,retained_truth_safe,retained_truth_unsafe,unsafe_veto_rate,safe_rejection_rate
+static,2846,0,54,0,2792,0,0,0,54,54,48,48,0,,0.018973998594518624
+crossing,3114,0,36,0,3078,0,3078,0,36,36,36,36,0,,0.011560693641618497
+head_on,2517,10,150,7,2367,3,0,0,206,206,36,36,0,0.7,0.05959475566150179
+stop_start,1102,96,65,13,1037,83,0,0,108,108,64,59,5,0.13541666666666666,0.05898366606170599
+sudden_turn,2697,9,72,0,2625,9,0,0,72,72,60,60,0,0.0,0.026696329254727477
+occlusion_reappearance,1906,24,147,24,1759,0,0,0,189,189,60,60,0,1.0,0.07712486883525708
+id_switch,2553,30,75,30,2478,0,0,0,108,108,60,60,0,1.0,0.02937720329024677
+prediction_error,2391,63,645,63,1746,0,0,0,778,778,36,36,0,1.0,0.2697616060225847
+stale_observation,3778,0,36,0,3742,0,0,0,102,102,36,36,0,,0.009528851244044468
+multiple,3284,0,36,0,3248,0,3248,0,36,36,36,36,0,,0.010962241169305725

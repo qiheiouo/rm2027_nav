@@ -1,0 +1,37 @@
+{
+  "stage": "Research; offline discrimination then conditional local authority replay; no closed-loop prototype",
+  "archive_commit": "5ea22d61b66fac0ba741e87e0c43ec64c2948eb4",
+  "cases": "All unchanged 120 C1 episodes in preacquired_holdout_protocol.json; no resampling",
+  "exposure": "Retrospective exploratory study. All 120 cases previously inspected; no claim of independent holdout or statistical coverage guarantee.",
+  "modes": ["STABLE_TRACK", "CHANGE_UNCERTAIN", "OCCLUDED", "STALE"],
+  "freshness_s": 0.15,
+  "residual_threshold_mps": 0.05,
+  "velocity_jump_mps": 0.3,
+  "recovery_clean_source_updates": 3,
+  "relabel_position_tolerance_m": 0.05,
+  "missing_timeout_s": 0.5,
+  "numerical_tolerance": 1e-7,
+  "parameter_rationale": "Single untuned design, not a fitted envelope: retain existing 150ms freshness and .3m/s jump diagnostic; .05m/s is an operational coherence tolerance (one tenth of robot speed limit), not a physical safety margin; 3 fresh clean differences for recovery; .05m position tolerance only for unique causal ID-rename matching, never collision geometry; missing timeout escalates unresolved status and never deletes actor.",
+  "precedence": "STALE > OCCLUDED (unmatched previously seen IDs) > CHANGE_UNCERTAIN (cold, rename, reappearance, velocity jump, residual, set/version change, recovery) > STABLE_TRACK. Flags retained even under higher priority mode.",
+  "causality": "Estimator receives only t, delivered source/receive epochs, source/set versions, track IDs and source states. No kind/category/seed/event list/truth identities/outcomes. Association and motion cannot in general be identified separately from this interface.",
+  "phase1_gate": {
+    "onset_detection_each_required_min": 0.9,
+    "first_unsafe_certificate_flagged_each_required_min": 0.5,
+    "stable_crossing_multiple_retention_after_warmup_min": 0.98,
+    "stale_freshness_agreement": 1.0,
+    "unexpected_ideal_transitions_after_warmup_max": 0,
+    "required_categories": ["stop_start", "occlusion_reappearance", "id_switch"]
+  },
+  "phase2_gate": {
+    "unsafe_admission_veto_min": 0.75,
+    "unsafe_admission_veto_each_required_min": 0.75,
+    "stable_safe_admission_rejection_max": 0.02,
+    "known29_with_veto_and_causally_authorized_backup_min": 0.5,
+    "successful_episode_restriction_fraction_max": 0.1,
+    "successful_episode_max_contiguous_restriction_s": 1.0,
+    "mode_cost_p99_ms_max": 10
+  },
+  "authority": "Only STABLE permits existing exact-CV main/certificate admission. Other modes veto new exact-CV certificates/main replacement, but never revoke an otherwise valid owned backup solely due to planner rejection. Holding a backup object is distinct from execution authority; state/queue/frame/time/coverage/assumption checks remain required. No stale renewal. No new recovery search or new certificate family implemented.",
+  "replay_limits": "Local conditional decisions on recorded measured states/immutable queues. Original admitted certificate labels are reused. Rejected/unlogged proposed backup safety and actual extra waiting are Unknown. Once a counterfactual command differs, later recorded states cannot count as a simulated policy outcome. Report prefix divergence and freeze proxy, never prevented collisions.",
+  "decision": "Go-to-prototype only if both gates and formal validity support hold. Modify if discrimination works but reserve coverage/authority remains unsupported. Stop if no meaningful discrimination or only universal refusal. Do not tune parameters after evaluation. One minimal implementation audit permitted. No automatic prototype in this request."
+}

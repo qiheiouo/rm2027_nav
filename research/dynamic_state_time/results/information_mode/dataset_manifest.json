@@ -1,0 +1,91 @@
+{
+  "dataset_id": "rm2027-information-mode-replay-20261027",
+  "root": "/home/qihei/.codex/visualizations/2026/10/25/01a1708d-d064-7252-86b0-5e92a75657dc/dynamic_information_mode_20261027/measurement_recheck",
+  "origin": "/home/qihei/.codex/visualizations/2026/10/25/01a1708d-d064-7252-86b0-5e92a75657dc/dynamic_certificate_holdout_rerun_20261026",
+  "source_manifest": "../certificate_holdout_rerun/dataset_manifest.json",
+  "certificate_label_manifest": "../uncertainty_certificate/dataset_manifest.json",
+  "generated_or_real": "derived from unchanged synthetic causal observations; no closed-loop experiment",
+  "purpose": "causal mode discrimination and conditional authority replay",
+  "filename_convention": "modes.jsonl.gz; replay detail if Phase 1 passes",
+  "protocol_sha256": "7ea468b0e4ce0759a225e85c87892b4e375605e4d78ee397e1dc9c8a1e33b9f5",
+  "required_experiment": "offline_information_mode.py test -> phase1 -> phase2 only if passed",
+  "files": [
+    {
+      "path": "authority_local.jsonl.gz",
+      "size_bytes": 582838,
+      "sha256": "3e714f77b9677bdcf22b980d6d6e07eeba7135a9113bd977da996a8852a305b2"
+    },
+    {
+      "path": "modes.jsonl.gz",
+      "size_bytes": 119144,
+      "sha256": "a346807b21c8c96dca4063815162fa3af2659af4b9c6fbda9ac27dbad5acade2"
+    }
+  ],
+  "audit_root": "/home/qihei/.codex/visualizations/2026/10/25/01a1708d-d064-7252-86b0-5e92a75657dc/dynamic_information_mode_20261027",
+  "audit_files": [
+    {
+      "path": "measurement_audit_v0/correction.json",
+      "size_bytes": 399,
+      "sha256": "e6048a0412a4479afedbeda8fcb0b126714842bd53d1a951e74190fd9c94ac17"
+    },
+    {
+      "path": "measurement_audit_v0/dataset_manifest.json",
+      "size_bytes": 1106,
+      "sha256": "ee5d1add7156759d935347162a22aedfbd76f15db1e4920599c3f4e4c792b1cc"
+    },
+    {
+      "path": "measurement_audit_v0/phase1_events.csv",
+      "size_bytes": 6680,
+      "sha256": "a3deab13a870a877e8a3551274060ae7b35b1541d57d90cf94385e08a2485319"
+    },
+    {
+      "path": "measurement_audit_v0/phase1_summary.json",
+      "size_bytes": 12242,
+      "sha256": "28d90725c8d572419daf8260b6d0dd5bfd2dc1ced8cfb3ed91e827d239b8dd9f"
+    },
+    {
+      "path": "authority_audit_v0/authority_categories.csv",
+      "size_bytes": 1072,
+      "sha256": "f791fba0f7993edbd7aa71cbff07a4ae43872d7251d1134988453bd343a608f8"
+    },
+    {
+      "path": "authority_audit_v0/authority_episodes.csv",
+      "size_bytes": 56592,
+      "sha256": "39368d3f6f69a736eacf6ae15d3bfe750fbacd582673c8bbaefd889eb7f8f5b5"
+    },
+    {
+      "path": "authority_audit_v0/authority_local.jsonl.gz",
+      "size_bytes": 583624,
+      "sha256": "a49fcafc503df57252ad30264e9d07e25634d4a78cef1bc87b172863d0008e64"
+    },
+    {
+      "path": "authority_audit_v0/correction.json",
+      "size_bytes": 321,
+      "sha256": "706f831338c7309810e8286f7a85253b5159a0071c6378b3c879e9123eb7dee6"
+    },
+    {
+      "path": "authority_audit_v0/dataset_manifest.json",
+      "size_bytes": 1292,
+      "sha256": "2cf06cd80574e5d8f92596a88ce42b2d43c9a328d10872740dafa074fdea21cc"
+    },
+    {
+      "path": "authority_audit_v0/known29_authority.csv",
+      "size_bytes": 3272,
+      "sha256": "653b1b2f9c8fe1be8f41d6a7706cf2bf579432e8b999ee9c0c5077207f8c4ebd"
+    },
+    {
+      "path": "authority_audit_v0/phase2_summary.json",
+      "size_bytes": 7420,
+      "sha256": "e24f7c5aa169a644816cca7136cda26c297f2e244d8e2b36e7a76e1a45bda301"
+    }
+  ],
+  "original_mode_trace": {
+    "path": "../modes.jsonl.gz",
+    "size_bytes": 119144,
+    "sha256": "cfac1fa73d406bdd8175719ae8d7064031de8575302d40f01d7e0988ca1cc6f8"
+  },
+  "primary_bytes": 701982,
+  "total_retained_derived_bytes": 1495146,
+  "analysis_source_sha256": "d3f413af5e5351b040d415f03dc80ec911a664cd14810df5dec4c0520d8654a9",
+  "notes": "Both initial measurements retained outside Git. Only event delivery alignment and missing-dependency contract implementation corrected; modes/parameters/admission decisions unchanged. Local snapshots after first command divergence are not closed-loop policy outcomes."
+}

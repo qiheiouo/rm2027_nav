@@ -1,0 +1,1286 @@
+{
+  "crossing_10100": [
+    {
+      "t": 0.0,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 1,
+      "issued_truth_safe": true,
+      "old_cert_id": 0,
+      "retention_supported": true,
+      "retention_reason": "old_assumptions_supported",
+      "retained_truth_clearance_m": 1.375,
+      "original_committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 0.05,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.20000000000000004,
+        0.0
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 2,
+      "issued_truth_safe": true,
+      "old_cert_id": 1,
+      "retention_supported": true,
+      "retention_reason": "old_assumptions_supported",
+      "retained_truth_clearance_m": 1.373,
+      "original_committed": [
+        0.20000000000000004,
+        0.0
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 0.1,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.24000000000000005,
+        0.0
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 3,
+      "issued_truth_safe": true,
+      "old_cert_id": 2,
+      "retention_supported": true,
+      "retention_reason": "old_assumptions_supported",
+      "retained_truth_clearance_m": 1.367,
+      "original_committed": [
+        0.24000000000000005,
+        0.0
+      ],
+      "prefix_diverged": true
+    }
+  ],
+  "head_on_10201": [
+    {
+      "t": 0.0,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 1,
+      "issued_truth_safe": true,
+      "old_cert_id": 0,
+      "retention_supported": true,
+      "retention_reason": "old_assumptions_supported",
+      "retained_truth_clearance_m": 0.09350000000000036,
+      "original_committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 0.05,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.20000000000000004,
+        0.0
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 2,
+      "issued_truth_safe": true,
+      "old_cert_id": 1,
+      "retention_supported": true,
+      "retention_reason": "old_assumptions_supported",
+      "retained_truth_clearance_m": 0.06800241911848426,
+      "original_committed": [
+        0.20000000000000004,
+        0.0
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 0.1,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.24000000000000005,
+        0.0
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 3,
+      "issued_truth_safe": true,
+      "old_cert_id": 2,
+      "retention_supported": true,
+      "retention_reason": "old_assumptions_supported",
+      "retained_truth_clearance_m": 0.09151442511552643,
+      "original_committed": [
+        0.24000000000000005,
+        0.0
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 5.05,
+      "mode": "STABLE_TRACK",
+      "proposed": [
+        0.0,
+        0.0
+      ],
+      "original_accepted": true,
+      "mode_allows": true,
+      "local_would_admit": true,
+      "issued_cert_id": 100,
+      "issued_truth_safe": true,
+      "old_cert_id": 99,
+      "retention_supported": false,
+      "retention_reason": "no_mode_veto",
+      "retained_truth_clearance_m": null,
+      "original_committed": [
+        0.0,
+        0.0
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 5.1,
+      "mode": "STABLE_TRACK",
+      "proposed": [
+        0.0,
+        0.0
+      ],
+      "original_accepted": false,
+      "mode_allows": true,
+      "local_would_admit": false,
+      "issued_cert_id": null,
+      "issued_truth_safe": null,
+      "old_cert_id": 100,
+      "retention_supported": false,
+      "retention_reason": "no_mode_veto",
+      "retained_truth_clearance_m": null,
+      "original_committed": null,
+      "prefix_diverged": true
+    },
+    {
+      "t": 5.15,
+      "mode": "STABLE_TRACK",
+      "proposed": [
+        0.0,
+        0.0
+      ],
+      "original_accepted": false,
+      "mode_allows": true,
+      "local_would_admit": false,
+      "issued_cert_id": null,
+      "issued_truth_safe": null,
+      "old_cert_id": 100,
+      "retention_supported": false,
+      "retention_reason": "no_mode_veto",
+      "retained_truth_clearance_m": null,
+      "original_committed": null,
+      "prefix_diverged": true
+    }
+  ],
+  "stop_start_10300": [
+    {
+      "t": 0.0,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 1,
+      "issued_truth_safe": true,
+      "old_cert_id": 0,
+      "retention_supported": true,
+      "retention_reason": "old_assumptions_supported",
+      "retained_truth_clearance_m": 1.375,
+      "original_committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 0.05,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.20000000000000004,
+        0.0
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 2,
+      "issued_truth_safe": true,
+      "old_cert_id": 1,
+      "retention_supported": true,
+      "retention_reason": "old_assumptions_supported",
+      "retained_truth_clearance_m": 1.373,
+      "original_committed": [
+        0.20000000000000004,
+        0.0
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 0.1,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.24000000000000005,
+        0.0
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 3,
+      "issued_truth_safe": true,
+      "old_cert_id": 2,
+      "retention_supported": true,
+      "retention_reason": "old_assumptions_supported",
+      "retained_truth_clearance_m": 1.367,
+      "original_committed": [
+        0.24000000000000005,
+        0.0
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 2.6,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.4971278235579279,
+        -0.053515671018475645
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 53,
+      "issued_truth_safe": true,
+      "old_cert_id": 52,
+      "retention_supported": false,
+      "retention_reason": "old_model_contradicted",
+      "retained_truth_clearance_m": null,
+      "original_committed": [
+        0.4971278235579279,
+        -0.053515671018475645
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 2.65,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.4971278235579279,
+        -0.053515671018475645
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 54,
+      "issued_truth_safe": false,
+      "old_cert_id": 53,
+      "retention_supported": true,
+      "retention_reason": "old_assumptions_supported",
+      "retained_truth_clearance_m": 0.06834317647072585,
+      "original_committed": [
+        0.4971278235579279,
+        -0.053515671018475645
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 2.7,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.4971278235579279,
+        -0.053515671018475645
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 55,
+      "issued_truth_safe": false,
+      "old_cert_id": 54,
+      "retention_supported": true,
+      "retention_reason": "old_assumptions_supported",
+      "retained_truth_clearance_m": 0.043486785292829344,
+      "original_committed": [
+        0.4971278235579279,
+        -0.053515671018475645
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 2.85,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.0,
+        0.0
+      ],
+      "original_accepted": false,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": null,
+      "issued_truth_safe": null,
+      "old_cert_id": 57,
+      "retention_supported": false,
+      "retention_reason": "old_model_contradicted",
+      "retained_truth_clearance_m": null,
+      "original_committed": null,
+      "prefix_diverged": true
+    },
+    {
+      "t": 2.9,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.0,
+        0.0
+      ],
+      "original_accepted": false,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": null,
+      "issued_truth_safe": null,
+      "old_cert_id": 57,
+      "retention_supported": false,
+      "retention_reason": "no_previously_authorized_backup",
+      "retained_truth_clearance_m": null,
+      "original_committed": null,
+      "prefix_diverged": true
+    },
+    {
+      "t": 2.95,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.0,
+        0.0
+      ],
+      "original_accepted": false,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": null,
+      "issued_truth_safe": null,
+      "old_cert_id": 57,
+      "retention_supported": false,
+      "retention_reason": "no_previously_authorized_backup",
+      "retained_truth_clearance_m": null,
+      "original_committed": null,
+      "prefix_diverged": true
+    }
+  ],
+  "stop_start_10302": [
+    {
+      "t": 0.0,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 1,
+      "issued_truth_safe": true,
+      "old_cert_id": 0,
+      "retention_supported": true,
+      "retention_reason": "old_assumptions_supported",
+      "retained_truth_clearance_m": 1.375,
+      "original_committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 0.05,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.20000000000000004,
+        0.0
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 2,
+      "issued_truth_safe": true,
+      "old_cert_id": 1,
+      "retention_supported": true,
+      "retention_reason": "old_assumptions_supported",
+      "retained_truth_clearance_m": 1.373,
+      "original_committed": [
+        0.20000000000000004,
+        0.0
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 0.1,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.24000000000000005,
+        0.0
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 3,
+      "issued_truth_safe": true,
+      "old_cert_id": 2,
+      "retention_supported": true,
+      "retention_reason": "old_assumptions_supported",
+      "retained_truth_clearance_m": 1.367,
+      "original_committed": [
+        0.24000000000000005,
+        0.0
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 2.6,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.49011147004296984,
+        0.04151739156516462
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 53,
+      "issued_truth_safe": true,
+      "old_cert_id": 52,
+      "retention_supported": false,
+      "retention_reason": "old_model_contradicted",
+      "retained_truth_clearance_m": null,
+      "original_committed": [
+        0.49011147004296984,
+        0.04151739156516462
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 2.65,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.4989835206858027,
+        0.03186606477118087
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 54,
+      "issued_truth_safe": true,
+      "old_cert_id": 53,
+      "retention_supported": true,
+      "retention_reason": "old_assumptions_supported",
+      "retained_truth_clearance_m": 0.3151000929865509,
+      "original_committed": [
+        0.4989835206858027,
+        0.03186606477118087
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 2.7,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.4989835206858027,
+        0.03186606477118087
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 55,
+      "issued_truth_safe": true,
+      "old_cert_id": 54,
+      "retention_supported": true,
+      "retention_reason": "old_assumptions_supported",
+      "retained_truth_clearance_m": 0.2849659548825197,
+      "original_committed": [
+        0.4989835206858027,
+        0.03186606477118087
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 3.6,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.0,
+        0.0
+      ],
+      "original_accepted": false,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": null,
+      "issued_truth_safe": null,
+      "old_cert_id": 72,
+      "retention_supported": false,
+      "retention_reason": "old_model_contradicted",
+      "retained_truth_clearance_m": null,
+      "original_committed": null,
+      "prefix_diverged": true
+    },
+    {
+      "t": 3.65,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.0,
+        0.0
+      ],
+      "original_accepted": false,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": null,
+      "issued_truth_safe": null,
+      "old_cert_id": 72,
+      "retention_supported": false,
+      "retention_reason": "no_previously_authorized_backup",
+      "retained_truth_clearance_m": null,
+      "original_committed": null,
+      "prefix_diverged": true
+    },
+    {
+      "t": 3.7,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.0,
+        0.0
+      ],
+      "original_accepted": false,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": null,
+      "issued_truth_safe": null,
+      "old_cert_id": 72,
+      "retention_supported": false,
+      "retention_reason": "no_previously_authorized_backup",
+      "retained_truth_clearance_m": null,
+      "original_committed": null,
+      "prefix_diverged": true
+    }
+  ],
+  "occlusion_reappearance_10502": [
+    {
+      "t": 0.0,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 1,
+      "issued_truth_safe": true,
+      "old_cert_id": 0,
+      "retention_supported": true,
+      "retention_reason": "old_assumptions_supported",
+      "retained_truth_clearance_m": 1.375,
+      "original_committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 0.05,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.20000000000000004,
+        0.0
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 2,
+      "issued_truth_safe": true,
+      "old_cert_id": 1,
+      "retention_supported": true,
+      "retention_reason": "old_assumptions_supported",
+      "retained_truth_clearance_m": 1.373,
+      "original_committed": [
+        0.20000000000000004,
+        0.0
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 0.1,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.24000000000000005,
+        0.0
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 3,
+      "issued_truth_safe": true,
+      "old_cert_id": 2,
+      "retention_supported": true,
+      "retention_reason": "old_assumptions_supported",
+      "retained_truth_clearance_m": 1.367,
+      "original_committed": [
+        0.24000000000000005,
+        0.0
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 2.1,
+      "mode": "OCCLUDED",
+      "proposed": [
+        0.49413836672946493,
+        -0.0689724838921758
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 43,
+      "issued_truth_safe": true,
+      "old_cert_id": 42,
+      "retention_supported": true,
+      "retention_reason": "old_assumptions_supported",
+      "retained_truth_clearance_m": 0.32879482551158273,
+      "original_committed": [
+        0.49413836672946493,
+        -0.0689724838921758
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 2.15,
+      "mode": "OCCLUDED",
+      "proposed": [
+        0.49724355346229576,
+        -0.05242946252050442
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 44,
+      "issued_truth_safe": true,
+      "old_cert_id": 43,
+      "retention_supported": false,
+      "retention_reason": "missing_actor_absent_from_certificate",
+      "retained_truth_clearance_m": null,
+      "original_committed": [
+        0.49724355346229576,
+        -0.05242946252050442
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 2.2,
+      "mode": "OCCLUDED",
+      "proposed": [
+        0.49841667001658096,
+        -0.039759565510486296
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 45,
+      "issued_truth_safe": true,
+      "old_cert_id": 44,
+      "retention_supported": false,
+      "retention_reason": "missing_actor_absent_from_certificate",
+      "retained_truth_clearance_m": null,
+      "original_committed": [
+        0.49841667001658096,
+        -0.039759565510486296
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 2.25,
+      "mode": "OCCLUDED",
+      "proposed": [
+        0.49841667001658096,
+        -0.039759565510486296
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 46,
+      "issued_truth_safe": true,
+      "old_cert_id": 45,
+      "retention_supported": false,
+      "retention_reason": "missing_actor_absent_from_certificate",
+      "retained_truth_clearance_m": null,
+      "original_committed": [
+        0.49841667001658096,
+        -0.039759565510486296
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 2.3,
+      "mode": "OCCLUDED",
+      "proposed": [
+        0.49841667001658096,
+        -0.039759565510486296
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 47,
+      "issued_truth_safe": true,
+      "old_cert_id": 46,
+      "retention_supported": false,
+      "retention_reason": "missing_actor_absent_from_certificate",
+      "retained_truth_clearance_m": null,
+      "original_committed": [
+        0.49841667001658096,
+        -0.039759565510486296
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 2.35,
+      "mode": "OCCLUDED",
+      "proposed": [
+        0.4990908493427704,
+        -0.030138415723326692
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 48,
+      "issued_truth_safe": true,
+      "old_cert_id": 47,
+      "retention_supported": false,
+      "retention_reason": "missing_actor_absent_from_certificate",
+      "retained_truth_clearance_m": null,
+      "original_committed": [
+        0.4990908493427704,
+        -0.030138415723326692
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 2.4,
+      "mode": "OCCLUDED",
+      "proposed": [
+        0.49947807288674445,
+        -0.022839761499280013
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 49,
+      "issued_truth_safe": true,
+      "old_cert_id": 48,
+      "retention_supported": false,
+      "retention_reason": "missing_actor_absent_from_certificate",
+      "retained_truth_clearance_m": null,
+      "original_committed": [
+        0.49947807288674445,
+        -0.022839761499280013
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 2.45,
+      "mode": "OCCLUDED",
+      "proposed": [
+        0.49947807288674445,
+        -0.022839761499280013
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 50,
+      "issued_truth_safe": true,
+      "old_cert_id": 49,
+      "retention_supported": false,
+      "retention_reason": "missing_actor_absent_from_certificate",
+      "retained_truth_clearance_m": null,
+      "original_committed": [
+        0.49947807288674445,
+        -0.022839761499280013
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 2.5,
+      "mode": "OCCLUDED",
+      "proposed": [
+        0.49947807288674445,
+        -0.022839761499280013
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 51,
+      "issued_truth_safe": true,
+      "old_cert_id": 50,
+      "retention_supported": false,
+      "retention_reason": "missing_actor_absent_from_certificate",
+      "retained_truth_clearance_m": null,
+      "original_committed": [
+        0.49947807288674445,
+        -0.022839761499280013
+      ],
+      "prefix_diverged": true
+    }
+  ],
+  "id_switch_10608": [
+    {
+      "t": 0.0,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 1,
+      "issued_truth_safe": true,
+      "old_cert_id": 0,
+      "retention_supported": true,
+      "retention_reason": "old_assumptions_supported",
+      "retained_truth_clearance_m": 0.875,
+      "original_committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 0.05,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 2,
+      "issued_truth_safe": true,
+      "old_cert_id": 1,
+      "retention_supported": true,
+      "retention_reason": "old_assumptions_supported",
+      "retained_truth_clearance_m": 0.873,
+      "original_committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 0.1,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 3,
+      "issued_truth_safe": true,
+      "old_cert_id": 2,
+      "retention_supported": true,
+      "retention_reason": "old_assumptions_supported",
+      "retained_truth_clearance_m": 0.867,
+      "original_committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 2.1,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.46654570178298965,
+        0.11754440927221795
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 43,
+      "issued_truth_safe": false,
+      "old_cert_id": 42,
+      "retention_supported": false,
+      "retention_reason": "old_model_contradicted",
+      "retained_truth_clearance_m": null,
+      "original_committed": [
+        0.46654570178298965,
+        0.11754440927221795
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 2.15,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.4920585577332922,
+        0.08876021496950258
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 44,
+      "issued_truth_safe": false,
+      "old_cert_id": 43,
+      "retention_supported": false,
+      "retention_reason": "old_model_contradicted",
+      "retained_truth_clearance_m": null,
+      "original_committed": [
+        0.4920585577332922,
+        0.08876021496950258
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 2.2,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.49667687036973224,
+        0.05755072927190594
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 45,
+      "issued_truth_safe": false,
+      "old_cert_id": 44,
+      "retention_supported": false,
+      "retention_reason": "old_model_contradicted",
+      "retained_truth_clearance_m": null,
+      "original_committed": [
+        0.49667687036973224,
+        0.05755072927190594
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 2.25,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.499318827478059,
+        0.02609039144850696
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 46,
+      "issued_truth_safe": false,
+      "old_cert_id": 45,
+      "retention_supported": false,
+      "retention_reason": "old_model_contradicted",
+      "retained_truth_clearance_m": null,
+      "original_committed": [
+        0.499318827478059,
+        0.02609039144850696
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 2.3,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.4999700225989685,
+        -0.005475080126072688
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 47,
+      "issued_truth_safe": false,
+      "old_cert_id": 46,
+      "retention_supported": false,
+      "retention_reason": "old_model_contradicted",
+      "retained_truth_clearance_m": null,
+      "original_committed": [
+        0.4999700225989685,
+        -0.005475080126072688
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 2.35,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.49863047817510747,
+        -0.03698170135166458
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 48,
+      "issued_truth_safe": false,
+      "old_cert_id": 47,
+      "retention_supported": false,
+      "retention_reason": "old_model_contradicted",
+      "retained_truth_clearance_m": null,
+      "original_committed": [
+        0.49863047817510747,
+        -0.03698170135166458
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 2.4,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.49531841081709704,
+        -0.06826178949914444
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 49,
+      "issued_truth_safe": false,
+      "old_cert_id": 48,
+      "retention_supported": false,
+      "retention_reason": "old_model_contradicted",
+      "retained_truth_clearance_m": null,
+      "original_committed": [
+        0.49531841081709704,
+        -0.06826178949914444
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 2.45,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.49006946452894673,
+        -0.09915603832501257
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 50,
+      "issued_truth_safe": false,
+      "old_cert_id": 49,
+      "retention_supported": false,
+      "retention_reason": "old_model_contradicted",
+      "retained_truth_clearance_m": null,
+      "original_committed": [
+        0.49006946452894673,
+        -0.09915603832501257
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 2.5,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.4599129171984133,
+        -0.1961634741587877
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 51,
+      "issued_truth_safe": false,
+      "old_cert_id": 50,
+      "retention_supported": false,
+      "retention_reason": "old_model_contradicted",
+      "retained_truth_clearance_m": null,
+      "original_committed": [
+        0.4599129171984133,
+        -0.1961634741587877
+      ],
+      "prefix_diverged": true
+    }
+  ],
+  "stale_observation_10801": [
+    {
+      "t": 0.0,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 1,
+      "issued_truth_safe": true,
+      "old_cert_id": 0,
+      "retention_supported": true,
+      "retention_reason": "old_assumptions_supported",
+      "retained_truth_clearance_m": 0.10205000000000031,
+      "original_committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 0.05,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.20000000000000004,
+        0.0
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 2,
+      "issued_truth_safe": true,
+      "old_cert_id": 1,
+      "retention_supported": true,
+      "retention_reason": "old_assumptions_supported",
+      "retained_truth_clearance_m": 0.0765524191184842,
+      "original_committed": [
+        0.20000000000000004,
+        0.0
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 0.1,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.24000000000000005,
+        0.0
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 3,
+      "issued_truth_safe": true,
+      "old_cert_id": 2,
+      "retention_supported": true,
+      "retention_reason": "old_assumptions_supported",
+      "retained_truth_clearance_m": 0.10006442511552638,
+      "original_committed": [
+        0.24000000000000005,
+        0.0
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 2.1,
+      "mode": "STALE",
+      "proposed": [
+        0.4999399628113705,
+        0.0077481342377024405
+      ],
+      "original_accepted": false,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": null,
+      "issued_truth_safe": null,
+      "old_cert_id": 38,
+      "retention_supported": false,
+      "retention_reason": "stale_dependency",
+      "retained_truth_clearance_m": null,
+      "original_committed": null,
+      "prefix_diverged": true
+    },
+    {
+      "t": 2.15,
+      "mode": "STALE",
+      "proposed": [
+        0.4999399628113705,
+        0.0077481342377024405
+      ],
+      "original_accepted": false,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": null,
+      "issued_truth_safe": null,
+      "old_cert_id": 38,
+      "retention_supported": false,
+      "retention_reason": "no_previously_authorized_backup",
+      "retained_truth_clearance_m": null,
+      "original_committed": null,
+      "prefix_diverged": true
+    }
+  ],
+  "multiple_10900": [
+    {
+      "t": 0.0,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 1,
+      "issued_truth_safe": true,
+      "old_cert_id": 0,
+      "retention_supported": true,
+      "retention_reason": "old_assumptions_supported",
+      "retained_truth_clearance_m": 0.875,
+      "original_committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 0.05,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 2,
+      "issued_truth_safe": true,
+      "old_cert_id": 1,
+      "retention_supported": true,
+      "retention_reason": "old_assumptions_supported",
+      "retained_truth_clearance_m": 0.873,
+      "original_committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "prefix_diverged": true
+    },
+    {
+      "t": 0.1,
+      "mode": "CHANGE_UNCERTAIN",
+      "proposed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "original_accepted": true,
+      "mode_allows": false,
+      "local_would_admit": false,
+      "issued_cert_id": 3,
+      "issued_truth_safe": true,
+      "old_cert_id": 2,
+      "retention_supported": true,
+      "retention_reason": "old_assumptions_supported",
+      "retained_truth_clearance_m": 0.867,
+      "original_committed": [
+        0.16000000000000003,
+        0.0
+      ],
+      "prefix_diverged": true
+    }
+  ]
+}
