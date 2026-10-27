@@ -1,0 +1,393 @@
+{
+  "dataset_id": "rm2027-certificate-failure-forensics-20261027",
+  "root": "/home/qihei/.codex/visualizations/2026/10/25/01a1708d-d064-7252-86b0-5e92a75657dc/dynamic_certificate_failure_forensics_20261027",
+  "origin": "/home/qihei/.codex/visualizations/2026/10/25/01a1708d-d064-7252-86b0-5e92a75657dc/dynamic_certificate_holdout_rerun_20261026",
+  "source_manifest": "/home/qihei/projects/rm2027_navigation_clean/research/dynamic_state_time/results/certificate_holdout_rerun/dataset_manifest.json",
+  "purpose": "per-control-cycle reconstruction of 31 failures plus seven successful controls; evaluator-only counterfactual saved schedules",
+  "generated_or_real": "derived synthetic evidence; not new experiment",
+  "filename_convention": "<case>_cycles.jsonl and <case>_certificates.json",
+  "required_experiment": "none; run forensic_certificate_failures.py on archived data",
+  "files": [
+    {
+      "path": "crossing_10100_certificates.json",
+      "size_bytes": 40310,
+      "sha256": "c1c58b8b8e24733bae819c7a32ddf688b77e10c7050493a141e8d4666ee651bc"
+    },
+    {
+      "path": "crossing_10100_cycles.jsonl",
+      "size_bytes": 644152,
+      "sha256": "ee9789288cbead279be1aeda4de996a70027139c56173f069cf8f2ef6ab7df46"
+    },
+    {
+      "path": "head_on_10200_certificates.json",
+      "size_bytes": 48765,
+      "sha256": "fe583c60d3737b61e70a1223ab87e016e822e9639dd7a210a7ea2c5593ba420d"
+    },
+    {
+      "path": "head_on_10200_cycles.jsonl",
+      "size_bytes": 807389,
+      "sha256": "cf1be8c842fb191fe0a326a4c70b7890f0de7b07e0d171e1930f2b667a95222b"
+    },
+    {
+      "path": "head_on_10201_certificates.json",
+      "size_bytes": 15455,
+      "sha256": "eeea6eec508c4ec5b5a3d870bac6947566e0a18bdd54241694a69577c9673005"
+    },
+    {
+      "path": "head_on_10201_cycles.jsonl",
+      "size_bytes": 284504,
+      "sha256": "c660b61ec55500c24eb1b6f8591dc2af7316e9041ea58bad745498568e604d3d"
+    },
+    {
+      "path": "head_on_10203_certificates.json",
+      "size_bytes": 16183,
+      "sha256": "d25cb68e717e3baf9d5aa1e42f046b08915ee7d0a0b5b3033c5da5784aeb6cc2"
+    },
+    {
+      "path": "head_on_10203_cycles.jsonl",
+      "size_bytes": 292504,
+      "sha256": "5e3fa62e3bfc8fa170a08fcd0fae7dc8579ea91dc60c0cf275868c3df4830767"
+    },
+    {
+      "path": "head_on_10205_certificates.json",
+      "size_bytes": 15585,
+      "sha256": "74b69125560af97e92562c723c523961fd00e5afb477a6a4c27bd487037ffa9b"
+    },
+    {
+      "path": "head_on_10205_cycles.jsonl",
+      "size_bytes": 276516,
+      "sha256": "58700b671dd1ee7c112210cde1567785c5757c26bfb15ce20e9fad4cbf424e50"
+    },
+    {
+      "path": "head_on_10207_certificates.json",
+      "size_bytes": 15120,
+      "sha256": "c8cced7b785d54a00b95c1485b99db4cb035b105f8ccdd2b49d0a61ee34c1bbd"
+    },
+    {
+      "path": "head_on_10207_cycles.jsonl",
+      "size_bytes": 294488,
+      "sha256": "e3e4b27bc9b3050a447c5555d498da783b495b2f456108a004093ee6df535ea7"
+    },
+    {
+      "path": "head_on_10209_certificates.json",
+      "size_bytes": 15887,
+      "sha256": "67c47467cd2d913c9c2cf314c39f8683edfbfc370507882dd6af0803d84dcfbe"
+    },
+    {
+      "path": "head_on_10209_cycles.jsonl",
+      "size_bytes": 286240,
+      "sha256": "e8e64d2f31e81cf382c7ce7f5b3852b24bae2e4abf36e0820e4222ffb0f8b57d"
+    },
+    {
+      "path": "head_on_10211_certificates.json",
+      "size_bytes": 15215,
+      "sha256": "0f4511565f644503f6ed1b3e0b56027c71d95d49a207c8dfba8ef314bd91fb20"
+    },
+    {
+      "path": "head_on_10211_cycles.jsonl",
+      "size_bytes": 275407,
+      "sha256": "a2d7025b5fc477bcf377ec7aa8ab6ce7b39dd199c3dc3204c86402fcd94c4f39"
+    },
+    {
+      "path": "id_switch_10608_certificates.json",
+      "size_bytes": 8086,
+      "sha256": "6eee756a0215d310a3eac53b19cb08d55932b7357db8ae3d582c5c5dead22526"
+    },
+    {
+      "path": "id_switch_10608_cycles.jsonl",
+      "size_bytes": 123582,
+      "sha256": "08e41dcea3317631c33163848c89a95c1c2eb51edc49fd37199707262ad8fc8b"
+    },
+    {
+      "path": "id_switch_10610_certificates.json",
+      "size_bytes": 7157,
+      "sha256": "4c950bd027d19812ecd0464001ac74ee344469f4f5276a7ad55552225821a13c"
+    },
+    {
+      "path": "id_switch_10610_cycles.jsonl",
+      "size_bytes": 119223,
+      "sha256": "69c5a08ad340ca5a0437d740da8059422fb8e87b723a5e39f48c36a1ae5c6d1f"
+    },
+    {
+      "path": "id_switch_10611_certificates.json",
+      "size_bytes": 7926,
+      "sha256": "7835a13832d35819dee5f6e26931d0159148d0294f48791376ff88afa32acc57"
+    },
+    {
+      "path": "id_switch_10611_cycles.jsonl",
+      "size_bytes": 122483,
+      "sha256": "9325a9d2504aac391fbfe56f85434246b944d7365f932501ad3702c5ab8f0052"
+    },
+    {
+      "path": "multiple_10900_certificates.json",
+      "size_bytes": 40132,
+      "sha256": "2e08b840cd80f70f17550a7c1a00b5f18a5b398ea4e6825deb6d21eb5398a7ec"
+    },
+    {
+      "path": "multiple_10900_cycles.jsonl",
+      "size_bytes": 667325,
+      "sha256": "8038eae2c43f6bc7211eaced23d7e6b7345393df2903632b9d8786ccbb4bd7e1"
+    },
+    {
+      "path": "occlusion_reappearance_10502_certificates.json",
+      "size_bytes": 8057,
+      "sha256": "c7a607af3850cc20139dcd4a0a81d09d385f0e4207ddb0ff8a34eba453b8cc3a"
+    },
+    {
+      "path": "occlusion_reappearance_10502_cycles.jsonl",
+      "size_bytes": 150989,
+      "sha256": "75d9d32d03ef059e3a9e2d7df48c7f9c6822b003c1cb9ed89c2e547eb4e99a1d"
+    },
+    {
+      "path": "occlusion_reappearance_10503_certificates.json",
+      "size_bytes": 8977,
+      "sha256": "4bcd53f3a1c6c012294e48e6652aee7b89ab54f0ae2261688869134c17027e90"
+    },
+    {
+      "path": "occlusion_reappearance_10503_cycles.jsonl",
+      "size_bytes": 154414,
+      "sha256": "2f5fbc377461358702af4bd346809f62167a1e598716ca60daaee9354584f068"
+    },
+    {
+      "path": "occlusion_reappearance_10506_certificates.json",
+      "size_bytes": 8056,
+      "sha256": "2a84901931a27c96e353496c3e7a02734285171b1cb14773729adac1acebed91"
+    },
+    {
+      "path": "occlusion_reappearance_10506_cycles.jsonl",
+      "size_bytes": 145774,
+      "sha256": "9934847df3c9760bd990ee97c1ed7d3f3a897fe2d9ee23645a4be6fe2aa166aa"
+    },
+    {
+      "path": "occlusion_reappearance_10507_certificates.json",
+      "size_bytes": 8978,
+      "sha256": "ec9b3a5cf61d47cbe9cd6c99c5553b6d1ac322ecb80b12de7e97832499c5869c"
+    },
+    {
+      "path": "occlusion_reappearance_10507_cycles.jsonl",
+      "size_bytes": 156395,
+      "sha256": "363a3647eb1649e8335358c66cd8c11c2d64d05502e4630932f5a486e7dbe250"
+    },
+    {
+      "path": "occlusion_reappearance_10510_certificates.json",
+      "size_bytes": 8054,
+      "sha256": "fdd285847b4300d7cbe17f1d342cc95ec293af5c9724bafcb23c30334269ec51"
+    },
+    {
+      "path": "occlusion_reappearance_10510_cycles.jsonl",
+      "size_bytes": 154165,
+      "sha256": "68b99aec8c893793386996af0cd925ac417996bcd41a4bc0c3d893d86c79e09a"
+    },
+    {
+      "path": "occlusion_reappearance_10511_certificates.json",
+      "size_bytes": 8968,
+      "sha256": "b4471b9d2fe2346821f92def2d8049a689bd1c6ff095e4b7572144fa700884e3"
+    },
+    {
+      "path": "occlusion_reappearance_10511_cycles.jsonl",
+      "size_bytes": 158759,
+      "sha256": "075767955ce051a55a4691857209ff2d72df28f0e93a4a163bb8555fe5227286"
+    },
+    {
+      "path": "prediction_error_10702_certificates.json",
+      "size_bytes": 36081,
+      "sha256": "d65d5fe9fc028100f529ddb62fc8f26fed2c0b896bdf0cf852da67ee0f845c73"
+    },
+    {
+      "path": "prediction_error_10702_cycles.jsonl",
+      "size_bytes": 622382,
+      "sha256": "8a942be678a25c795c911151c48f88abc6c43240bf2d0731a18ed09cdf425b8c"
+    },
+    {
+      "path": "prediction_error_10703_certificates.json",
+      "size_bytes": 9900,
+      "sha256": "948a7477b1079d5db73ca61cbb95d8b48eec667847735bd951953ee691d905d5"
+    },
+    {
+      "path": "prediction_error_10703_cycles.jsonl",
+      "size_bytes": 171727,
+      "sha256": "8ce85ad79e4a01d16d266c2708ec2f151793ec29513f5d22a798f2e49c7edd62"
+    },
+    {
+      "path": "prediction_error_10706_certificates.json",
+      "size_bytes": 36101,
+      "sha256": "4f5a4684bca025b6f6557fb20df9b384814dc113cf1a72edaebe9d8e7a3b50c0"
+    },
+    {
+      "path": "prediction_error_10706_cycles.jsonl",
+      "size_bytes": 634002,
+      "sha256": "0bbfee75a82767d16ec9575cb7e8b08af3d94ba50bc7fd1f3ad2c9ada610090b"
+    },
+    {
+      "path": "prediction_error_10707_certificates.json",
+      "size_bytes": 9604,
+      "sha256": "7cc093ddabf2006dab859a20106479de5709f95fbbf2c78d6074fc68ccfc19ca"
+    },
+    {
+      "path": "prediction_error_10707_cycles.jsonl",
+      "size_bytes": 166830,
+      "sha256": "010e0d32dca09ef9280d209e90de552888111f140aff4b8cc6e07b28527af452"
+    },
+    {
+      "path": "prediction_error_10710_certificates.json",
+      "size_bytes": 37944,
+      "sha256": "ef69c246dcb7b4c66a14e356e59b51dee4740cc626389400c5cbc95875103ece"
+    },
+    {
+      "path": "prediction_error_10710_cycles.jsonl",
+      "size_bytes": 649972,
+      "sha256": "49dea2d7aa2c4ce49bf315bbe4677f188ddb6f5df95cfcdb000c17a78783b287"
+    },
+    {
+      "path": "prediction_error_10711_certificates.json",
+      "size_bytes": 9762,
+      "sha256": "835260a530531ed55e9cd4461f52fe59eb02b0519b4c1082e4e32155252142f0"
+    },
+    {
+      "path": "prediction_error_10711_cycles.jsonl",
+      "size_bytes": 169736,
+      "sha256": "f0585eac53a514ca00958450356db4fe6fedecf046ddc9d92b0498bdb92944b5"
+    },
+    {
+      "path": "stale_observation_10801_certificates.json",
+      "size_bytes": 48478,
+      "sha256": "27a698e44ef84cb1c5550817bf4c7bbf93e20419834e1dcb6751bac8f9799e2b"
+    },
+    {
+      "path": "stale_observation_10801_cycles.jsonl",
+      "size_bytes": 812598,
+      "sha256": "5247ffb65e4ffc3d3fa60dfbd3703341166e82863a0e3c29bf27d8c67237751f"
+    },
+    {
+      "path": "static_10000_certificates.json",
+      "size_bytes": 36263,
+      "sha256": "d55068556b30f48774c6741b1c798ba225167367b1f1de9c9f880ee1b3f7e1d9"
+    },
+    {
+      "path": "static_10000_cycles.jsonl",
+      "size_bytes": 570047,
+      "sha256": "4609cd95e8851c0efa6d5c743099b4cd9df4ea0d180700615d61da1296714a8b"
+    },
+    {
+      "path": "stop_start_10300_certificates.json",
+      "size_bytes": 8479,
+      "sha256": "a73196d694ca3193a6356fc0668e8773a2008dbfa41c66c796d65484a0f23897"
+    },
+    {
+      "path": "stop_start_10300_cycles.jsonl",
+      "size_bytes": 163938,
+      "sha256": "9e7e7af3c0affab3c82d44a15610df1c2acff0171ed7a049db1d1a8e87264623"
+    },
+    {
+      "path": "stop_start_10301_certificates.json",
+      "size_bytes": 9239,
+      "sha256": "a3fb350b726dd2e72376562cd237cc279c6f3e94e5b6031f4c778cf7b294b5ad"
+    },
+    {
+      "path": "stop_start_10301_cycles.jsonl",
+      "size_bytes": 158652,
+      "sha256": "660a234c2a136cf46c8901f9858d7482f0f1c561e62092b6f69fb4ece56242a7"
+    },
+    {
+      "path": "stop_start_10302_certificates.json",
+      "size_bytes": 10686,
+      "sha256": "f4120b93ec11f05f08483d5c26b87de329bed94ea5e24ef4dd012222a205d08d"
+    },
+    {
+      "path": "stop_start_10302_cycles.jsonl",
+      "size_bytes": 202677,
+      "sha256": "7b8904e70f18afc4fe538aefb9220c8546659543c4a44e45b3edb76f5134ca19"
+    },
+    {
+      "path": "stop_start_10303_certificates.json",
+      "size_bytes": 8476,
+      "sha256": "162d190d23654f51a26e41625a022ad0999d5ec61857ee27f5ca59409a6c1193"
+    },
+    {
+      "path": "stop_start_10303_cycles.jsonl",
+      "size_bytes": 159570,
+      "sha256": "96014c1c4719c5382fe304be30244d713a33659ae75bd0387e079d8fa647f4f1"
+    },
+    {
+      "path": "stop_start_10304_certificates.json",
+      "size_bytes": 42526,
+      "sha256": "7325edbda8508f36022311593a576782a8ddddfde311af0e695396c4430c8bd8"
+    },
+    {
+      "path": "stop_start_10304_cycles.jsonl",
+      "size_bytes": 671197,
+      "sha256": "934fc8a1d0948c4775f194987505c10127f88a2172ef6f48f24c54bfafb71fde"
+    },
+    {
+      "path": "stop_start_10305_certificates.json",
+      "size_bytes": 10699,
+      "sha256": "a10a0874773059ec0e8c4fd40ec6055c49968a96b3627080ce6587527a67b50c"
+    },
+    {
+      "path": "stop_start_10305_cycles.jsonl",
+      "size_bytes": 200845,
+      "sha256": "1e8187315820c9ef6c6ec6c66f0f059b39520a1d9d941026af78b71102e55c4a"
+    },
+    {
+      "path": "stop_start_10306_certificates.json",
+      "size_bytes": 8480,
+      "sha256": "774b8d28a4c49955edd47838cac7cfe53bdf65fec8fecca9631b3b62e78c24f2"
+    },
+    {
+      "path": "stop_start_10306_cycles.jsonl",
+      "size_bytes": 150360,
+      "sha256": "1613a37838d1bcba415d9f00fc72541f744c33f65a27418f25a19ff448805a94"
+    },
+    {
+      "path": "stop_start_10307_certificates.json",
+      "size_bytes": 9249,
+      "sha256": "519912b3bc43274cd50af54b1eb1ac9cf0ff6c32dcd22a129da27baeb9e8e740"
+    },
+    {
+      "path": "stop_start_10307_cycles.jsonl",
+      "size_bytes": 163879,
+      "sha256": "b0120024ab9fd0ab659fb751f5273c1e5285fda83479f24c2dc983a6affa703a"
+    },
+    {
+      "path": "stop_start_10308_certificates.json",
+      "size_bytes": 10737,
+      "sha256": "bf81861ca8b1a769b5165ac3a531d5cefead9f0f9dd920db3a290f930a1dab9a"
+    },
+    {
+      "path": "stop_start_10308_cycles.jsonl",
+      "size_bytes": 203136,
+      "sha256": "df492d59430f71c1dd721d92a543add629bcb478e27f169f814d88f6dad927e9"
+    },
+    {
+      "path": "stop_start_10310_certificates.json",
+      "size_bytes": 9243,
+      "sha256": "38c04fa8e31946af0aa7debc6cd16b79137d8ab25a4d9847ebe8f8ef94b9da09"
+    },
+    {
+      "path": "stop_start_10310_cycles.jsonl",
+      "size_bytes": 182404,
+      "sha256": "90c51ed5de4a2468513474aef65a1da39a442e7b3bb3645578a1b0e1b4b15d76"
+    },
+    {
+      "path": "stop_start_10311_certificates.json",
+      "size_bytes": 10767,
+      "sha256": "e8b318bbb6d214d5845cb96d162d30d960e7addd162286f20da92f68a297b23f"
+    },
+    {
+      "path": "stop_start_10311_cycles.jsonl",
+      "size_bytes": 177393,
+      "sha256": "09801d1a640a1fddcb77f90993f6faacadc0c60e79deef74b4580b12903b6ed6"
+    },
+    {
+      "path": "sudden_turn_10400_certificates.json",
+      "size_bytes": 33983,
+      "sha256": "bcc3fdb82850b727641116de79fc48cb24c1c657d4781559e53b284793245223"
+    },
+    {
+      "path": "sudden_turn_10400_cycles.jsonl",
+      "size_bytes": 555742,
+      "sha256": "9fb3b14fdca943b383ebcceafbbc132c6ac972bb640a64e6716d96269f3670b1"
+    }
+  ],
+  "total_bytes": 12595004
+}

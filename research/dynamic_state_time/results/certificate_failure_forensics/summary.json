@@ -1,0 +1,45 @@
+{
+  "analysis": "Post-hoc forensics; no episode rerun; no planner/checker invocation",
+  "archive_commit": "0633dc5a105cad751e602f6cbc19cd7f17b39090",
+  "failed_episodes": 31,
+  "collision": 28,
+  "low_clearance": 3,
+  "controls": [
+    "crossing_10100",
+    "head_on_10200",
+    "multiple_10900",
+    "stale_observation_10801",
+    "static_10000",
+    "stop_start_10304",
+    "sudden_turn_10400"
+  ],
+  "audits": {
+    "certificates_reconstructed": 4612,
+    "execution_steps_checked": 25231
+  },
+  "cycles": 5060,
+  "episodes_with_optimistic_certificates": 29,
+  "episodes_with_present_error_optimism": 29,
+  "episodes_with_future_change_optimism": 9,
+  "episodes_with_reserve_decline": 30,
+  "episodes_with_safety_loss_small_progress": 31,
+  "episodes_with_authorized_old_safety_loss": 31,
+  "successful_controls_with_decline": 7,
+  "successful_controls_with_small_progress_safety_loss": 7,
+  "mechanism_counts": {
+    "E: model-change-driven reserve authorization loss": 6,
+    "A: prediction / observation coverage mismatch": 25
+  },
+  "episodes_unauthorized_saved_plan_still_executable_truth_safe": 2,
+  "method_notes": {
+    "predicted_clearance": "Reconstructed physical geometry .325/.300; stored certificate safe-rest uses inflated .355/.330. Never compare inflated raw number directly to 0.05.",
+    "truth_schedule": "Counterfactual execution of RECORDED controls then stationary rest; future truth evaluation only, no decision input. Not actual execution, not proof alternative would complete task.",
+    "last_escape": "Only last logged certificate or saved suffix whose recorded schedule passes truth audit. Suffix must preserve the first .10s immutable queue. No exhaustive library probe or viability claim.",
+    "dominance": "Same measured start; old remaining schedule vs new controls under current CV. Loss>=.02m and first .15s goal-progress gain<=.01m. Diagnostic post-hoc thresholds; no policy.",
+    "erosion": "11 consecutive 50ms points, valid certificate min drops>=.02m in .5s and >=80% steps nonincreasing. Sensitivity .25/.5/1s and .005/.02/.05m.",
+    "missing": "No sudden-turn or stale failures exist. Use successful controls; missing actors are recorded separately, not zero prediction error.",
+    "proposed": "Planner did not log clearance/progress scores. Reconstructed its saved schedule plus brake/rest; this is diagnostic, not its internal score."
+  },
+  "adjudication": "Go-to-next-hypothesis for a bounded uncertainty/certificate-coverage study only; current navigation implementation remains Stop",
+  "attribution_limit": "Primary labels are mechanistic interpretations, not isolated causal effects; no intervention or new closed-loop test performed"
+}
