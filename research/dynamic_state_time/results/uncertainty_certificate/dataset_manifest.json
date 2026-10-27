@@ -1,0 +1,33 @@
+{
+  "dataset_id": "rm2027-offline-uncertainty-certificates-20261027",
+  "root": "/home/qihei/.codex/visualizations/2026/10/25/01a1708d-d064-7252-86b0-5e92a75657dc/dynamic_uncertainty_certificate_20261027",
+  "origin": "/home/qihei/.codex/visualizations/2026/10/25/01a1708d-d064-7252-86b0-5e92a75657dc/dynamic_certificate_holdout_rerun_20261026",
+  "generated_or_real": "derived from frozen synthetic C1 traces; no new closed-loop experiment",
+  "purpose": "episode-separated causal uncertainty classification",
+  "filename_convention": "<calibration|evaluation>_samples.jsonl.gz and extraction.json",
+  "required_experiment": "offline_uncertainty_certificate.py: prepare calibration -> calibrate -> prepare evaluation -> evaluate",
+  "protocol_sha256": "f1199971dc835fe86bd4e995517aac2a98b34be2373d08aefc694f4eede30a73",
+  "total_bytes": 2746737,
+  "files": [
+    {
+      "path": "calibration_extraction.json",
+      "size_bytes": 464,
+      "sha256": "b9e454019c8f9d13b75eeb42448429bd63e6bba49d7cec1c44946072279b33f5"
+    },
+    {
+      "path": "calibration_samples.jsonl.gz",
+      "size_bytes": 1510919,
+      "sha256": "89ed3cca8dcc853f73589252035528435d9d49f30ae4d6bd28352a01b890e86f"
+    },
+    {
+      "path": "evaluation_extraction.json",
+      "size_bytes": 477,
+      "sha256": "6e64da0811bfc8c7734cd26f9deaad22eda6ee99045e77336f7df7437443cf7d"
+    },
+    {
+      "path": "evaluation_samples.jsonl.gz",
+      "size_bytes": 1234877,
+      "sha256": "19e2c4d8301724ba633a0e80d83f834f6e54c747b8e123bfaac2b6c250ecb078"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+t,method,parameter,original_authorized,original_reason,immutable_prefix_compatible,nominal_min_m,truth_min_m,uncertainty_min_m,uncertainty_accept,reason
+5.05,velocity_residual,1,True,prediction_changed,True,0.08131286847066821,0.06922991429201031,0.06504185001770714,True,tube_check
+5.05,acceleration_tube,0.5,True,prediction_changed,True,0.08131286847066821,0.06922991429201031,0.08131286847066821,True,tube_check
+5.05,age_inflation,0.25,True,prediction_changed,True,0.08131286847066821,0.06922991429201031,0.07031286847066825,True,tube_check
+5.05,track_quality,1,True,prediction_changed,True,0.08131286847066821,0.06922991429201031,0.08131286847066821,True,quality_clear
+5.1,velocity_residual,1,False,prediction_changed,True,0.08093620970178389,0.06922991429201031,0.0651709946643702,True,tube_check
+5.1,acceleration_tube,0.5,False,prediction_changed,True,0.08093620970178389,0.06922991429201031,0.08093620970178389,True,tube_check
+5.1,age_inflation,0.25,False,prediction_changed,True,0.08093620970178389,0.06922991429201031,0.06993620970178394,True,tube_check
+5.1,track_quality,1,False,prediction_changed,True,0.08093620970178389,0.06922991429201031,0.08093620970178389,True,quality_clear
+5.15,velocity_residual,1,False,prediction_changed,False,0.08055983506223213,0.06922991429201003,0.06530043480820111,True,tube_check
+5.15,acceleration_tube,0.5,False,prediction_changed,False,0.08055983506223213,0.06922991429201003,0.08055983506223213,True,tube_check
+5.15,age_inflation,0.25,False,prediction_changed,False,0.08055983506223213,0.06922991429201003,0.06955983506223218,True,tube_check
+5.15,track_quality,1,False,prediction_changed,False,0.08055983506223213,0.06922991429201003,0.08055983506223213,True,quality_clear
