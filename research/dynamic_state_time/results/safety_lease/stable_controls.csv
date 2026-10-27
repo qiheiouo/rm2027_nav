@@ -1,0 +1,9 @@
+method,category,safe_stable_certificates,premature_expiries,premature_rate,episodes_with_premature_expiry,episodes,actual_forced_backup_rate
+horizon,crossing,3078,44,0.014294996751137101,4,12,Unknown: no lease-policy rollout
+horizon,multiple,3248,82,0.025246305418719212,6,12,Unknown: no lease-policy rollout
+dispatch_deadline,crossing,3078,3056,0.9928525016244314,12,12,Unknown: no lease-policy rollout
+dispatch_deadline,multiple,3248,3116,0.9593596059113301,12,12,Unknown: no lease-policy rollout
+information_quality,crossing,3078,3078,1.0,12,12,Unknown: no lease-policy rollout
+information_quality,multiple,3248,3248,1.0,12,12,Unknown: no lease-policy rollout
+past_consistency,crossing,3078,296,0.09616634178037686,12,12,Unknown: no lease-policy rollout
+past_consistency,multiple,3248,334,0.10283251231527094,12,12,Unknown: no lease-policy rollout

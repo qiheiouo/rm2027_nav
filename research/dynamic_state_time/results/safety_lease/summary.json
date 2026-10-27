@@ -1,0 +1,378 @@
+{
+  "protocol_sha256": "1dfcc0e2bd0d9674ec88958003fa0e306c34dce3aaff18ae69f3167448632394",
+  "scope": "All evidence previously examined. This is an untuned exploratory comparison, not an independent holdout.",
+  "episodes": 120,
+  "certificates": 26540,
+  "verdict": "Stop",
+  "prototype": false,
+  "recommend_freeze_line": true,
+  "decision_reason": "Every candidate fails the frozen gate. Dispatch timing is useful metadata, not validity expiry; short clocks truncate safe backups and long clocks miss risk. Freeze current line.",
+  "results": [
+    {
+      "method": "horizon",
+      "certificates": 26540,
+      "safe": 26308,
+      "unsafe": 232,
+      "no_finite_expiry": 0,
+      "unsafe_expiry_before_risk": 7,
+      "unsafe_early_rate": 0.03017241379310345,
+      "unsafe_abstain_at_issue": 0,
+      "unsafe_early_via_immediate_abstention": 0,
+      "unsafe_early_via_positive_lifetime": 7,
+      "safe_premature_expiry": 2884,
+      "safe_premature_rate": 0.10962444883685571,
+      "safe_finite_motion_coverage": 0.8903755511631443,
+      "unsafe_expiry_lead_s": {
+        "n": 232,
+        "mean": -1.2531270344377683,
+        "min": -2.0000000000000004,
+        "p05": -1.9200000000000002,
+        "p50": -1.41,
+        "p95": -0.36372058718043676,
+        "p99": 1.4389246665337474,
+        "max": 1.8830133743515942
+      },
+      "false_safe_tag_duration_s": {
+        "n": 232,
+        "mean": 2.0,
+        "min": 1.9999999999999996,
+        "p05": 1.9999999999999996,
+        "p50": 2.0,
+        "p95": 2.0000000000000004,
+        "p99": 2.0000000000000004,
+        "max": 2.0000000000000004
+      },
+      "risk_while_unexpired_s": {
+        "n": 232,
+        "mean": 1.2859178452480464,
+        "min": 0.0,
+        "p05": 0.3637205871804362,
+        "p50": 1.41,
+        "p95": 1.9200000000000002,
+        "p99": 2.0,
+        "max": 2.0000000000000004
+      },
+      "expires_before_irrevocable_window_end": 0,
+      "original_owned_past_expiry_certificates": 0,
+      "original_owned_past_expiry_s": 0.0,
+      "command_origin_past_expiry_s": 0.0
+    },
+    {
+      "method": "dispatch_deadline",
+      "certificates": 26540,
+      "safe": 26308,
+      "unsafe": 232,
+      "no_finite_expiry": 463,
+      "unsafe_expiry_before_risk": 224,
+      "unsafe_early_rate": 0.9655172413793104,
+      "unsafe_abstain_at_issue": 0,
+      "unsafe_early_via_immediate_abstention": 0,
+      "unsafe_early_via_positive_lifetime": 224,
+      "safe_premature_expiry": 25845,
+      "safe_premature_rate": 0.9824007906340276,
+      "safe_finite_motion_coverage": 0.0,
+      "unsafe_expiry_lead_s": {
+        "n": 232,
+        "mean": 0.6968729655622319,
+        "min": -0.04999999999999982,
+        "p05": 0.02999999999999985,
+        "p50": 0.54,
+        "p95": 1.5862794128195634,
+        "p99": 3.388924666533747,
+        "max": 3.8330133743515944
+      },
+      "false_safe_tag_duration_s": {
+        "n": 232,
+        "mean": 0.04999999999999989,
+        "min": 0.04999999999999982,
+        "p05": 0.04999999999999982,
+        "p50": 0.04999999999999982,
+        "p95": 0.05000000000000071,
+        "p99": 0.05000000000000071,
+        "max": 0.05000000000000071
+      },
+      "risk_while_unexpired_s": {
+        "n": 232,
+        "mean": 0.0013362068965517243,
+        "min": 0.0,
+        "p05": 0.0,
+        "p50": 0.0,
+        "p95": 0.0,
+        "p99": 0.04999999999999982,
+        "max": 0.04999999999999982
+      },
+      "expires_before_irrevocable_window_end": 26076,
+      "original_owned_past_expiry_certificates": 160,
+      "original_owned_past_expiry_s": 20.100000000001756,
+      "command_origin_past_expiry_s": 1335.8099999999797
+    },
+    {
+      "method": "information_quality",
+      "certificates": 26540,
+      "safe": 26308,
+      "unsafe": 232,
+      "no_finite_expiry": 0,
+      "unsafe_expiry_before_risk": 228,
+      "unsafe_early_rate": 0.9827586206896551,
+      "unsafe_abstain_at_issue": 137,
+      "unsafe_early_via_immediate_abstention": 133,
+      "unsafe_early_via_positive_lifetime": 95,
+      "safe_premature_expiry": 26308,
+      "safe_premature_rate": 1.0,
+      "safe_finite_motion_coverage": 0.0,
+      "unsafe_expiry_lead_s": {
+        "n": 232,
+        "mean": 0.7263988276311972,
+        "min": 0.0,
+        "p05": 0.08000000000000007,
+        "p50": 0.585,
+        "p95": 1.5862794128195634,
+        "p99": 3.388924666533747,
+        "max": 3.8330133743515944
+      },
+      "false_safe_tag_duration_s": {
+        "n": 232,
+        "mean": 0.020474137931034427,
+        "min": 0.0,
+        "p05": 0.0,
+        "p50": 0.0,
+        "p95": 0.04999999999999982,
+        "p99": 0.0500000000000005,
+        "max": 0.05000000000000071
+      },
+      "risk_while_unexpired_s": {
+        "n": 232,
+        "mean": 0.0,
+        "min": 0.0,
+        "p05": 0.0,
+        "p50": 0.0,
+        "p95": 0.0,
+        "p99": 0.0,
+        "max": 0.0
+      },
+      "expires_before_irrevocable_window_end": 26540,
+      "original_owned_past_expiry_certificates": 2676,
+      "original_owned_past_expiry_s": 145.83000000000186,
+      "command_origin_past_expiry_s": 1354.2099999999796
+    },
+    {
+      "method": "past_consistency",
+      "certificates": 26540,
+      "safe": 26308,
+      "unsafe": 232,
+      "no_finite_expiry": 0,
+      "unsafe_expiry_before_risk": 211,
+      "unsafe_early_rate": 0.9094827586206896,
+      "unsafe_abstain_at_issue": 137,
+      "unsafe_early_via_immediate_abstention": 133,
+      "unsafe_early_via_positive_lifetime": 78,
+      "safe_premature_expiry": 6817,
+      "safe_premature_rate": 0.2591227003192945,
+      "safe_finite_motion_coverage": 0.7408772996807055,
+      "unsafe_expiry_lead_s": {
+        "n": 232,
+        "mean": 0.5302781379760249,
+        "min": -1.2800000000000002,
+        "p05": -0.18899999999999972,
+        "p50": 0.45500000000000007,
+        "p95": 1.435358913944808,
+        "p99": 2.719424908238683,
+        "max": 3.2830133743515946
+      },
+      "false_safe_tag_duration_s": {
+        "n": 232,
+        "mean": 0.21659482758620682,
+        "min": 0.0,
+        "p05": 0.0,
+        "p50": 0.0,
+        "p95": 0.8499999999999996,
+        "p99": 2.0,
+        "max": 2.0000000000000004
+      },
+      "risk_while_unexpired_s": {
+        "n": 232,
+        "mean": 0.03784482758620689,
+        "min": 0.0,
+        "p05": 0.0,
+        "p50": 0.0,
+        "p95": 0.1889999999999995,
+        "p99": 1.0066999999999986,
+        "max": 1.2800000000000002
+      },
+      "expires_before_irrevocable_window_end": 1907,
+      "original_owned_past_expiry_certificates": 1453,
+      "original_owned_past_expiry_s": 72.58000000000007,
+      "command_origin_past_expiry_s": 98.73999999999855
+    }
+  ],
+  "renewals": [
+    {
+      "method": "horizon",
+      "attempts": 26420,
+      "mode_permitted": 24967,
+      "mode_denied": 1453,
+      "expiry_extended": 26300,
+      "same_lineage_extended": 22421,
+      "attempts_after_old_expiry": 0,
+      "extension_s": {
+        "n": 26300,
+        "mean": 0.051047528517110266,
+        "min": 0.04999999999999716,
+        "p05": 0.049999999999998934,
+        "p50": 0.04999999999999982,
+        "p95": 0.05000000000000071,
+        "p99": 0.05000000000000071,
+        "max": 0.7999999999999998
+      }
+    },
+    {
+      "method": "dispatch_deadline",
+      "attempts": 26420,
+      "mode_permitted": 24967,
+      "mode_denied": 1453,
+      "expiry_extended": 25921,
+      "same_lineage_extended": 22062,
+      "attempts_after_old_expiry": 181,
+      "extension_s": {
+        "n": 25921,
+        "mean": 0.0510898499286293,
+        "min": 0.04999999999999716,
+        "p05": 0.049999999999998934,
+        "p50": 0.04999999999999993,
+        "p95": 0.05000000000000071,
+        "p99": 0.050000000000001155,
+        "max": 0.8499999999999996
+      }
+    },
+    {
+      "method": "information_quality",
+      "attempts": 26420,
+      "mode_permitted": 24967,
+      "mode_denied": 1453,
+      "expiry_extended": 26224,
+      "same_lineage_extended": 22419,
+      "attempts_after_old_expiry": 2662,
+      "extension_s": {
+        "n": 26224,
+        "mean": 0.051391854789505795,
+        "min": 0.04999999999999716,
+        "p05": 0.049999999999998934,
+        "p50": 0.04999999999999993,
+        "p95": 0.05000000000000071,
+        "p99": 0.09999999999999987,
+        "max": 0.8500000000000001
+      }
+    },
+    {
+      "method": "past_consistency",
+      "attempts": 26420,
+      "mode_permitted": 24967,
+      "mode_denied": 1453,
+      "expiry_extended": 26227,
+      "same_lineage_extended": 22421,
+      "attempts_after_old_expiry": 1436,
+      "extension_s": {
+        "n": 26227,
+        "mean": 0.06335837114424067,
+        "min": 0.04999999999999716,
+        "p05": 0.049999999999998934,
+        "p50": 0.05000000000000071,
+        "p95": 0.10000000000000009,
+        "p99": 0.10000000000000053,
+        "max": 0.7999999999999998
+      }
+    }
+  ],
+  "candidate_compute_ms": {
+    "n": 26540,
+    "mean": 0.0042819075734740015,
+    "min": 0.002488,
+    "p05": 0.003028,
+    "p50": 0.003574,
+    "p95": 0.004778,
+    "p99": 0.010880180000000022,
+    "max": 0.778178
+  },
+  "additional_waiting_s": null,
+  "prevented_collisions": null,
+  "global_latest_escape": "Unknown",
+  "gates": [
+    {
+      "method": "horizon",
+      "checks": {
+        "unsafe_early": false,
+        "each_required_category": false,
+        "safe_motion_coverage": false,
+        "stable_interference": true,
+        "head_on_commit_window": false,
+        "incremental_cost": true
+      },
+      "numerical_pass": false,
+      "physically_supported_validity": false,
+      "validity_limitation": "No evidence maps this time proxy to future behavior/coverage validity"
+    },
+    {
+      "method": "dispatch_deadline",
+      "checks": {
+        "unsafe_early": true,
+        "each_required_category": true,
+        "safe_motion_coverage": false,
+        "stable_interference": false,
+        "head_on_commit_window": true,
+        "incremental_cost": true
+      },
+      "numerical_pass": false,
+      "physically_supported_validity": false,
+      "validity_limitation": "Queue deadline constrains dispatch, not future-model validity"
+    },
+    {
+      "method": "information_quality",
+      "checks": {
+        "unsafe_early": true,
+        "each_required_category": true,
+        "safe_motion_coverage": false,
+        "stable_interference": false,
+        "head_on_commit_window": true,
+        "incremental_cost": true
+      },
+      "numerical_pass": false,
+      "physically_supported_validity": false,
+      "validity_limitation": "No evidence maps this time proxy to future behavior/coverage validity"
+    },
+    {
+      "method": "past_consistency",
+      "checks": {
+        "unsafe_early": true,
+        "each_required_category": true,
+        "safe_motion_coverage": false,
+        "stable_interference": false,
+        "head_on_commit_window": false,
+        "incremental_cost": true
+      },
+      "numerical_pass": false,
+      "physically_supported_validity": false,
+      "validity_limitation": "No evidence maps this time proxy to future behavior/coverage validity"
+    }
+  ],
+  "renewal_permission_is_not_validity_proof": true,
+  "same_lineage_deadline_drift_s": {
+    "n": 3991,
+    "mean": 0.2829616637434227,
+    "min": 0.0,
+    "p05": 0.0,
+    "p50": 0.0,
+    "p95": 0.20000000000000018,
+    "p99": 11.004999999999995,
+    "max": 13.7
+  },
+  "original_replacement_rate_hz": {
+    "n": 120,
+    "mean": 19.697755733780358,
+    "min": 17.88235294117647,
+    "p05": 18.421052631578945,
+    "p50": 20.0,
+    "p95": 20.000000000000004,
+    "p99": 20.000000000000004,
+    "max": 20.30075187969925
+  }
+}

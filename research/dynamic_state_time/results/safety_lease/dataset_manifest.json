@@ -1,0 +1,37 @@
+{
+  "dataset_id": "rm2027-safety-lease-offline-20261027",
+  "root": "/home/qihei/.codex/visualizations/2026/10/25/01a1708d-d064-7252-86b0-5e92a75657dc/dynamic_safety_lease_20261027",
+  "origin": "/home/qihei/.codex/visualizations/2026/10/25/01a1708d-d064-7252-86b0-5e92a75657dc/dynamic_certificate_holdout_rerun_20261026",
+  "source_manifest": "../certificate_holdout_rerun/dataset_manifest.json",
+  "mode_manifest": "../information_mode/dataset_manifest.json",
+  "label_manifest": "../uncertainty_certificate/dataset_manifest.json",
+  "generated_or_real": "derived from unchanged synthetic C1 logs; no new rollout",
+  "purpose": "time-bounded lease and absolute commitment deadline diagnostics",
+  "filename_convention": "certificates.jsonl.gz; renewal_attempts.jsonl.gz",
+  "required_experiment": "offline_safety_lease.py test -> analyze",
+  "protocol_sha256": "1dfcc0e2bd0d9674ec88958003fa0e306c34dce3aaff18ae69f3167448632394",
+  "files": [
+    {
+      "path": "certificates.jsonl.gz",
+      "size_bytes": 2721108,
+      "sha256": "81a08f4eba14cab7a81aa65ca74951c646a5bca1742667bcdf34496deea3ef96"
+    },
+    {
+      "path": "renewal_attempts.jsonl.gz",
+      "size_bytes": 718470,
+      "sha256": "aeb6c8d47f0eb5f915a5b53d823b02a54b491100eb495f7a2924f3ee0cb19a0b"
+    }
+  ],
+  "total_bytes": 3439578,
+  "verification": {
+    "body_10ms": 188,
+    "already_unsafe_at_issue": 4,
+    "rest_ray_bracket": 44,
+    "unique_certificates": 26540,
+    "unchanged_scenarios": 120,
+    "mode_classifier_unchanged": true
+  },
+  "analysis_source_sha256": "04db59a50caf8f7fd19ea5f3c7b2d963ca80b74dae7ec9cb2dad4f9e1f3b4c1f",
+  "mode_protocol_sha256": "7ea468b0e4ce0759a225e85c87892b4e375605e4d78ee397e1dc9c8a1e33b9f5",
+  "original_scenario_protocol_sha256": "5491cd6699f7f4c79456286f5ec89b7d7fc9ad8f0000f90cbdaa32f6d0063fde"
+}

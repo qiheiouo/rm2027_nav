@@ -1,0 +1,35 @@
+{
+  "stage": "Research: formalization and retrospective classification only; no closed-loop prototype",
+  "archive_commit": "865ff70f7c2a25fe73ac69a6c4655f24ea726c06",
+  "cases": "All unchanged 120 C1 scenarios from preacquired_holdout_protocol.json; all 26540 unique issued certificates including initialization",
+  "exposure": "All evidence previously examined. This is an untuned exploratory comparison, not an independent holdout.",
+  "control_period_s": 0.05,
+  "plant_dt_s": 0.01,
+  "command_delay_s": 0.1,
+  "freshness_s": 0.15,
+  "nominal_horizon_s": 2.0,
+  "safety_threshold_m": 0.05,
+  "numerical_tolerance": 1e-7,
+  "candidates": {
+    "horizon": "tau=issue+2.0s. Existing main-planner horizon is a proxy, NOT a measured prediction-validity bound.",
+    "dispatch_deadline": "ell=first backup-control event differing from holding the committed main target minus 100ms command delay. No differing event -> no finite dispatch deadline. Compare ell AS IF tau only to expose the category error; ell is not physical validity expiry.",
+    "information_quality": "tau=source_epoch+150ms in STABLE_TRACK; tau=issue (abstain) in other unchanged information modes. Does not promise unseen motion remains CV.",
+    "past_consistency": "tau=issue+min(past coherent source span,2.0s) in STABLE_TRACK; otherwise tau=issue. Coherence span since last nonstable source, using unchanged mode estimator output; no future dwell-time fitting."
+  },
+  "selection": "Unique useful physical metadata candidate is dispatch_deadline, selected a priori for fixed absolute-schedule admission timing. It is not accepted as tau. No best-evaluation-score selection; no hybrid added to rescue failure.",
+  "reconstruction": "Use sealed certificate truth-clearance labels. Reconstruct each saved certificate fields from unchanged raw logs; compute first physical 5cm violation time only for unsafe labels, at original 10ms plant steps or analytic stationary rest ray. Truth and outcomes enter evaluator only after expiry calculation.",
+  "historical_use": "Track original post-transaction ownership intervals, immutable command owner execution, and backup-only execution separately. These are old baseline facts, not execution of a lease policy.",
+  "renewal": "Diagnostic renewal attempts are original accepted replacements. Mode permits a new exact-CV lease only in STABLE_TRACK; permission is necessary, not proof for extending A. Same-lineage deadline drift is recorded. No fictitious closed-loop trace or guaranteed successful renewal is generated.",
+  "latest_commit": "For unchanged absolute B and a different not-yet-queued event at s, new command must be committed by s-delay, inclusive; at the next 50ms control instant it is too late. Already queued/executing commands are not revoked. Latest physical escape over all translated/alternative trajectories remains Unknown.",
+  "go_gate": {
+    "unsafe_expiry_before_physical_risk_min": 0.75,
+    "each_stop_occlusion_prediction_min": 0.5,
+    "safe_finite_coverage_through_saved_motion_min": 0.95,
+    "stable_crossing_multiple_premature_expiry_max": 0.05,
+    "head_on_fixed_absolute_deadline_window_required": true,
+    "physically_supported_validity_or_explicit_assumption_evidence_required": true,
+    "incremental_p99_ms_max": 10
+  },
+  "decision": "Modify only if physical lease evidence exists but one failure mode/renewal boundary remains. Stop if successful classification relies on short arbitrary timeout, expiry truncates most safe backups, or dispatch deadline is substituted for model validity. On Stop recommend freezing this dynamic-navigation line; no new mechanism or prototype.",
+  "data_policy": "Only source/config/small derived summaries/report/manifest in Git. All per-certificate results and original logs remain outside repository. No raw/archive copies."
+}
