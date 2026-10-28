@@ -45,6 +45,7 @@ colcon build --symlink-install --executor sequential \
   --base-paths src/rm_description src/rm_nav_config src/rm_new_car_simulation \
                src/rm_navigation_bringup src/rm_navigation_launch \
                src/rm_competition_interfaces src/rm_competition_mission src/rm_pursuit \
+               src/rm_localization_adapters src/rm_relocalization_bridge \
   --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo
 source install/setup.bash
 python3 tools/check_simulation_bringup.py

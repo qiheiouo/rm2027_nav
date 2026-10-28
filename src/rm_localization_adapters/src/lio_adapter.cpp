@@ -6,6 +6,7 @@
 #include <functional>
 #include <memory>
 #include <optional>
+#include <random>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -17,6 +18,8 @@
 #include "rm_competition_interfaces/msg/chassis_heading_state.hpp"
 #include "rm_competition_interfaces/msg/gimbal_state.hpp"
 #include "rm_localization_adapters/canonical_odometry.hpp"
+#include "rm_localization_adapters/odometry_input_health.hpp"
+#include "rm_competition_interfaces/msg/lio_source_status.hpp"
 #include "tf2/exceptions.h"
 #include "tf2/LinearMath/Quaternion.h"
 #include "tf2/LinearMath/Transform.h"
@@ -197,6 +200,39 @@ public:
         "twist_estimator.max_angular_speed", 20.0);
       twist_estimator_ =
         std::make_unique<rm_localization_adapters::PoseTwistEstimator>(estimator_config);
+    }
+
+    health_enabled_ = declare_parameter<bool>("input_health.enabled", false);
+    rm_localization_adapters::InputHealthConfig hc;
+    hc.max_age = declare_parameter<double>("input_health.max_age", hc.max_age);
+    hc.max_future = declare_parameter<double>("input_health.max_future", hc.max_future);
+    hc.max_silence = declare_parameter<double>("input_health.max_silence", hc.max_silence);
+    const int recovery = declare_parameter<int>("input_health.recovery_samples", 5);
+    if (recovery < 2) {throw std::invalid_argument("health recovery requires >=2 samples");}
+    hc.recovery_samples = static_cast<unsigned>(recovery);
+    hc.max_speed = declare_parameter<double>("input_health.max_speed", hc.max_speed);
+    hc.translation_slack = declare_parameter<double>("input_health.translation_slack", hc.translation_slack);
+    hc.max_angular_speed = declare_parameter<double>("input_health.max_angular_speed", hc.max_angular_speed);
+    hc.rotation_slack = declare_parameter<double>("input_health.rotation_slack", hc.rotation_slack);
+    hc.recovery_translation = declare_parameter<double>("input_health.recovery_translation", hc.recovery_translation);
+    hc.recovery_rotation = declare_parameter<double>("input_health.recovery_rotation", hc.recovery_rotation);
+    hc.trust_twist = declare_parameter<bool>("input_health.trust_raw_twist", false);
+    hc.speed_error = declare_parameter<double>("input_health.speed_error", hc.speed_error);
+    hc.angular_error = declare_parameter<double>("input_health.angular_error", hc.angular_error);
+    hc.frozen_duration = declare_parameter<double>("input_health.frozen_duration", hc.frozen_duration);
+    if (health_enabled_ && (use_latest_transform_ || allow_placeholder_fallback_ ||
+      !use_tf_sensor_to_base_))
+    {throw std::invalid_argument("input health requires exact TF with no placeholder fallback");}
+    health_gate_ = std::make_unique<rm_localization_adapters::OdometryInputHealth>(hc);
+    health_started_at_ = now();
+    health_id_ = std::to_string(std::random_device{}()) + ":" + std::to_string(std::random_device{}());
+    if (health_enabled_) {
+      health_pub_ = create_publisher<rm_competition_interfaces::msg::LioSourceStatus>(
+        "/localization/lio_source_status", rclcpp::QoS(10).reliable());
+      health_timer_ = create_wall_timer(std::chrono::milliseconds(20), [this]() {
+        health_gate_->tick(now().nanoseconds(), steadyNow());
+        if (!health_gate_->healthy()) {publishSourceHealth(nullptr);}
+      });
     }
 
     const double input_to_base_x =
@@ -468,8 +504,66 @@ private:
     pose.orientation.w = transform.getRotation().w();
   }
 
+  static int64_t steadyNow()
+  {
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(
+      std::chrono::steady_clock::now().time_since_epoch()).count();
+  }
+
+  void publishSourceHealth(const nav_msgs::msg::Odometry * output)
+  {
+    if (!health_enabled_) {return;}
+    if (health_started_at_.nanoseconds() <= 0 && now().nanoseconds() > 0) {health_started_at_ = now();}
+    rm_competition_interfaces::msg::LioSourceStatus s;
+    s.header.stamp = now();
+    s.header.frame_id = odom_frame_;
+    s.producer_id = health_id_;
+    s.started_at = health_started_at_;
+    s.generation = health_gate_->generation();
+    s.sequence = ++health_sequence_;
+    s.healthy = output != nullptr && health_gate_->healthy();
+    s.reason = health_gate_->reason();
+    if (s.healthy) {
+      s.odometry = *output;
+      s.valid_until = rclcpp::Time(output->header.stamp) +
+        rclcpp::Duration::from_seconds(health_gate_->config().max_age);
+    }
+    health_pub_->publish(s);
+  }
+
+  void isolate(const char * reason)
+  {
+    if (!health_enabled_) {return;}
+    health_gate_->fault(reason, now().nanoseconds());
+    if (twist_estimator_) {twist_estimator_->reset();}
+    publishSourceHealth(nullptr);
+  }
+
   void handleRawOdometry(const nav_msgs::msg::Odometry::SharedPtr msg)
   {
+    if (health_enabled_) {
+      const auto & p = msg->pose.pose;
+      const auto & t = msg->twist.twist;
+      for (double v : {p.position.x, p.position.y, p.position.z, p.orientation.x,
+          p.orientation.y, p.orientation.z, p.orientation.w,
+          t.linear.x, t.linear.y, t.linear.z, t.angular.x, t.angular.y, t.angular.z})
+      {if (!std::isfinite(v)) {isolate("nonfinite_raw"); return;}}
+      const double qn = p.orientation.x*p.orientation.x + p.orientation.y*p.orientation.y +
+        p.orientation.z*p.orientation.z + p.orientation.w*p.orientation.w;
+      if (!std::isfinite(qn) || qn < 1e-12) {isolate("invalid_quaternion"); return;}
+      if (msg->header.stamp.sec < 0 || msg->header.stamp.nanosec >= 1000000000U ||
+        rclcpp::Time(msg->header.stamp).nanoseconds() <= 0)
+      {isolate("malformed_stamp"); return;}
+      if (health_started_at_.nanoseconds() <= 0 && now().nanoseconds() > 0) {health_started_at_ = now();}
+      if (rclcpp::Time(msg->header.stamp).nanoseconds() < health_started_at_.nanoseconds())
+      {isolate("pre_instance_raw"); return;}
+      if (msg->header.frame_id != expected_input_odom_frame_ || msg->child_frame_id.empty() ||
+        (!health_raw_child_.empty() && health_raw_child_ != msg->child_frame_id))
+      {isolate("raw_frame_changed"); return;}
+      if (health_gate_->config().trust_twist && msg->child_frame_id != base_frame_)
+      {isolate("unproven_raw_twist_frame"); return;}
+      health_raw_child_ = msg->child_frame_id;
+    }
     if (!pending_odometry_.empty() || !tryProcessRawOdometry(msg)) {
       enqueuePendingOdometry(msg);
     }
@@ -726,6 +820,12 @@ private:
       output.pose.covariance[35] = heading_yaw_variance_;
     }
 
+    if (health_enabled_ && !health_gate_->evaluate(output, now().nanoseconds(), steadyNow())) {
+      if (twist_estimator_) {twist_estimator_->reset();}
+      publishSourceHealth(nullptr);
+      return true;
+    }
+
     if (twist_mode_ == "finite_difference") {
       if (msg->header.stamp.sec == 0 && msg->header.stamp.nanosec == 0) {
         RCLCPP_WARN_THROTTLE(
@@ -743,6 +843,9 @@ private:
         } else if (estimate.status == rm_localization_adapters::TwistEstimateStatus::kOutlier) {
           reason = "velocity outlier";
         }
+        if (estimate.status != rm_localization_adapters::TwistEstimateStatus::kInitialized) {
+          isolate("canonical_twist_rejected");
+        }
         RCLCPP_WARN_THROTTLE(
           get_logger(), *get_clock(), 2000,
           "Skipping canonical odometry while twist estimator is %s (dt=%.6f s).",
@@ -757,6 +860,7 @@ private:
         output.twist.covariance[diagonal_indices[index]] = twist_variance_diagonal_[index];
       }
     }
+    publishSourceHealth(&output);
     odom_pub_->publish(output);
     if (matched_heading.has_value()) {
       publishDerivedGimbal(
@@ -789,6 +893,13 @@ private:
       raw_parent_to_sensor, base_to_sensor);
   }
 
+  bool health_enabled_{false};
+  std::string health_id_, health_raw_child_;
+  rclcpp::Time health_started_at_{0, 0, RCL_ROS_TIME};
+  uint64_t health_sequence_{0};
+  std::unique_ptr<rm_localization_adapters::OdometryInputHealth> health_gate_;
+  rclcpp::Publisher<rm_competition_interfaces::msg::LioSourceStatus>::SharedPtr health_pub_;
+  rclcpp::TimerBase::SharedPtr health_timer_;
   std::string raw_odom_topic_;
   std::string output_odom_topic_;
   std::string expected_input_odom_frame_;

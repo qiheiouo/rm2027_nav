@@ -105,3 +105,69 @@ Odometry alone. Use a controlled single producer and destroy the old pipeline
 before restarting. This is a software geometry contract, not DDS identity,
 Full-base heading fusion or full pose-covariance transport. Opt-in parameters:
 `rm_lio_bringup/config/lio_adapter_dual_source_reference.yaml`.
+
+### Candidate LIO input health / bad-output isolation
+
+`input_health.enabled=true` opts into the source gate. Pair it with the canonical
+bridge's `source_health_topic=/localization/lio_source_status`; enabling only the
+adapter does not by itself establish a motion-authorization contract. Existing
+hardware profiles remain unchanged. The concrete test values are in
+`rm_new_car_simulation/config/lio_health_fixture.yaml`, not a vehicle calibration.
+
+The gate checks finite raw pose/quaternion/twist, nonzero well-formed source
+stamps, pre-instance/duplicate/reordered/stale/future data, stable raw parent and
+child, finite canonical pose, and consecutive canonical translation/rotation.
+The step limits are `translation_slack + max_speed * dt` in metres and
+`rotation_slack + max_angular_speed * dt` in radians (shortest quaternion arc).
+They bound jumps, not accumulated drift; no acceleration estimator is introduced.
+Source time uses the node's ROS clock; silence uses a monotonic wall clock.
+Exact source-time TF is required, with no placeholder/latest fallback. Missing TF
+withholds output and eventually expires source health. Existing reference/heading
+reset latches retain their stronger managed-restart requirement.
+
+The externally relevant states are:
+
+- **HEALTHY**: accepted samples may publish canonical odometry and odom/base TF.
+- **SUSPECT**: `suspect_frozen_pose` records a bounded pose/motion disagreement
+  under the trusted-twist option. During the configured confirmation window the
+  observation is ambiguous and can still publish; expiry isolates it. Hard
+  protocol/finite-value/jump faults go directly to INVALID in the same callback.
+- **INVALID / ISOLATED**: no canonical odometry or odom/base TF is published;
+  source evidence is false. The last trusted pose is an anchor, never a refreshed
+  valid observation. Invalid evidence is emitted every 20 ms, without extending
+  any accepted-source deadline.
+- **RECOVERING**: at least `recovery_samples >= 2` consecutive, strictly newer,
+  fresh, consistent samples are required. They must remain within the configured
+  translation AND rotation of the last accepted pose; absent an initial anchor,
+  startup still requires consecutive samples. Failure or an inter-sample silence
+  resets the count. Future/bad samples never advance the accepted watermark.
+
+A healthy-to-fault edge increments source `generation`. `LioSourceStatus`
+combines producer identity/start time, generation, sequence, deadline and accepted
+odometry atomically; false messages carry no usable odometry. The bridge consumes
+this envelope instead of the bare odometry stream. It is **source evidence**, not
+a second localization or motion authority. See the bridge README for session and
+fresh-global-correction recovery. Adapter callbacks/timers share the node's
+mutually exclusive callback group; the TF listener only populates its buffer.
+
+`trust_raw_twist` defaults false. It may be enabled only when the incoming child
+is canonical base and the twist's units/basis/measurement semantics are proven.
+Then 3D body velocity and angular velocity must agree with pose differences
+within `speed_error` / `angular_error`. Sustained pose steps below 0.1 mm or
+0.1 mrad while measured motion exceeds 0.1 m/s or 0.3 rad/s become frozen-output
+faults after `frozen_duration`. Those cue/precision values also need sensor
+validation. A still-frozen moving sample cannot count toward recovery.
+A consistent 7 rad/s spin is accepted; large angular rate alone is not a fault.
+No trustworthy motion cue means a stationary robot and a fresh-stamped frozen
+backend cannot be distinguished. Finite-difference twist derived from the same
+pose cannot supply that missing evidence. Covariance quality remains unaccepted
+and is not used to invent a localization-confidence gate.
+
+Bounded recovery is not relocalization: a truly displaced/rotated robot outside
+the anchor window stays isolated. Nothing here reseeds AMCL, invokes GICP,
+rebases odom, or changes a map correction. A raw `Odometry` has no producer epoch:
+old timestamps are rejected, but a hidden same-frame rebase or old data re-stamped
+as new cannot be authenticated. The backend must retain one managed producer.
+
+Reproduce unit and actual-node fault checks with the commands in the
+[validation record](../../docs/validation/lio_input_health_port_20261028.md).

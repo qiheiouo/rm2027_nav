@@ -199,3 +199,11 @@ epoch. A rollback blocks output; cached TF does not imply localization health.
 Owner remains lio_adapter for odom->base_link and RSP for mechanical transforms.
 The real install/clock/heading/covariance contract remains unaccepted; see
 [phase conclusion](../new_car_stage_freeze_20261013.md).
+
+### LIO 输入健康测试组合
+
+`event_driven + localization_source:=lio_health_fixture` 中，simulation oracle
+关闭 TF 发布。`lio_adapter` 独占 odom→base_link，`map_odom_from_global_pose` 独占
+map→odom；RSP 保持机械子树 owner。坏输入隔离后不发布新的 canonical odom/TF，
+已有 TF 缓存可能暂时仍可查询，不能替代 `/localization/status` 的有效性证据。
+健康包和恢复 session 语义见 [topic 合同](topic_contract_2027.md#lio-输入健康候选2026-10-28)。

@@ -141,7 +141,7 @@ Jazzy / Gazebo Harmonic。Build、source、启动与 headless/RViz smoke 的唯�
 [统一仿真](simulation.md)。默认启动静态测试场、仿真真值 TF/odometry、地图、Nav2、
 模拟底盘、LiDAR 代理和 RViz；不启动真实 MID360、串口或 referee IO。
 
-TF 由 S2 physics oracle 和 robot_state_publisher 分工持有，不启动 canonical LIO adapter
+默认 TF 由 S2 physics oracle 和 robot_state_publisher 分工持有，不启动 canonical LIO adapter
 或第二套定位源。Nav2 继续使用现有 static + inflation；没有加入动态导航功能。
 该场景只证明静态平地软件链，不能提升真实定位/硬件/多层场地结论。
 
@@ -152,6 +152,11 @@ TF 由 S2 physics oracle 和 robot_state_publisher 分工持有，不启动 cano
 MPPI，增加水平扫描夹具和 local/global ObstacleLayer、Mission/Arbitration 及定位状态
 测试夹具。默认 disabled/hold；目标只经 Mission；没有串口或硬件 guard 授权。
 参数与复现见 [统一仿真](simulation.md#事件重规划候选)。
+
+叠加 `localization_source:=lio_health_fixture` 时改用实际 LIO adapter + global-pose bridge，
+truth 只作为注入源，不再发布 TF/status；Nav2 使用受保护的 `/odometry/lio`。
+夹具驱动、owner 和限制见 [LIO 输入健康候选](simulation.md#lio-输入健康候选)。
+这没有启动真实 FAST-LIO，也不增加硬件运动权限。
 
 ## Bag Replay
 

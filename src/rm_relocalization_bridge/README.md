@@ -95,3 +95,32 @@ limits are checked before matching, so late odometry cannot reopen validity.
 An unconfigured standalone external-pose bridge has no producer heartbeat; each
 new pose provides only a finite 1.0 s lease. A one-shot Phase 2C fake pose now
 expires automatically. For AMCL/GICP use the selected backend status chain.
+
+### Optional LIO source-health prerequisite
+
+With nonempty `source_health_topic`, the bridge consumes reliable/volatile
+`LioSourceStatus` envelopes instead of bare `/odometry/lio`. It checks source
+identity/start time, generation, sequence, original odometry time/frames/pose,
+finite deadline, and `source_health_timeout` in both ROS and steady time. Retired
+source epochs/generations and repeated sequences are inert, including old false
+heartbeats arriving after recovery. A valid global pose cannot override an
+invalid, missing, or expired LIO source. `valid_until` is the minimum of global
+correction evidence and source-odometry evidence; neither heartbeat nor cached
+TF renews source time. Configure the source timeout at least as large as the
+adapter's maximum-age deadline and within the intended motion response budget.
+
+A source invalidation clears pending global poses and odometry matches, withdraws
+map/odom TF, publishes unified invalidity, and advances the bridge localization
+session. A paused/reversed clock defers any epoch that cannot yet increase until
+fresh source evidence and advancing time permit it; sequence is never reset
+inside an unchanged epoch. ROS clock rollback otherwise retains its previous
+high-water cutoff. Source recovery alone is insufficient: a newly accepted global
+measurement after the invalidation cutoff must match a new healthy odometry
+sample. Old corrections remain diagnostic only. The existing Mission session
+handoff cancels and retires the old action before a new goal can run.
+
+The selected AMCL/GICP gate may restart its sequence in a **new** epoch even with
+the same producer ID. Duplicate/out-of-order sequences inside one epoch remain
+invalid. This adds no correction-innovation gate or autonomous recovery behavior.
+`/localization/status` remains the sole validity authority, the bridge remains the
+sole map/odom owner, and the adapter remains the sole odom/base owner.

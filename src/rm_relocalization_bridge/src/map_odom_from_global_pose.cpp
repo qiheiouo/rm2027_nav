@@ -16,6 +16,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/bool.hpp"
 #include "rm_competition_interfaces/msg/localization_status.hpp"
+#include "rm_competition_interfaces/msg/lio_source_status.hpp"
 #include "std_srvs/srv/trigger.hpp"
 #include "tf2/LinearMath/Quaternion.h"
 #include "tf2/LinearMath/Transform.h"
@@ -114,9 +115,22 @@ public:
 
     status_pub_ = create_publisher<rm_competition_interfaces::msg::LocalizationStatus>(
       "/localization/status", rclcpp::QoS(1).reliable());
-    odom_sub_ = create_subscription<nav_msgs::msg::Odometry>(
-      odom_topic_, rclcpp::QoS(100).reliable(),
-      [this](const nav_msgs::msg::Odometry::SharedPtr msg) {handleOdometry(*msg);});
+    source_health_topic_ = declare_parameter<std::string>("source_health_topic", "");
+    source_health_timeout_ = declare_parameter<double>("source_health_timeout", 0.3);
+    if (!std::isfinite(source_health_timeout_) || source_health_timeout_ <= 0) {
+      throw std::invalid_argument("source health timeout must be positive");
+    }
+    if (source_health_topic_.empty()) {
+      odom_sub_ = create_subscription<nav_msgs::msg::Odometry>(
+        odom_topic_, rclcpp::QoS(100).reliable(),
+        [this](const nav_msgs::msg::Odometry::SharedPtr msg) {handleOdometry(*msg);});
+    } else {
+      source_sub_ = create_subscription<rm_competition_interfaces::msg::LioSourceStatus>(
+        source_health_topic_, rclcpp::QoS(10).reliable(),
+        [this](const rm_competition_interfaces::msg::LioSourceStatus::SharedPtr msg) {
+          handleSourceHealth(*msg);
+        });
+    }
     upstream_valid_required_ = !upstream_valid_topic_.empty();
     if (upstream_valid_required_) {
       upstream_status_sub_ = create_subscription<rm_competition_interfaces::msg::LocalizationStatus>(
@@ -196,6 +210,78 @@ private:
     publishValid(false);
   }
 
+  void invalidateSourceLocked()
+  {
+    if (source_healthy_) {
+      // New validity session immediately retires Mission's old action callbacks.
+      if (now() > started_at_) {
+        started_at_ = now();
+        sequence_ = 0;
+      } else {
+        // A paused/reversed ROS clock cannot mint a newer time-based epoch yet.
+        source_epoch_pending_ = true;
+      }
+      recovery_after_ns_ = std::max(recovery_after_ns_, started_at_.nanoseconds());
+    }
+    source_healthy_ = false;
+    odom_cache_.clear();
+    invalidateLocked();
+  }
+
+  void handleSourceHealth(const rm_competition_interfaces::msg::LioSourceStatus & msg)
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    checkValidityLocked();
+    const auto well = [](const builtin_interfaces::msg::Time & t) {
+        return t.sec >= 0 && t.nanosec < 1000000000U;
+      };
+    if (!well(msg.header.stamp) || !well(msg.started_at) || !well(msg.valid_until) ||
+      !well(msg.odometry.header.stamp)) {invalidateSourceLocked(); return;}
+    const auto epoch = rclcpp::Time(msg.started_at).nanoseconds();
+    const auto emitted = rclcpp::Time(msg.header.stamp).nanoseconds();
+    const auto t = rclcpp::Time(msg.odometry.header.stamp).nanoseconds();
+    const auto current = now().nanoseconds();
+    // Late traffic from a retired source generation is inert, including invalid heartbeats.
+    if (epoch < source_epoch_ || (epoch == source_epoch_ && source_epoch_ != 0 &&
+      (msg.producer_id != source_id_ || msg.generation < source_generation_ ||
+      (msg.generation == source_generation_ && msg.sequence <= source_sequence_)))) {return;}
+    if (msg.producer_id.empty() || epoch <= 0 || epoch > emitted || msg.generation == 0 ||
+      msg.sequence == 0 || (current - emitted)*1e-9 > source_health_timeout_ ||
+      (emitted - current)*1e-9 > max_future_sec_)
+    {invalidateSourceLocked(); return;}
+    if (epoch != source_epoch_ || msg.generation != source_generation_) {
+      invalidateSourceLocked();
+      source_stamp_ = 0;
+    }
+    source_epoch_ = epoch;
+    source_id_ = msg.producer_id;
+    source_generation_ = msg.generation;
+    source_sequence_ = msg.sequence;
+    if (!msg.healthy) {invalidateSourceLocked(); return;}
+    const auto deadline = rclcpp::Time(msg.valid_until);
+    if (t <= source_stamp_ || t <= recovery_after_ns_ || t < epoch ||
+      t > current + static_cast<int64_t>(max_future_sec_ * 1e9) ||
+      (current - t)*1e-9 > source_health_timeout_ || deadline.nanoseconds() <= current ||
+      (deadline.nanoseconds() - t)*1e-9 > source_health_timeout_ + 1e-6 ||
+      msg.odometry.header.frame_id != odom_frame_ || msg.odometry.child_frame_id != base_frame_ ||
+      !validatePose(msg.odometry.pose.pose))
+    {invalidateSourceLocked(); return;}
+    if (source_epoch_pending_) {
+      if (current <= started_at_.nanoseconds()) {return;}
+      started_at_ = now();
+      sequence_ = 0;
+      source_epoch_pending_ = false;
+    }
+    source_stamp_ = t;
+    source_until_ = deadline;
+    source_received_ = std::chrono::steady_clock::now();
+    source_healthy_ = true;
+    if (!odom_cache_.add({t, poseToTransform(msg.odometry.pose.pose)})) {
+      invalidateSourceLocked(); return;
+    }
+    processPendingGlobalPoses();
+  }
+
   void checkValidityLocked()
   {
     const auto clock_ns = now().nanoseconds();
@@ -204,6 +290,10 @@ private:
       recovery_after_ns_ = clock_ns;
     }
     const bool clock_reversed = clock_ns < last_clock_ns_;
+    if (!source_health_topic_.empty() && source_healthy_ &&
+      (clock_reversed || clock_ns > source_until_.nanoseconds() ||
+      std::chrono::duration<double>(std::chrono::steady_clock::now() - source_received_).count() >
+      source_health_timeout_)) {invalidateSourceLocked();}
     last_clock_ns_ = std::max(last_clock_ns_, clock_ns);
     const double silence = std::chrono::duration<double>(
       std::chrono::steady_clock::now() - last_evidence_received_).count();
@@ -239,13 +329,13 @@ private:
       epoch > emitted.nanoseconds() || emitted.nanoseconds() <= started_at_.nanoseconds() ||
       age < -max_future_sec_ || age > status_timeout_sec_ || epoch < upstream_epoch_ns_ ||
       (epoch == upstream_epoch_ns_ && !upstream_id_.empty() && msg.producer_id != upstream_id_) ||
-      (msg.producer_id == upstream_id_ &&
+      (msg.producer_id == upstream_id_ && epoch == upstream_epoch_ns_ &&
       (msg.sequence <= upstream_sequence_ || emitted.nanoseconds() < upstream_emitted_ns_)))
     {
       invalidateLocked();
       return;
     }
-    if (msg.producer_id != upstream_id_) {
+    if (msg.producer_id != upstream_id_ || epoch != upstream_epoch_ns_) {
       if (!upstream_id_.empty()) {invalidateLocked();}
       upstream_id_ = msg.producer_id;
       upstream_epoch_ns_ = epoch;
@@ -307,6 +397,7 @@ private:
 
   void handleGlobalPoseLocked(const geometry_msgs::msg::PoseWithCovarianceStamped & msg)
   {
+    if (!source_health_topic_.empty() && !source_healthy_) {return;}
     if (msg.header.frame_id != map_frame_) {
       invalidateLocked();
       RCLCPP_WARN(
@@ -417,6 +508,7 @@ private:
   void publishValid(bool value)
   {
     std_msgs::msg::Bool message;
+    value = value && (source_health_topic_.empty() || source_healthy_);
     message.data = value;
     valid_pub_->publish(message);
     rm_competition_interfaces::msg::LocalizationStatus status;
@@ -426,7 +518,8 @@ private:
     status.started_at = started_at_;
     status.sequence = ++sequence_;
     status.valid = value;
-    status.valid_until = evidence_until_;
+    status.valid_until = !source_health_topic_.empty() && source_until_ < evidence_until_ ?
+      source_until_ : evidence_until_;
     status.pose = accepted_pose_;
     status_pub_->publish(status);
   }
@@ -438,7 +531,8 @@ private:
       std::lock_guard<std::mutex> lock(mutex_);
       checkValidityLocked();
       publishValid(valid_ && (!upstream_valid_required_ || upstream_valid_));
-      if (!valid_ || (upstream_valid_required_ && !upstream_valid_)) {
+      if (!valid_ || (upstream_valid_required_ && !upstream_valid_) ||
+        (!source_health_topic_.empty() && !source_healthy_)) {
         return;
       }
       transform = map_to_odom_;
@@ -455,6 +549,14 @@ private:
     }
   }
 
+  std::string source_health_topic_, source_id_;
+  double source_health_timeout_{0.3};
+  bool source_healthy_{false}, source_epoch_pending_{false};
+  int64_t source_epoch_{0}, source_stamp_{0};
+  uint64_t source_generation_{0}, source_sequence_{0};
+  rclcpp::Time source_until_{0, 0, RCL_ROS_TIME};
+  std::chrono::steady_clock::time_point source_received_;
+  rclcpp::Subscription<rm_competition_interfaces::msg::LioSourceStatus>::SharedPtr source_sub_;
   std::string producer_id_, upstream_id_;
   rclcpp::Time started_at_{0, 0, RCL_ROS_TIME}, evidence_until_{0, 0, RCL_ROS_TIME};
   int64_t recovery_after_ns_{0}, last_clock_ns_{0}, last_pose_ns_{0};

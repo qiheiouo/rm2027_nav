@@ -8,6 +8,10 @@ map_odom_from_global_pose:
     upstream_valid_topic: ""
     status_timeout_sec: 1.0
     max_future_sec: 0.1
+    # Set to /localization/lio_source_status only with the health-enabled adapter.
+    # Then this bridge consumes atomic source evidence instead of bare odometry.
+    source_health_topic: ""
+    source_health_timeout: 0.3
     odom_topic: /odometry/lio
     map_to_odom_topic: /localization/map_to_odom
     publish_tf: true

@@ -1,5 +1,8 @@
 lio_adapter:
   ros__parameters:
+    # Opt in with a paired source_health_topic on the canonical bridge.
+    # Limits in the simulation fixture are not hardware calibration.
+    input_health.enabled: false
     raw_odom_topic: /odometry/fast_lio_raw
     output_odom_topic: /odometry/lio
     expected_input_odom_frame: odom

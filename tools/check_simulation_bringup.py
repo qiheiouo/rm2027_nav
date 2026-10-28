@@ -14,11 +14,14 @@ from catkin_pkg.package import parse_package
 ROOT = Path(__file__).resolve().parents[1]
 PACKAGES = ('rm_description', 'rm_nav_config', 'rm_new_car_simulation',
             'rm_navigation_bringup', 'rm_navigation_launch',
-            'rm_competition_interfaces', 'rm_competition_mission', 'rm_pursuit')
+            'rm_competition_interfaces', 'rm_competition_mission', 'rm_pursuit',
+            'rm_localization_adapters', 'rm_relocalization_bridge')
 ASSETS = {
     'rm_description': ['urdf/rm_sentry_2027.urdf.xacro'],
     'rm_nav_config': ['config/nav2_phase1_5_mppi.yaml', 'behavior_trees/event_driven_replanning.xml'],
-    'rm_competition_interfaces': ['msg/PursuitCandidate.msg'],
+    'rm_competition_interfaces': ['msg/PursuitCandidate.msg', 'msg/LioSourceStatus.msg'],
+    'rm_localization_adapters': ['config/lio_adapter.yaml'],
+    'rm_relocalization_bridge': ['config/map_odom_from_global_pose.yaml'],
     'rm_competition_mission': ['trees/competition_default.xml'],
     'rm_pursuit': ['launch/pursuit.launch.py'],
     'rm_navigation_bringup': ['launch/simulation.launch.py'],

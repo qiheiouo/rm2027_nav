@@ -21,6 +21,10 @@ def setup(context):
     profile=LaunchConfiguration('profile').perform(context)
     sensors=LaunchConfiguration('sensors').perform(context)=='true'
     event_policy=LaunchConfiguration('navigation_policy').perform(context)=='event_driven'
+    health_fixture=LaunchConfiguration('localization_source').perform(context)=='lio_health_fixture'
+    if health_fixture and not event_policy:
+        raise RuntimeError('lio_health_fixture requires event_driven Mission integration')
+    nav_odom='/odometry/lio' if health_fixture else '/odometry/simulation'
     if event_policy and (not sensors or LaunchConfiguration('use_nav2').perform(context)!='true'
                          or LaunchConfiguration('publish_truth_tf').perform(context)!='true'):
         raise RuntimeError('event_driven requires sensors, Nav2 and the explicit simulation oracle')
@@ -72,10 +76,17 @@ def setup(context):
       ExecuteProcess(cmd=args,additional_env=env,output='screen'),
       Node(package='ros_gz_bridge',executable='parameter_bridge',parameters=[{'config_file':str(output/'bridge.yaml'),'use_sim_time':True}],output='screen'),
       Node(package='rm_new_car_simulation',executable='simulation_tf.py',parameters=[{'use_sim_time':True,
-        'publish_truth_tf':LaunchConfiguration('publish_truth_tf').perform(context)=='true',
-        'publish_localization_fixture':event_policy}],output='screen'),
+        'publish_truth_tf':not health_fixture and LaunchConfiguration('publish_truth_tf').perform(context)=='true',
+        'publish_localization_fixture':event_policy and not health_fixture}],output='screen'),
       Node(package='robot_state_publisher',executable='robot_state_publisher',parameters=[{'robot_description':(output/'robot.urdf').read_text(),
         'use_sim_time':True,'publish_frequency':100.}],output='screen')]
+    if health_fixture:
+        # Source fixture is supplied by validate_lio_health_navigation.py. Without
+        # it the real adapter/bridge stay invalid; there is no truth-valid fallback.
+        for package, executable in [('rm_localization_adapters','lio_adapter'),
+                                    ('rm_relocalization_bridge','map_odom_from_global_pose')]:
+            nodes.append(Node(package=package, executable=executable, name=executable,
+                parameters=[str(root/'config/lio_health_fixture.yaml'), {'use_sim_time':True}], output='screen'))
     rviz_config=root/'config/simulation.rviz'
     if event_policy:
         rviz=yaml.safe_load(rviz_config.read_text())
@@ -100,9 +111,9 @@ def setup(context):
             if 'ros__parameters' in block:
                 block['ros__parameters']['use_sim_time']=True
                 block['ros__parameters']['enable_stamped_cmd_vel']=False
-                if 'odom_topic' in block['ros__parameters']: block['ros__parameters']['odom_topic']='/odometry/simulation'
+                if 'odom_topic' in block['ros__parameters']: block['ros__parameters']['odom_topic']=nav_odom
         data['controller_server']['ros__parameters']['progress_checker_plugins']=['progress_checker']
-        data['controller_server']['ros__parameters']['odom_topic']='/odometry/simulation'
+        data['controller_server']['ros__parameters']['odom_topic']=nav_odom
         def update_plugins(tree):
             for key,value in tree.items():
                 if isinstance(value,dict): update_plugins(value)
@@ -133,11 +144,11 @@ def setup(context):
                 {'use_sim_time':True, 'tree_xml':str(mission_root/'trees/competition_default.xml')}], output='screen'))
         data['map_server']={'ros__parameters':{'use_sim_time':True,'yaml_filename':str(output/'field.yaml')}}
         params=output/'nav2.yaml';params.write_text(yaml.safe_dump(data))
-        # The physics oracle owns TF; no additional localization source is started.
+        # Exactly one selected localization chain owns canonical TF.
         names=['map_server','controller_server','planner_server','behavior_server','velocity_smoother','bt_navigator']
         packages=['nav2_map_server','nav2_controller','nav2_planner','nav2_behaviors','nav2_velocity_smoother','nav2_bt_navigator']
         for name,package in zip(names,packages):
-            remap=[('odom','/odometry/simulation')]
+            remap=[('odom',nav_odom)]
             if event_policy and name=='bt_navigator':
                 remap += [('goal_pose','/simulation/unused_direct_goal_pose')]
             if name in ('controller_server','behavior_server'):remap += [('cmd_vel','/cmd_vel_nav')]
@@ -151,6 +162,7 @@ def setup(context):
 
 def generate_launch_description():
     return LaunchDescription([
+      DeclareLaunchArgument('localization_source',default_value='truth',choices=['truth','lio_health_fixture']),
       DeclareLaunchArgument('navigation_policy',default_value='baseline',choices=['baseline','event_driven']),
       DeclareLaunchArgument('field',default_value='rules2026_course',choices=['flat','rules2026_course','dog_slope','banked_ground','competition2025_reference']),
       DeclareLaunchArgument('lidar',default_value='A',choices=['A','B']),

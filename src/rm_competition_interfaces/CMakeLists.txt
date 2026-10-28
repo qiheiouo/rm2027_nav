@@ -4,6 +4,7 @@ project(rm_competition_interfaces)
 find_package(ament_cmake REQUIRED)
 find_package(builtin_interfaces REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 find_package(std_msgs REQUIRED)
 
@@ -12,6 +13,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/ChassisMode.msg"
   "msg/GimbalState.msg"
   "msg/LocalizationStatus.msg"
+  "msg/LioSourceStatus.msg"
   "msg/ManagedIngressStatus.msg"
   "msg/V2MotionTestLease.msg"
   "msg/V2MotionGuardState.msg"
@@ -26,7 +28,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/TargetTrack.msg"
   "msg/PursuitCandidate.msg"
   "srv/SetMissionMode.srv"
-  DEPENDENCIES builtin_interfaces geometry_msgs std_msgs
+  DEPENDENCIES builtin_interfaces geometry_msgs nav_msgs std_msgs
 )
 
 ament_export_dependencies(rosidl_default_runtime)

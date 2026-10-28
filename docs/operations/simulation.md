@@ -172,7 +172,8 @@ source install/setup.bash
 ros2 launch rm_navigation_bringup simulation.launch.py navigation_policy:=event_driven
 ```
 
-构建范围现为 8 包，另包含 Mission、interfaces、pursuit。Humble 的 Mission 使用
+事件重规划阶段构建范围为 8 包，包含 Mission、interfaces、pursuit；
+本分支的 LIO 健康候选扩大到下文所述 10 包。Humble 的 Mission 使用
 BT.CPP 3，Jazzy 使用 BT.CPP 4；本轮实际构建/运行环境为 Jazzy。
 事件配置保持生成的 CAD footprint、物理模型、Navfn 和 MPPI；增加同一 CAD 雷达位置的
 水平扫描仿真夹具（360 rays，既有 10 Hz）供 local/global ObstacleLayer。原始 3D
@@ -197,3 +198,26 @@ python3 src/rm_new_car_simulation/scripts/validate_event_replanning.py \
 
 [本轮证据、旧实现语义及遗漏能力审计](../validation/event_replanning_port_20261027.md)。
 该选项证明软件接口与受控几何夹具下行为，不授予任何硬件运动权限。
+
+## LIO 输入健康候选
+
+同一构建脚本现包含 10 包，增加 localization adapters / relocalization bridge。
+默认 truth 与事件重规划入口保持原行为。运行完整健康链测试：
+
+```bash
+tools/build_simulation.sh
+source install/setup.bash
+python3 src/rm_localization_adapters/test/test_input_health_runtime.py \
+  --upstream --finite-difference --output /tmp/rm2027-lio-health-runtime
+python3 src/rm_new_car_simulation/scripts/validate_lio_health_navigation.py \
+  --output /tmp/rm2027-lio-health-navigation
+```
+
+第二个脚本使用 `navigation_policy:=event_driven localization_source:=lio_health_fixture`，
+给真实 adapter/bridge 提供可控 Gazebo 派生 raw odometry 与 global pose。
+Nav2 只消费经过健康门的 `/odometry/lio`；truth TF/status 被关闭。脚本覆盖导航中跳变，
+以及 FollowPath 失败等待中的断流，检测隔离、hold、停止继续规划、旧 action 终止后重建
+路径、恢复到达和进程退出。不单独运行 fixture publisher 时，该组合保持无效/hold。
+不要把测试真值接入硬件域；配置内的限值仅用于此软件验证。
+
+[机制、F1–F12、历史证据与限制](../validation/lio_input_health_port_20261028.md)。

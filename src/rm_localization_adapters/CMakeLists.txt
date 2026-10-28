@@ -37,8 +37,12 @@ ament_target_dependencies(map_odom_stub
   tf2_ros
 )
 
+add_library(odometry_input_health src/odometry_input_health.cpp)
+target_include_directories(odometry_input_health PUBLIC include)
+ament_target_dependencies(odometry_input_health nav_msgs tf2)
+
 add_executable(lio_adapter src/lio_adapter.cpp)
-target_link_libraries(lio_adapter canonical_odometry)
+target_link_libraries(lio_adapter canonical_odometry odometry_input_health)
 ament_target_dependencies(lio_adapter
   builtin_interfaces
   rclcpp
@@ -73,6 +77,7 @@ ament_target_dependencies(fake_lio_odom_publisher
 )
 
 install(TARGETS
+  odometry_input_health
   canonical_odometry
   map_odom_stub
   lio_adapter
@@ -94,6 +99,8 @@ install(DIRECTORY
 
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
+  ament_add_gtest(test_odometry_input_health test/test_odometry_input_health.cpp)
+  target_link_libraries(test_odometry_input_health odometry_input_health)
   ament_add_gtest(test_canonical_odometry test/test_canonical_odometry.cpp)
   target_link_libraries(test_canonical_odometry canonical_odometry)
   ament_target_dependencies(test_canonical_odometry geometry_msgs tf2)

@@ -275,3 +275,25 @@ No new motion, serial or TF owner is introduced by this interface.
 测试可将 oracle 的 `publish_localization_fixture` 置 false 停止续租，用于验证 Mission
 因证据过期取消；不会关闭物理 TF。此状态不能作为新车真实定位健康或硬件运动准入证据。
 事件、goal generation 与 session 处理以 [仲裁合同](navigation_target_arbitration_2027.md) 为准。
+
+## LIO 输入健康候选（2026-10-28）
+
+`/localization/lio_source_status` 使用 `rm_competition_interfaces/msg/LioSourceStatus`，
+唯一 producer 为显式启用健康门的 `lio_adapter`。它是可靠 volatile 的**源证据**：
+header 为 ROS 发出时间；`started_at` 为进程起点，`generation` 随健康→故障递增，
+`sequence` 单调；原始 measurement stamp 与 `valid_until` 不由心跳刷新。只有 healthy
+消息携带可信 canonical odometry，单位为米/秒、弧度/秒，frame 为 odom/base_link。
+该接口不授权运动，不给 Mission 增加另一条 Bool 输入。
+
+配置 `source_health_topic` 后，bridge 只从上述原子包获取 odometry，不把独立健康位与
+另一帧 odometry 拼接；全局后端状态仍走原有链。统一 `/localization/status` 的有效性
+是两条证据链的交集，截止取较早者。失效清匹配缓存、撤下新 map→odom TF，并传播新的
+localization session；恢复要求连续可信 LIO 和失效后的新 global pose。
+详细状态/时间/不可观测边界以 [adapter](../../src/rm_localization_adapters/README.md#candidate-lio-input-health--bad-output-isolation)
+及 [bridge](../../src/rm_relocalization_bridge/README.md#optional-lio-source-health-prerequisite) 合同为准。
+
+统一仿真显式选择 `localization_source:=lio_health_fixture` 时，必须同时选择
+`navigation_policy:=event_driven`：truth 节点仅发布测试输入，关闭其 TF 和 localization
+status；真实 adapter/bridge 分别独占 odom→base_link、map→odom 与统一 status，Nav2 的
+odom 输入切到 `/odometry/lio`。测量来自 Gazebo 注入夹具，不代表运行了 FAST-LIO。
+默认 `localization_source:=truth` 延续前一候选。两种模式不能同时占有 canonical TF。

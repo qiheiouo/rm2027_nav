@@ -1,0 +1,29 @@
+# Integration-only synthetic source in canonical base coordinates. These values
+# are NOT new-car calibration; real FAST-LIO twist/covariance remain unaccepted.
+lio_adapter:
+  ros__parameters:
+    input_health.enabled: true
+    input_health.max_age: 0.3
+    input_health.max_future: 0.05
+    input_health.max_silence: 0.3
+    input_health.recovery_samples: 5
+    input_health.max_speed: 4.0
+    input_health.translation_slack: 0.15
+    input_health.max_angular_speed: 12.0
+    input_health.rotation_slack: 0.15
+    input_health.recovery_translation: 0.8
+    input_health.recovery_rotation: 0.8
+    # Physics fixture twist is verified base-frame motion evidence.
+    input_health.trust_raw_twist: true
+    input_health.speed_error: 2.0
+    input_health.angular_error: 3.0
+    input_health.frozen_duration: 0.4
+    expected_input_odom_frame: odom
+    twist_mode: passthrough
+    publish_tf: true
+map_odom_from_global_pose:
+  ros__parameters:
+    source_health_topic: /localization/lio_source_status
+    source_health_timeout: 0.3
+    max_pose_odom_dt_sec: 0.05
+    publish_tf: true
