@@ -1,4 +1,4 @@
-<root main_tree_to_execute="CompetitionThreePointSpinTest">
+<root BTCPP_format="4" main_tree_to_execute="CompetitionThreePointSpinTest">
   <BehaviorTree ID="CompetitionThreePointSpinTest">
     <ReactiveFallback name="mission_or_hold">
       <Sequence name="enabled_and_safe">

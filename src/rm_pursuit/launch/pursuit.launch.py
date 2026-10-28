@@ -9,11 +9,13 @@ from launch_ros.parameter_descriptions import ParameterValue
 def generate_launch_description():
     enabled = LaunchConfiguration("enable_pursuit_boundary")
     use_mock = LaunchConfiguration("use_mock_target")
+    radar_only = LaunchConfiguration("radar_only")
     use_sim_time = LaunchConfiguration("use_sim_time")
 
     return LaunchDescription([
         DeclareLaunchArgument("enable_pursuit_boundary", default_value="false"),
         DeclareLaunchArgument("use_mock_target", default_value="false"),
+        DeclareLaunchArgument("radar_only", default_value="false"),
         DeclareLaunchArgument("use_sim_time", default_value="false"),
         Node(
             condition=IfCondition(enabled),
@@ -23,12 +25,14 @@ def generate_launch_description():
             output="screen",
             parameters=[{
                 "use_sim_time": ParameterValue(use_sim_time, value_type=bool),
+                "radar_only": ParameterValue(radar_only, value_type=bool),
             }],
         ),
         Node(
             condition=IfCondition(PythonExpression([
                 "'", enabled, "'.lower() in ['1','true','yes','on'] and '",
-                use_mock, "'.lower() in ['1','true','yes','on']",
+                use_mock, "'.lower() in ['1','true','yes','on'] and not '",
+                radar_only, "'.lower() in ['1','true','yes','on']",
             ])),
             package="rm_pursuit",
             executable="target_track_mock",

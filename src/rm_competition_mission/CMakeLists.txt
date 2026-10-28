@@ -9,7 +9,13 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(ament_cmake REQUIRED)
-find_package(behaviortree_cpp_v3 REQUIRED)
+# Humble uses BT.CPP 3; Jazzy uses BT.CPP 4.
+if("$ENV{ROS_DISTRO}" STREQUAL "humble")
+  set(MISSION_BT_PACKAGE behaviortree_cpp_v3)
+else()
+  set(MISSION_BT_PACKAGE behaviortree_cpp)
+endif()
+find_package(${MISSION_BT_PACKAGE} REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(nav2_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
@@ -19,7 +25,7 @@ find_package(std_msgs REQUIRED)
 
 add_executable(competition_mission_node src/competition_mission_node.cpp)
 ament_target_dependencies(competition_mission_node
-  behaviortree_cpp_v3
+  ${MISSION_BT_PACKAGE}
   geometry_msgs
   nav2_msgs
   rclcpp
@@ -45,6 +51,12 @@ install(DIRECTORY config launch trees DESTINATION share/${PROJECT_NAME})
 
 if(BUILD_TESTING)
   find_package(ament_cmake_pytest REQUIRED)
+  ament_add_pytest_test(
+    test_navigation_arbitration_runtime
+    test/test_navigation_arbitration_runtime.py
+    TIMEOUT 90
+    APPEND_ENV "RM_COMPETITION_MISSION_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}"
+  )
   ament_add_pytest_test(
     test_three_point_spin_profile
     test/test_three_point_spin_profile.py

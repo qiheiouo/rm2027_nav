@@ -46,8 +46,9 @@
 | `/robot/posture/state` | `rm_competition_interfaces/msg/PostureState` | `competition_v2_transport_node` | future mission/posture task, diagnostics | Target/actual posture, current-session ACK match, completion, transition and fault state |
 | `/serial/connection_state` | `rm_competition_interfaces/msg/SerialConnectionState` | `competition_v2_transport_node` | readiness, diagnostics | Heartbeat freshness, compatibility, peer boot/capabilities and parser counters |
 | `/perception/target_track` | `rm_competition_interfaces/msg/TargetTrack` | armor/target perception adapter | pursuit boundary | Timestamped target estimate with frame, covariance, velocity, confidence and validity |
-| `/mission/pursuit_goal` | `geometry_msgs/msg/PoseStamped` | `pursuit_goal_planner` | competition mission/BT | Validated standoff candidate in `map`; it is not sent to Nav2 without mission authority |
-| `/mission/pursuit_goal_valid` | `std_msgs/msg/Bool` | `pursuit_goal_planner` | competition mission/BT, diagnostics | Latched freshness/quality/TF validity of the pursuit candidate |
+| `/mission/pursuit_candidate` | `rm_competition_interfaces/msg/PursuitCandidate` | `pursuit_goal_planner` | competition Mission | Atomic source, track identity, pose, validity and original deadline; see [arbitration](navigation_target_arbitration_2027.md) |
+| `/mission/pursuit_goal` | `geometry_msgs/msg/PoseStamped` | `pursuit_goal_planner` | diagnostics / research tools | Validated standoff candidate in `map`; it is not sent to Nav2 without mission authority |
+| `/mission/pursuit_goal_valid` | `std_msgs/msg/Bool` | `pursuit_goal_planner` | diagnostics only | Latched freshness/quality/TF validity of the pursuit candidate |
 | `/mission/state` | `rm_competition_interfaces/msg/MissionState` | competition mission executor | diagnostics, operator UI | Current mission gate, branch and Nav2-action status; never a chassis command |
 | `/dog_hole/state` | `std_msgs/msg/String` | new-car `dog_hole_manager` | mission adapter, diagnostics | Tunnel task state from `IDLE` through `FINISHED` or `FAILED`; simulation candidate only |
 | `/dog_hole/control_mode` | `std_msgs/msg/String` | new-car `dog_hole_manager` | diagnostics | Active `PLANNER`, `NAV2`, `CENTERLINE` or stopped control mode |
@@ -261,3 +262,16 @@ No new motion, serial or TF owner is introduced by this interface.
 | `/map` | `nav_msgs/msg/OccupancyGrid` | map_server → Nav2 / RViz | `map`，同 revision 静态场景的保守投影 |
 
 `/cmd_vel` 仍由 velocity_smoother 唯一发布，bridge 只发送到模拟底盘；不经过真实串口。
+
+
+统一仿真的 `event_driven` 选项另启用以下隔离接口；默认 baseline 保持不启用：
+
+| 接口 | 类型 | Owner / 语义 |
+| --- | --- | --- |
+| `/simulation/navigation_scan` | `sensor_msgs/msg/LaserScan` | Gazebo 水平距离夹具 → bridge → local/global ObstacleLayer；`sim_lidar_link`，米/弧度，Gazebo clock；共置于 CAD 雷达 A，不代表真实 MID360 覆盖 |
+| `/localization/status` | `LocalizationStatus` | simulation oracle 的显式健康**测试夹具**，无真实定位模块同时运行；源 odom 新鲜才有效，0.5 s 截止，可靠 volatile |
+| `/simulation/reset_localization_session` | `std_srvs/srv/Trigger` | 仅测试夹具：更新 started_at 并重置 sequence，保留物理真值 TF |
+
+测试可将 oracle 的 `publish_localization_fixture` 置 false 停止续租，用于验证 Mission
+因证据过期取消；不会关闭物理 TF。此状态不能作为新车真实定位健康或硬件运动准入证据。
+事件、goal generation 与 session 处理以 [仲裁合同](navigation_target_arbitration_2027.md) 为准。

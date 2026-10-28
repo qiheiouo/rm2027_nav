@@ -62,6 +62,12 @@ def _launch_mission(context, *args, **kwargs):
                 "require_chassis_mode": ParameterValue(
                     LaunchConfiguration("require_chassis_mode"), value_type=bool
                 ),
+                "radar_only": ParameterValue(
+                    LaunchConfiguration("radar_only"), value_type=bool
+                ),
+                "require_motion_guard": ParameterValue(
+                    LaunchConfiguration("require_motion_guard"), value_type=bool
+                ),
                 "use_sim_time": ParameterValue(
                     LaunchConfiguration("use_sim_time"), value_type=bool
                 ),
@@ -91,6 +97,8 @@ def generate_launch_description():
         DeclareLaunchArgument("startup_enabled", default_value="false"),
         DeclareLaunchArgument("use_safety_mock", default_value="false"),
         DeclareLaunchArgument("require_chassis_mode", default_value="true"),
+        DeclareLaunchArgument("radar_only", default_value="true"),
+        DeclareLaunchArgument("require_motion_guard", default_value="false"),
         DeclareLaunchArgument("use_sim_time", default_value="false"),
         DeclareLaunchArgument("mission_config", default_value=default_config),
         DeclareLaunchArgument("tree_xml", default_value=default_tree),

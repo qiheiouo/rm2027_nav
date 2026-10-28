@@ -1,4 +1,4 @@
-<root main_tree_to_execute="CompetitionMission">
+<root BTCPP_format="4" main_tree_to_execute="CompetitionMission">
   <BehaviorTree ID="CompetitionMission">
     <ReactiveFallback name="mission_or_hold">
       <Sequence name="enabled_and_safe">

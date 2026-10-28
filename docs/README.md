@@ -63,6 +63,7 @@ docs/
 
 ## 运行与维护
 
+- 事件重规划迁移与定向遗漏审计：[2026-10-27 证据](validation/event_replanning_port_20261027.md)。
 - 统一仿真：[构建、source、启动与 smoke](operations/simulation.md)（唯一推荐 Jazzy / Harmonic workflow）。
 - 环境：[Docker 用法](operations/docker_usage.md)。按实际修改范围选择验证，不默认执行其全部构建示例。
 - 总入口：[runtime profiles](operations/runtime_profiles.md)。每个 ROS domain 只选一个 operating mode。

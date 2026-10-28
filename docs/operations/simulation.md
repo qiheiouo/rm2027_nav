@@ -160,3 +160,40 @@ RViz smoke 在有显示服务的环境中给同一命令增加 `--rviz`。完整
 结论仅为上述静态场景的 Integration Simulation Go。Gazebo 独立 GUI 窗口未单独验收；
 RViz 使用真实显示服务验证。未验证硬件、真实定位、动态避障、完整赛事场地或多层自主通行；
 这也不是全仓 Humble 软件栈的构建通过。
+
+
+## 事件重规划候选
+
+本分支从统一仿真基线增加显式候选，不改变默认 `navigation_policy:=baseline`：
+
+```bash
+tools/build_simulation.sh
+source install/setup.bash
+ros2 launch rm_navigation_bringup simulation.launch.py navigation_policy:=event_driven
+```
+
+构建范围现为 8 包，另包含 Mission、interfaces、pursuit。Humble 的 Mission 使用
+BT.CPP 3，Jazzy 使用 BT.CPP 4；本轮实际构建/运行环境为 Jazzy。
+事件配置保持生成的 CAD footprint、物理模型、Navfn 和 MPPI；增加同一 CAD 雷达位置的
+水平扫描仿真夹具（360 rays，既有 10 Hz）供 local/global ObstacleLayer。原始 3D
+点云继续独立发布。0.5 m 最小标记距离排除偏置传感器看到的车体；标记 8 m、清除 10 m
+是本次软件验证范围，不是新车真实传感器覆盖承诺。
+
+Mission 启动为 disabled/hold，仿真定位状态来自显式 truth fixture。候选运行时 RViz
+没有 GoalTool，不运行原来的直接发 action 的 smoke。预置巡逻点 `(-1,-3,0)` 与
+home `(-3,-3,0)` 仅属于本场景，可使用 `/mission/set_mode` 选择巡逻/home/hold；
+动态测试探针经原子 pursuit candidate 提供目标，绝不直接调用 NavigateToPose。
+
+```bash
+python3 src/rm_new_car_simulation/scripts/validate_event_replanning.py \
+  --scenario blocked --output /tmp/rm2027-event-blocked
+```
+
+可选场景：`normal blocked no_route removed local repeated session home safety new_goal`。
+每次使用独立 ROS domain/Gazebo partition；日志、完整路径、BT 失败原因、action UUID
+与状态时间线和退出结果写在 output，不提交大体积日志。`repeated` 场景明确注入
+100 m / 0.8 s 不可能满足的 progress checker 条件，仅验证失败预算，不修改正式参数。
+其他场景采用 0.10 m / 3 s 平移进度（两格地图；纯转向不能续期），Wait 1.5 s，3 次重试。
+
+[本轮证据、旧实现语义及遗漏能力审计](../validation/event_replanning_port_20261027.md)。
+该选项证明软件接口与受控几何夹具下行为，不授予任何硬件运动权限。

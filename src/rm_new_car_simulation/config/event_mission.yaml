@@ -1,0 +1,16 @@
+competition_mission_node:
+  ros__parameters:
+    startup_enabled: false
+    default_mode: hold
+    require_localization_valid: true
+    # No referee/chassis/serial in this isolated physics simulation.
+    require_referee_state: false
+    require_game_running: false
+    require_chassis_mode: false
+    require_motion_guard: false
+    allow_pursuit: true
+    radar_only: true
+    # Exhausted BT budget latches this goal until a new intent/operator re-arm.
+    max_consecutive_goal_failures: 1
+    home_pose: [-3.0, -3.0, 0.0]
+    patrol_waypoints: [-1.0, -3.0, 0.0]

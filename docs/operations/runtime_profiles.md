@@ -148,6 +148,11 @@ TF 由 S2 physics oracle 和 robot_state_publisher 分工持有，不启动 cano
 原 Humble/Fortress `scenario:=...` 分发保存在
 `rm_simulation/humble_scenarios.launch.py`，仅作为历史专项复验入口，不能与本 profile 同图运行。
 
+事件重规划候选通过 `navigation_policy:=event_driven` 显式选择：同场景、同车体与
+MPPI，增加水平扫描夹具和 local/global ObstacleLayer、Mission/Arbitration 及定位状态
+测试夹具。默认 disabled/hold；目标只经 Mission；没有串口或硬件 guard 授权。
+参数与复现见 [统一仿真](simulation.md#事件重规划候选)。
+
 ## Bag Replay
 
 ```bash

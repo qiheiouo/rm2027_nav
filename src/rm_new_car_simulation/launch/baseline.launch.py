@@ -1,4 +1,6 @@
 """One isolated entry for CAD geometry, omni contacts, field/map and dynamic TF."""
+import copy
+import xml.etree.ElementTree as ET
 import importlib.util
 import os
 from pathlib import Path
@@ -18,6 +20,10 @@ def setup(context):
     field=LaunchConfiguration('field').perform(context);lidar=LaunchConfiguration('lidar').perform(context)
     profile=LaunchConfiguration('profile').perform(context)
     sensors=LaunchConfiguration('sensors').perform(context)=='true'
+    event_policy=LaunchConfiguration('navigation_policy').perform(context)=='event_driven'
+    if event_policy and (not sensors or LaunchConfiguration('use_nav2').perform(context)!='true'
+                         or LaunchConfiguration('publish_truth_tf').perform(context)!='true'):
+        raise RuntimeError('event_driven requires sensors, Nav2 and the explicit simulation oracle')
     output=Path(LaunchConfiguration('output').perform(context))
     requested_spawn=LaunchConfiguration('spawn').perform(context)
     spawn=([-10,0,.002,0,0,0] if field=='competition2025_reference' else [0,0,.002,0,0,0]) if requested_spawn=='auto' else list(map(float,requested_spawn.split(',')))
@@ -27,6 +33,19 @@ def setup(context):
                         LaunchConfiguration('tunnel_section').perform(context),
                         LaunchConfiguration('field_tolerance').perform(context),
                         float(LaunchConfiguration('ground_bank_deg').perform(context)))
+    if event_policy:
+        # Co-located horizontal range fixture for costmap integration. This is
+        # NOT a claim about a real MID360 sampling pattern or hardware coverage.
+        world=ET.parse(output/'world.sdf')
+        link=world.find(".//sensor[@name='mid360_geometry_proxy']/..")
+        sensor=copy.deepcopy(link.find("sensor[@name='mid360_geometry_proxy']"))
+        sensor.set('name','navigation_planar_fixture')
+        sensor.find('topic').text='/simulation/navigation_scan'
+        scan=sensor.find('lidar/scan')
+        scan.remove(scan.find('vertical'))
+        scan.find('horizontal/samples').text='360'
+        link.append(sensor)
+        world.write(output/'world.sdf')
     bridge=[]
     pairs=[('/model/new_car/world_odometry','/simulation/ground_truth/odom','nav_msgs/msg/Odometry','gz.msgs.Odometry','GZ_TO_ROS'),
       ('/model/new_car/sensor_world_odometry','/simulation/sensor_truth','nav_msgs/msg/Odometry','gz.msgs.Odometry','GZ_TO_ROS'),
@@ -36,6 +55,9 @@ def setup(context):
       ('/clock','/clock','rosgraph_msgs/msg/Clock','gz.msgs.Clock','GZ_TO_ROS')]
     if sensors:
         pairs += [('/model/new_car/lidar/points','/points/simulation_raw','sensor_msgs/msg/PointCloud2','gz.msgs.PointCloudPacked','GZ_TO_ROS')]
+    if event_policy:
+        pairs.append(('/simulation/navigation_scan','/simulation/navigation_scan',
+                      'sensor_msgs/msg/LaserScan','gz.msgs.LaserScan','GZ_TO_ROS'))
     for name in m.NAMES:
         pairs.append((f'/model/new_car/contact/{name}',f'/simulation/contact/{name}',
                       'ros_gz_interfaces/msg/Contacts','gz.msgs.Contacts','GZ_TO_ROS'))
@@ -50,11 +72,18 @@ def setup(context):
       ExecuteProcess(cmd=args,additional_env=env,output='screen'),
       Node(package='ros_gz_bridge',executable='parameter_bridge',parameters=[{'config_file':str(output/'bridge.yaml'),'use_sim_time':True}],output='screen'),
       Node(package='rm_new_car_simulation',executable='simulation_tf.py',parameters=[{'use_sim_time':True,
-        'publish_truth_tf':LaunchConfiguration('publish_truth_tf').perform(context)=='true'}],output='screen'),
+        'publish_truth_tf':LaunchConfiguration('publish_truth_tf').perform(context)=='true',
+        'publish_localization_fixture':event_policy}],output='screen'),
       Node(package='robot_state_publisher',executable='robot_state_publisher',parameters=[{'robot_description':(output/'robot.urdf').read_text(),
         'use_sim_time':True,'publish_frequency':100.}],output='screen')]
+    rviz_config=root/'config/simulation.rviz'
+    if event_policy:
+        rviz=yaml.safe_load(rviz_config.read_text())
+        rviz['Visualization Manager']['Tools']=[tool for tool in rviz['Visualization Manager']['Tools']
+                                                if 'Goal' not in tool['Class']]
+        rviz_config=output/'mission.rviz';rviz_config.write_text(yaml.safe_dump(rviz))
     nodes.append(Node(package='rviz2', executable='rviz2', name='rviz2',
-        arguments=['-d', str(root/'config/simulation.rviz')],
+        arguments=['-d', str(rviz_config)],
         parameters=[{'use_sim_time': True}],
         condition=IfCondition(LaunchConfiguration('use_rviz')), output='screen'))
     if LaunchConfiguration('use_nav2').perform(context)=='true':
@@ -80,6 +109,28 @@ def setup(context):
                 elif key=='plugin' and isinstance(value,str) and value.startswith('nav2_'):
                     tree[key]=value.replace('/','::')
         update_plugins(data)
+        if event_policy:
+            delta=yaml.safe_load((root/'config/event_replanning.yaml').read_text())
+            data['controller_server']['ros__parameters']['progress_checker']=delta['controller_server']['ros__parameters']['progress_checker']
+            data['bt_navigator']['ros__parameters']['default_nav_to_pose_bt_xml']=str(
+                Path(get_package_share_directory('rm_nav_config'))/'behavior_trees/event_driven_replanning.xml')
+            for name in ('local_costmap','global_costmap'):
+                cost=data[name][name]['ros__parameters']
+                cost['plugins']=['static_layer','obstacle_layer','inflation_layer']
+                cost['obstacle_layer']={'plugin':'nav2_costmap_2d::ObstacleLayer', 'enabled':True,
+                    'observation_sources':'scan', 'scan':{
+                    'topic':'/simulation/navigation_scan', 'data_type':'LaserScan',
+                    'marking':True, 'clearing':True, 'inf_is_valid':True,
+                    'observation_persistence':0.0, 'expected_update_rate':0.5,
+                    # 0.5 m excludes the CAD body from the offset sensor. 8 m is
+                    # the tested integration horizon, not a real sensor limit.
+                    'obstacle_min_range':0.5, 'obstacle_max_range':8.0,
+                    'raytrace_min_range':0.0, 'raytrace_max_range':10.0,
+                    'max_obstacle_height':2.0}}
+            mission_root=Path(get_package_share_directory('rm_competition_mission'))
+            nodes.append(Node(package='rm_competition_mission', executable='competition_mission_node',
+                name='competition_mission_node', parameters=[str(root/'config/event_mission.yaml'),
+                {'use_sim_time':True, 'tree_xml':str(mission_root/'trees/competition_default.xml')}], output='screen'))
         data['map_server']={'ros__parameters':{'use_sim_time':True,'yaml_filename':str(output/'field.yaml')}}
         params=output/'nav2.yaml';params.write_text(yaml.safe_dump(data))
         # The physics oracle owns TF; no additional localization source is started.
@@ -87,6 +138,8 @@ def setup(context):
         packages=['nav2_map_server','nav2_controller','nav2_planner','nav2_behaviors','nav2_velocity_smoother','nav2_bt_navigator']
         for name,package in zip(names,packages):
             remap=[('odom','/odometry/simulation')]
+            if event_policy and name=='bt_navigator':
+                remap += [('goal_pose','/simulation/unused_direct_goal_pose')]
             if name in ('controller_server','behavior_server'):remap += [('cmd_vel','/cmd_vel_nav')]
             if name=='velocity_smoother':remap += [('cmd_vel','/cmd_vel_nav'),('cmd_vel_smoothed','/cmd_vel')]
             nodes.append(Node(package=package,executable=name,name=name,parameters=[str(params)],
@@ -98,6 +151,7 @@ def setup(context):
 
 def generate_launch_description():
     return LaunchDescription([
+      DeclareLaunchArgument('navigation_policy',default_value='baseline',choices=['baseline','event_driven']),
       DeclareLaunchArgument('field',default_value='rules2026_course',choices=['flat','rules2026_course','dog_slope','banked_ground','competition2025_reference']),
       DeclareLaunchArgument('lidar',default_value='A',choices=['A','B']),
       DeclareLaunchArgument('profile',default_value='deformed',choices=['deformed','undeformed']),

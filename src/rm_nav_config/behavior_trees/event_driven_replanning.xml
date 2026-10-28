@@ -1,0 +1,14 @@
+<!-- Jazzy: Mission handles goal/session changes by cancel + terminal + replace.
+     No GlobalUpdatedGoal: its first tick is SUCCESS and would spend a retry
+     before the first plan. No periodic replan, path-validity veto or motion recovery. -->
+<root BTCPP_format="4" main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <RecoveryNode number_of_retries="3" name="EventDrivenNavigateRecovery">
+      <Sequence name="PlanOnceAndFollow">
+        <ComputePathToPose goal="{goal}" path="{path}" planner_id="GridBased" error_code_id="{compute_path_error_code}"/>
+        <FollowPath path="{path}" controller_id="FollowPath" error_code_id="{follow_path_error_code}"/>
+      </Sequence>
+      <Wait name="WaitForFreshObservation" wait_duration="1.5"/>
+    </RecoveryNode>
+  </BehaviorTree>
+</root>

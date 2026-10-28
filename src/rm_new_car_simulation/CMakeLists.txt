@@ -18,7 +18,7 @@ target_link_libraries(rm_omni_wheel_drive gz-sim8::gz-sim8 gz-plugin2::register)
 install(TARGETS rm_omni_wheel_drive LIBRARY DESTINATION lib)
 install(DIRECTORY config assets launch DESTINATION share/${PROJECT_NAME})
 install(PROGRAMS scripts/baseline_scene.py scripts/simulation_tf.py scripts/validate_baseline.py
-  scripts/smoke_baseline.py
+  scripts/smoke_baseline.py scripts/validate_event_replanning.py
   DESTINATION lib/${PROJECT_NAME})
 if(BUILD_TESTING)
   find_package(ament_cmake_test REQUIRED)
