@@ -205,3 +205,70 @@ The explicit simulation profile uses 0.4 m, 0.3 rad, 3 contradictory samples and
 including matching tolerances, source quality limits and motion uncertainty.
 No real-vehicle launch enables this gate by default. See the
 [port evidence](../../docs/validation/localization_correction_gate_port_20261028.md).
+
+## Explicit map-only rebase transaction
+
+`rebase.enabled=false` by default. The opt-in `rebase_fixture` composition adds a
+navigation/cache commit barrier to the correction gate. The legacy three-step
+admission reset above is **not** a navigation-safe large-correction transaction.
+With rebase enabled and an established baseline, `reset_map_to_odom` rejects;
+use `/localization/begin_rebase` (`rm_competition_interfaces/srv/BeginRebase`).
+It requires the current bridge `producer_id`/`expected_session` and a
+`candidate_stamp` observed in its recent selected-backend candidate window.
+The caller supplies no replacement pose. Invalid, stale, unmatched, inconsistent,
+busy or wrong-session requests do not change the session or TF.
+
+The bridge retains `transaction_samples` distinct eligible, time-matched
+observations even while the ordinary innovation gate is latched. A temporary
+instance of the same correction gate verifies their mutual consistency before
+PREPARE. Explicit approval can clear an innovation latch only at successful
+commit; ordinary frames, seeds or backend reconnections still cannot do so.
+No source is selected or reset by this operation. Large, mutually consistent
+errors remain possible without qualified real-world localization evidence.
+
+`LocalizationStatus.transaction_phase` carries the existing owner's transaction:
+
+1. `DRAIN_OLD_NAV`: reserve a strictly newer session, withdraw validity, retain C.
+   Mission cancels Navigate/Spin, retains their handles through terminal, then
+   cancels/drains its configured `rebase_child_actions`. The event profile lists
+   ComputePathToPose, FollowPath, Wait and Spin. Missing services, empty child
+   configuration, rejected cancellation or nonterminal goals cannot acknowledge.
+2. `/localization/navigation_drained` (`LocalizationBarrier`) acknowledges the
+   same bridge producer/session. The bridge rechecks healthy LIO generation,
+   selected backend epoch, fresh consistent observations and the prepared
+   correction geometry before one mutex-protected C update.
+3. `PRIME_NEW_SESSION`: publish the new TF beginning exactly at `committed_at`,
+   but keep validity false. `rm_nav_config::RebaseObstacleLayer` invalidates only
+   the map-frame obstacle grid, suppresses pre-commit buffered observations and
+   queued notifications, and requires fresh observations before acknowledging
+   `/localization/map_cache_primed` with the current producer/session. Static
+   map, footprint and continuous odom-frame local layers remain intact.
+4. `ACTIVE`: fresh post-commit global evidence plus the cache receipt restores
+   validity. Mission preserves intent, rejects retired action results and builds
+   a new path/action. It never resumes the old FollowPath.
+
+Receipts have a bounded ROS-time age (0.5 s); receipt topics are reliable/volatile
+and are not independent authority. A new transaction cannot reuse old receipts.
+The 8 s default `rebase.timeout_sec` uses steady time. Source invalidation or
+timeout produces `REBASE_FAILED`/invalid; it does not automatically retry,
+roll back authority or select another backend. A failed post-commit transaction
+retains the committed transform value but stops publishing valid TF/evidence.
+Another explicit, verified request is required. Only one transaction runs at a
+time; concurrent requests are rejected, consecutive completed transactions use
+strictly increasing sessions.
+
+Math remains full `C=T_map_base(t)*inverse(T_odom_base(t))`, using the existing
+bounded nearest odom sample (default ±0.05 s, no interpolation). No odom origin,
+LIO filter, heading reference or twist estimator is reset. `status.pose` remains
+the original measured pose/covariance at its acquisition stamp, not a newly
+measured pose at TF publication time. Historical TF before `committed_at` is
+not rewritten. A post-commit small correction follows the normal gate; normal
+corrections do not trigger this protocol or clear costmaps.
+
+This contract assumes the sole Mission owns the listed Nav2 actions, the same
+map/revision and a controlled timestamp-preserving backend. It does not provide
+an authenticated ROS graph, arbitrary remote action-server reset protocol or
+coordinate-frame/basis change. The map obstacle plugin requires fresh input;
+persistent old observations can delay prime until expired, and absent sensors
+cannot be replaced by a timer-based success. Evidence and hardware limitations:
+[rebase validation](../../docs/validation/localization_rebase_transaction_20261028.md).

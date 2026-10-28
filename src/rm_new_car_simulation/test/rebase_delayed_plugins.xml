@@ -1,0 +1,4 @@
+<library path="rebase_delayed_plugins">
+  <class name="rm_new_car_simulation::DelayedPlanner" type="rm_new_car_simulation::DelayedPlanner" base_class_type="nav2_core::GlobalPlanner"><description>Test-only late Navfn result.</description></class>
+  <class name="rm_new_car_simulation::DelayedController" type="rm_new_car_simulation::DelayedController" base_class_type="nav2_core::Controller"><description>Test-only delayed MPPI cancellation.</description></class>
+</library>

@@ -21,7 +21,11 @@ def setup(context):
     profile=LaunchConfiguration('profile').perform(context)
     sensors=LaunchConfiguration('sensors').perform(context)=='true'
     event_policy=LaunchConfiguration('navigation_policy').perform(context)=='event_driven'
-    correction_fixture=LaunchConfiguration('localization_source').perform(context)=='correction_gate_fixture'
+    rebase_fixture=LaunchConfiguration('localization_source').perform(context)=='rebase_fixture'
+    delay_fixture=LaunchConfiguration('rebase_delay_fixture').perform(context)
+    if delay_fixture != 'none' and not rebase_fixture:
+        raise RuntimeError('delay fixture is only allowed in rebase validation')
+    correction_fixture=rebase_fixture or LaunchConfiguration('localization_source').perform(context)=='correction_gate_fixture'
     health_fixture=correction_fixture or LaunchConfiguration('localization_source').perform(context)=='lio_health_fixture'
     if health_fixture and not event_policy:
         raise RuntimeError('lio_health_fixture requires event_driven Mission integration')
@@ -89,7 +93,7 @@ def setup(context):
             nodes.append(Node(package=package, executable=executable, name=executable,
                 parameters=[str(root/'config/lio_health_fixture.yaml'),
                     *([str(root/'config/correction_gate_fixture.yaml')] if correction_fixture else []),
-                    {'use_sim_time':True}], output='screen'))
+                    {'use_sim_time':True}, *([{'rebase.enabled':True}] if rebase_fixture and executable=='map_odom_from_global_pose' else [])], output='screen'))
     if correction_fixture:
         nodes.append(Node(package='rm_relocalization_bridge', executable='global_pose_gate_node',
             name='global_pose_gate', parameters=[{'use_sim_time':True}], output='screen'))
@@ -144,10 +148,17 @@ def setup(context):
                     'obstacle_min_range':0.5, 'obstacle_max_range':8.0,
                     'raytrace_min_range':0.0, 'raytrace_max_range':10.0,
                     'max_obstacle_height':2.0}}
+            if delay_fixture == 'planner':
+                data['planner_server']['ros__parameters']['GridBased']['plugin']='rm_new_car_simulation::DelayedPlanner'
+            elif delay_fixture == 'controller':
+                data['controller_server']['ros__parameters']['FollowPath']['plugin']='rm_new_car_simulation::DelayedController'
+            if rebase_fixture:
+                data['global_costmap']['global_costmap']['ros__parameters']['obstacle_layer']['plugin']='rm_nav_config::RebaseObstacleLayer'
             mission_root=Path(get_package_share_directory('rm_competition_mission'))
             nodes.append(Node(package='rm_competition_mission', executable='competition_mission_node',
                 name='competition_mission_node', parameters=[str(root/'config/event_mission.yaml'),
-                {'use_sim_time':True, 'tree_xml':str(mission_root/'trees/competition_default.xml')}], output='screen'))
+                {'use_sim_time':True, 'tree_xml':str(mission_root/'trees/competition_default.xml')},
+                *([{'rebase_child_actions':['/compute_path_to_pose','/follow_path','/wait','/spin']}] if rebase_fixture else [])], output='screen'))
         data['map_server']={'ros__parameters':{'use_sim_time':True,'yaml_filename':str(output/'field.yaml')}}
         params=output/'nav2.yaml';params.write_text(yaml.safe_dump(data))
         # Exactly one selected localization chain owns canonical TF.
@@ -168,7 +179,8 @@ def setup(context):
 
 def generate_launch_description():
     return LaunchDescription([
-      DeclareLaunchArgument('localization_source',default_value='truth',choices=['truth','lio_health_fixture','correction_gate_fixture']),
+      DeclareLaunchArgument('rebase_delay_fixture',default_value='none',choices=['none','planner','controller']),
+      DeclareLaunchArgument('localization_source',default_value='truth',choices=['truth','lio_health_fixture','correction_gate_fixture','rebase_fixture']),
       DeclareLaunchArgument('navigation_policy',default_value='baseline',choices=['baseline','event_driven']),
       DeclareLaunchArgument('field',default_value='rules2026_course',choices=['flat','rules2026_course','dog_slope','banked_ground','competition2025_reference']),
       DeclareLaunchArgument('lidar',default_value='A',choices=['A','B']),

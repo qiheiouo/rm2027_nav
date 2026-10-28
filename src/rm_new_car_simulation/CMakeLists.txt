@@ -19,9 +19,16 @@ install(TARGETS rm_omni_wheel_drive LIBRARY DESTINATION lib)
 install(DIRECTORY config assets launch DESTINATION share/${PROJECT_NAME})
 install(PROGRAMS scripts/baseline_scene.py scripts/simulation_tf.py scripts/validate_baseline.py
   scripts/smoke_baseline.py scripts/validate_event_replanning.py scripts/validate_lio_health_navigation.py
-  scripts/validate_correction_navigation.py
+  scripts/validate_correction_navigation.py scripts/validate_rebase_navigation.py
   DESTINATION lib/${PROJECT_NAME})
 if(BUILD_TESTING)
+  find_package(nav2_core REQUIRED)
+  find_package(pluginlib REQUIRED)
+  add_library(rebase_delayed_plugins SHARED test/rebase_delayed_plugins.cpp)
+  target_compile_features(rebase_delayed_plugins PRIVATE cxx_std_17)
+  ament_target_dependencies(rebase_delayed_plugins nav2_core pluginlib)
+  pluginlib_export_plugin_description_file(nav2_core test/rebase_delayed_plugins.xml)
+  install(TARGETS rebase_delayed_plugins LIBRARY DESTINATION lib)
   find_package(ament_cmake_test REQUIRED)
   find_package(Python3 REQUIRED COMPONENTS Interpreter)
   ament_add_test(s2_geometry COMMAND "${Python3_EXECUTABLE}"

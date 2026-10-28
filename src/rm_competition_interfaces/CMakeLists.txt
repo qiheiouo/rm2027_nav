@@ -13,6 +13,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/ChassisMode.msg"
   "msg/GimbalState.msg"
   "msg/LocalizationStatus.msg"
+  "msg/LocalizationBarrier.msg"
   "msg/LioSourceStatus.msg"
   "msg/ManagedIngressStatus.msg"
   "msg/V2MotionTestLease.msg"
@@ -28,6 +29,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/TargetTrack.msg"
   "msg/PursuitCandidate.msg"
   "srv/SetMissionMode.srv"
+  "srv/BeginRebase.srv"
   DEPENDENCIES builtin_interfaces geometry_msgs nav_msgs std_msgs
 )
 

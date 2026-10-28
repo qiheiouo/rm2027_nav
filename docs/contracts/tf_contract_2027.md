@@ -212,3 +212,12 @@ map→odom；RSP 保持机械子树 owner。坏输入隔离后不发布新的 ca
 修正候选只有经 bridge 接受才更新 map→odom；单次拒绝不能更新/续租修正，锁存或
 显式 prepare 停止续发 map→odom，健康 LIO 仍续发 odom→base_link。缓存 TF 不代表
 授权。显式事务不 rebase odom，仍由 Mission 根据统一 status 撤销旧 action/session。
+
+### 显式 map-only rebase
+
+`rebase.enabled` 候选不改变 TF owner：bridge 仍独占 map→odom，adapter 独占 odom→base。
+只在旧导航（包括子 action）终止后替换 C；新 TF 首帧 stamp 为 `committed_at`，历史 TF
+不倒写。PRIME 阶段已有新 TF 但统一 validity=false，供全局动态缓存更新；Mission
+必须同时满足有效会话才发新目标。完整 SE(3) 计算、同刻有界最近邻采样和源 pose/covariance
+时间语义见 [bridge 合同](../../src/rm_relocalization_bridge/README.md#explicit-map-only-rebase-transaction)。
+这不是 raw/odom basis reset，也不允许为视觉连续性另启一个 TF publisher。

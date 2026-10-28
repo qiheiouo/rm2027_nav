@@ -106,3 +106,10 @@ Phase 1 constraints:
 
 `pb_omni_pid_pursuit_controller` remains a fallback comparison if the complete
 real-robot workload exceeds the accepted MPPI profile's CPU budget.
+
+`rm_nav_config::RebaseObstacleLayer` is an opt-in map-frame ObstacleLayer for the
+explicit rebase profile. It retires only its dynamic grid and pre-commit
+observations, retains normal Nav2 marking/raytracing, and acknowledges fresh
+post-commit data. StaticLayer and odom-frame local layers remain unchanged.
+It publishes no TF or velocity. See the
+[transaction contract](../rm_relocalization_bridge/README.md#explicit-map-only-rebase-transaction).

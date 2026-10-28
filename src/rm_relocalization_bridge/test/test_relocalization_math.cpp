@@ -86,3 +86,14 @@ TEST(RelocalizationMath, RejectsNonFiniteTransform)
   transform.setOrigin(tf2::Vector3(NAN, 0.0, 0.0));
   EXPECT_FALSE(rm_relocalization_bridge::isFiniteTransform(transform));
 }
+
+TEST(RelocalizationMath, FullSE3CompositionPreservesPitchRollAndDirection)
+{
+  tf2::Quaternion q1, q2;
+  q1.setRPY(0.2, -0.15, 3.1);
+  q2.setRPY(-0.1, 0.3, -2.8);
+  const tf2::Transform map_base(q1, tf2::Vector3(8, -4, 0.7));
+  const tf2::Transform odom_base(q2, tf2::Vector3(-2, 7, -0.4));
+  const auto correction = rm_relocalization_bridge::computeMapToOdom(map_base, odom_base);
+  expectTransformsNear(correction * odom_base, map_base);
+}

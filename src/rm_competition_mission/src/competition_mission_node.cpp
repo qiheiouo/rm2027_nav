@@ -9,6 +9,8 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <map>
+#include <array>
 
 #if __has_include("behaviortree_cpp/bt_factory.h")
 #include "behaviortree_cpp/bt_factory.h"
@@ -17,6 +19,9 @@
 #include "behaviortree_cpp_v3/bt_factory.h"
 #endif
 #include "geometry_msgs/msg/pose_stamped.hpp"
+#include "action_msgs/msg/goal_status_array.hpp"
+#include "action_msgs/srv/cancel_goal.hpp"
+#include "rm_competition_interfaces/msg/localization_barrier.hpp"
 #include "nav2_msgs/action/navigate_to_pose.hpp"
 #include "nav2_msgs/action/spin.hpp"
 #include "rclcpp/rclcpp.hpp"
@@ -152,6 +157,22 @@ public:
       [this](rm_competition_interfaces::msg::LocalizationStatus::SharedPtr message) {
         handleLocalizationStatus(*message);
       });
+    rebase_barrier_pub_ = create_publisher<rm_competition_interfaces::msg::LocalizationBarrier>(
+      "/localization/navigation_drained", 10);
+    // Only the configured Mission owns these Nav2 actions. A navigator terminal
+    // alone is insufficient: BT halt has bounded waits for its child actions.
+    rebase_children_ = declare_parameter<std::vector<std::string>>(
+      "rebase_child_actions", std::vector<std::string>{"/compute_path_to_pose", "/follow_path", "/wait", "/spin"});
+    for (const auto & action : rebase_children_) {
+      child_cancel_clients_.push_back(create_client<action_msgs::srv::CancelGoal>(action + "/_action/cancel_goal"));
+      child_status_subs_.push_back(create_subscription<action_msgs::msg::GoalStatusArray>(
+        action + "/_action/status", rclcpp::QoS(1).reliable().transient_local(),
+        [this, action](const action_msgs::msg::GoalStatusArray & message) {
+          for (const auto & status : message.status_list) {
+            child_goals_[action][status.goal_info.goal_id.uuid] = status.status;
+          }
+        }));
+    }
     referee_valid_sub_ = create_subscription<std_msgs::msg::Bool>(
       "/referee/state_valid", latched,
       [this](std_msgs::msg::Bool::SharedPtr message) {referee_valid_ = message->data;});
@@ -320,6 +341,8 @@ private:
     }
     if (localization_epoch_ns_ != 0 && epoch != localization_epoch_ns_) {
       ++localization_generation_;
+      child_cancel_started_ = false;
+      child_cancel_replies_ = 0;
       // Revoke the transaction, but retain ownership until its terminal result.
       // The old BT is halted by Nav2 cancellation, including in-flight planning.
       cancelNavigation("localization session changed");
@@ -329,6 +352,7 @@ private:
       pursuit_not_before_ = now();
       RCLCPP_WARN(get_logger(), "localization session changed: old navigation invalidated");
     }
+    rebase_phase_ = msg.transaction_phase;
     localization_id_ = msg.producer_id;
     localization_epoch_ns_ = epoch;
     localization_sequence_ = msg.sequence;
@@ -460,6 +484,7 @@ private:
 
   void tick()
   {
+    publishRebaseBarrier();
     const auto clock_ns = now().nanoseconds();
     if (clock_ns < localization_last_clock_ns_) {
       localization_valid_ = false;
@@ -786,6 +811,49 @@ private:
     navigation_status_ = "goal_canceling: " + reason;
   }
 
+  void publishRebaseBarrier()
+  {
+    using Status = rm_competition_interfaces::msg::LocalizationStatus;
+    if (rebase_children_.empty() || rebase_phase_ != Status::DRAIN_OLD_NAV ||
+      std::chrono::duration<double>(std::chrono::steady_clock::now() - localization_received_).count() >
+      localization_status_timeout_sec_) {return;}
+    cancelNavigation("explicit map rebase");
+    cancelSpin("explicit map rebase");
+    if (navigationOutstanding() || spinOutstanding()) {return;}
+    if (!child_cancel_started_) {
+      for (const auto & client : child_cancel_clients_) {if (!client->service_is_ready()) {return;}}
+      child_cancel_started_ = true;
+      child_cancel_replies_ = 0;
+      const auto epoch = localization_epoch_ns_;
+      for (std::size_t i = 0; i < child_cancel_clients_.size(); ++i) {
+        const auto action = rebase_children_[i];
+        child_cancel_clients_[i]->async_send_request(std::make_shared<action_msgs::srv::CancelGoal::Request>(),
+          [this, epoch, action](rclcpp::Client<action_msgs::srv::CancelGoal>::SharedFuture future) {
+            if (epoch != localization_epoch_ns_) {return;}
+            const auto reply = future.get();
+            if (reply->return_code != action_msgs::srv::CancelGoal::Response::ERROR_NONE) {return;}
+            for (const auto & goal : reply->goals_canceling) {
+              auto & states = child_goals_[action];
+              // A terminal status can arrive before the cancel reply.
+              if (states[goal.goal_id.uuid] < 4) {states[goal.goal_id.uuid] = 3;}
+            }
+            ++child_cancel_replies_;
+          });
+      }
+    }
+    if (child_cancel_replies_ != child_cancel_clients_.size()) {return;}
+    for (const auto & action : child_goals_) {
+      for (const auto & goal : action.second) {
+        if (goal.second < 4) {return;}
+      }
+    }
+    rm_competition_interfaces::msg::LocalizationBarrier receipt;
+    receipt.header.stamp = now();
+    receipt.producer_id = localization_id_;
+    receipt.started_at = rclcpp::Time(localization_epoch_ns_, RCL_ROS_TIME);
+    rebase_barrier_pub_->publish(receipt);
+  }
+
   void publishState()
   {
     rm_competition_interfaces::msg::MissionState state;
@@ -849,6 +917,14 @@ private:
   bool patrol_spin_selected_{false};
   bool patrol_spin_pending_{false};
 
+  uint8_t rebase_phase_{0};
+  bool child_cancel_started_{false};
+  std::size_t child_cancel_replies_{0};
+  std::vector<std::string> rebase_children_;
+  std::map<std::string, std::map<std::array<uint8_t, 16>, int8_t>> child_goals_;
+  std::vector<rclcpp::Client<action_msgs::srv::CancelGoal>::SharedPtr> child_cancel_clients_;
+  std::vector<rclcpp::Subscription<action_msgs::msg::GoalStatusArray>::SharedPtr> child_status_subs_;
+  rclcpp::Publisher<rm_competition_interfaces::msg::LocalizationBarrier>::SharedPtr rebase_barrier_pub_;
   bool localization_valid_{false};
   double localization_status_timeout_sec_{1.0};
   int64_t localization_start_ns_{0}, localization_last_clock_ns_{0};

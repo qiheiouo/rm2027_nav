@@ -19,8 +19,9 @@ def generate_launch_description():
         DeclareLaunchArgument('headless', default_value='true', choices=['true', 'false']),
         DeclareLaunchArgument('use_rviz', default_value='true', choices=['true', 'false']),
         DeclareLaunchArgument('sensors', default_value='true', choices=['true', 'false']),
-        DeclareLaunchArgument('localization_source', default_value='truth', choices=['truth', 'lio_health_fixture', 'correction_gate_fixture']),
+        DeclareLaunchArgument('localization_source', default_value='truth', choices=['truth', 'lio_health_fixture', 'correction_gate_fixture', 'rebase_fixture']),
         DeclareLaunchArgument('navigation_policy', default_value='baseline', choices=['baseline', 'event_driven']),
+        DeclareLaunchArgument('rebase_delay_fixture', default_value='none', choices=['none','planner','controller']),
         DeclareLaunchArgument('output', default_value='/tmp/rm2027_simulation'),
     ]
     return LaunchDescription(arguments + [
@@ -34,7 +35,7 @@ def generate_launch_description():
                 'spawn': '-3,-3,.002,0,0,0',
                 'use_nav2': 'true',
                 'publish_truth_tf': 'true',
-                **{name: LaunchConfiguration(name) for name in ('headless', 'use_rviz', 'sensors', 'output', 'navigation_policy', 'localization_source')},
+                **{name: LaunchConfiguration(name) for name in ('headless', 'use_rviz', 'sensors', 'output', 'navigation_policy', 'localization_source', 'rebase_delay_fixture')},
             }.items(),
         ),
     ])

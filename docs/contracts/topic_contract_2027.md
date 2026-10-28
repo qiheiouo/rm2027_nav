@@ -313,3 +313,21 @@ quality / freshness / LIO health 检查后判定创新与连续性，仍独占�
 
 `localization_source:=correction_gate_fixture` 复用 LIO health 仿真 owner，另启动真实
 quality gate 与创新门，输入为合成 AMCL 形状候选，不代表运行了 AMCL 匹配算法。
+
+## 显式 map-only rebase 候选（2026-10-28）
+
+`rebase.enabled` 默认 false；必须与 correction gate、唯一 Mission 及全局障碍层回执
+一起使用。`localization_source:=rebase_fixture` 提供已验证组合；旧 correction fixture
+的 admission reset 不授予“导航进行中安全大修正”的保证。
+
+| 接口 | owner / 消费方 | 语义 |
+| --- | --- | --- |
+| `/localization/begin_rebase` / `BeginRebase` | bridge service / 显式请求者 | 用当前 producer、session、已观测候选 stamp 发起；无任意 pose 注入 |
+| `LocalizationStatus.transaction_phase`、`committed_at` | bridge / Mission、map obstacle layer | ACTIVE、DRAIN_OLD_NAV、PRIME_NEW_SESSION、REBASE_FAILED；0 保持普通 status 语义 |
+| `/localization/navigation_drained` / `LocalizationBarrier` | Mission / bridge | 同 producer/session 的导航终止回执；不是 cancel ACK |
+| `/localization/map_cache_primed` / `LocalizationBarrier` | map obstacle layer / bridge | 旧 map 动态缓存失效且有新观测；不是简单定时器 |
+
+后两者 reliable/volatile，回执时间必须在本会话内且新鲜；旧会话回执无权提交。
+状态/服务的失败、时间、latch 权限与候选验证规则以
+[bridge rebase 合同](../../src/rm_relocalization_bridge/README.md#explicit-map-only-rebase-transaction) 为准。
+没有新增 TF、odom、cmd_vel、Mission intent 或 source-selection owner。

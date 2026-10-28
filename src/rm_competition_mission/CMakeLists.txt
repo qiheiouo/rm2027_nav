@@ -16,6 +16,7 @@ else()
   set(MISSION_BT_PACKAGE behaviortree_cpp)
 endif()
 find_package(${MISSION_BT_PACKAGE} REQUIRED)
+find_package(action_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(nav2_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
@@ -26,6 +27,7 @@ find_package(std_msgs REQUIRED)
 add_executable(competition_mission_node src/competition_mission_node.cpp)
 ament_target_dependencies(competition_mission_node
   ${MISSION_BT_PACKAGE}
+  action_msgs
   geometry_msgs
   nav2_msgs
   rclcpp

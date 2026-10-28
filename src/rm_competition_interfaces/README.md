@@ -28,3 +28,7 @@ protocol.
   freshness and parser counters without granting mission authority.
 - `SetMissionMode` is the explicit enable/mode gate for competition mission
   execution.
+- `LocalizationStatus.transaction_phase` / `committed_at`, `BeginRebase` and
+  `LocalizationBarrier` describe the opt-in map-only transaction. Receipts do
+  not grant independent TF/motion authority; see the
+  [bridge contract](../rm_relocalization_bridge/README.md#explicit-map-only-rebase-transaction).

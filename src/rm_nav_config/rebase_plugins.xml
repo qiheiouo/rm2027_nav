@@ -1,0 +1,5 @@
+<library path="rebase_obstacle_layer">
+  <class name="rm_nav_config::RebaseObstacleLayer" type="rm_nav_config::RebaseObstacleLayer" base_class_type="nav2_costmap_2d::Layer">
+    <description>Map obstacle grid and observation cutoff for explicit localization transactions.</description>
+  </class>
+</library>

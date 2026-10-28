@@ -17,6 +17,8 @@
 #include "std_msgs/msg/bool.hpp"
 #include "std_msgs/msg/string.hpp"
 #include "rm_competition_interfaces/msg/localization_status.hpp"
+#include "rm_competition_interfaces/msg/localization_barrier.hpp"
+#include "rm_competition_interfaces/srv/begin_rebase.hpp"
 #include "rm_competition_interfaces/msg/lio_source_status.hpp"
 #include "std_srvs/srv/trigger.hpp"
 #include "tf2/LinearMath/Quaternion.h"
@@ -142,7 +144,13 @@ public:
     if (rejects < 1 || samples < 2) {throw std::invalid_argument("invalid correction sample counts");}
     limits.rejection_count = rejects;
     limits.transaction_samples = samples;
+    correction_limits_ = limits;
     correction_gate_ = std::make_unique<rm_relocalization_bridge::CorrectionGate>(limits);
+    rebase_enabled_ = declare_parameter<bool>("rebase.enabled", false);
+    rebase_timeout_ = declare_parameter<double>("rebase.timeout_sec", 8.0);
+    if (rebase_enabled_ && (!correction_enabled_ || !std::isfinite(rebase_timeout_) || rebase_timeout_ <= 0)) {
+      throw std::invalid_argument("rebase requires correction gate and positive timeout");
+    }
     if (correction_enabled_ && (upstream_valid_topic_.empty() || source_health_topic_.empty())) {
       throw std::invalid_argument("correction gate requires selected backend status and atomic LIO health");
     }
@@ -166,6 +174,30 @@ public:
         });
     }
 
+    if (rebase_enabled_) {
+      begin_rebase_ = create_service<rm_competition_interfaces::srv::BeginRebase>(
+        "/localization/begin_rebase", [this](
+          const std::shared_ptr<rm_competition_interfaces::srv::BeginRebase::Request> request,
+          std::shared_ptr<rm_competition_interfaces::srv::BeginRebase::Response> response) {
+          std::lock_guard<std::mutex> lock(mutex_);
+          beginRebase(*request, *response);
+        });
+      nav_barrier_ = create_subscription<rm_competition_interfaces::msg::LocalizationBarrier>(
+        "/localization/navigation_drained", 10, [this](
+          const rm_competition_interfaces::msg::LocalizationBarrier & message) {
+          std::lock_guard<std::mutex> lock(mutex_);
+          if (rebase_phase_ == Status::DRAIN_OLD_NAV && barrierMatches(message)) {
+            nav_drained_ = true;
+          }
+        });
+      map_barrier_ = create_subscription<rm_competition_interfaces::msg::LocalizationBarrier>(
+        "/localization/map_cache_primed", 10, [this](
+          const rm_competition_interfaces::msg::LocalizationBarrier & message) {
+          std::lock_guard<std::mutex> lock(mutex_);
+          if (rebase_phase_ == Status::PRIME_NEW_SESSION && barrierMatches(message) &&
+            rclcpp::Time(message.header.stamp) > committed_at_) {map_primed_ = true;}
+        });
+    }
     reset_service_ = create_service<std_srvs::srv::Trigger>(
       "/localization/reset_map_to_odom",
       [this](
@@ -173,6 +205,11 @@ public:
         std::shared_ptr<std_srvs::srv::Trigger::Response> response)
       {
         std::lock_guard<std::mutex> lock(mutex_);
+        if (rebase_enabled_ && has_committed_) {
+          response->success = false;
+          response->message = "use begin_rebase with a verified candidate; legacy reset cannot bypass drain";
+          return;
+        }
         if (correction_enabled_) {
           if (now().nanoseconds() <= started_at_.nanoseconds() || now().nanoseconds() < last_clock_ns_) {
             response->success = false;
@@ -213,6 +250,134 @@ public:
   }
 
 private:
+  using Status = rm_competition_interfaces::msg::LocalizationStatus;
+  struct RebaseSample {
+    tf2::Transform map_base, odom_base;
+    geometry_msgs::msg::PoseWithCovarianceStamped pose;
+    rclcpp::Time deadline;
+    std::chrono::steady_clock::time_point received;
+  };
+
+  bool barrierMatches(const rm_competition_interfaces::msg::LocalizationBarrier & message) const
+  {
+    if (message.header.stamp.sec < 0 || message.header.stamp.nanosec >= 1000000000U ||
+      message.started_at.sec < 0 || message.started_at.nanosec >= 1000000000U) {return false;}
+    const auto emitted = rclcpp::Time(message.header.stamp);
+    return message.producer_id == producer_id_ && rclcpp::Time(message.started_at) == started_at_ &&
+      emitted >= started_at_ && emitted <= now() && (now() - emitted).seconds() < 0.5;
+  }
+
+  bool sampleFresh(const RebaseSample & sample) const
+  {
+    return source_healthy_ && upstream_valid_ && sample.deadline > now() &&
+      (now() - rclcpp::Time(sample.pose.header.stamp)).seconds() <= max_global_pose_age_sec_ &&
+      std::chrono::duration<double>(std::chrono::steady_clock::now() - sample.received).count() <=
+      max_global_pose_age_sec_;
+  }
+
+  std::unique_ptr<rm_relocalization_bridge::CorrectionGate> verifiedWindow() const
+  {
+    if (rebase_samples_.size() != correction_limits_.transaction_samples) {return nullptr;}
+    auto gate = std::make_unique<rm_relocalization_bridge::CorrectionGate>(correction_limits_);
+    for (const auto & sample : rebase_samples_) {
+      if (!sampleFresh(sample)) {return nullptr;}
+      gate->evaluate(sample.map_base, sample.odom_base);
+    }
+    return gate->preparing() || gate->latched() ? nullptr : std::move(gate);
+  }
+
+  void beginRebase(const rm_competition_interfaces::srv::BeginRebase::Request & request,
+    rm_competition_interfaces::srv::BeginRebase::Response & response)
+  {
+    checkValidityLocked();
+    response.accepted = false;
+    response.detail = "busy, stale session/candidate, unhealthy source or inconsistent candidate window";
+    if (request.expected_session.sec < 0 || request.expected_session.nanosec >= 1000000000U ||
+      request.candidate_stamp.sec < 0 || request.candidate_stamp.nanosec >= 1000000000U ||
+      !has_committed_ || request.producer_id != producer_id_ ||
+      rclcpp::Time(request.expected_session) != started_at_ || now() <= started_at_ ||
+      now().nanoseconds() < last_clock_ns_ ||
+      rebase_phase_ == Status::DRAIN_OLD_NAV || rebase_phase_ == Status::PRIME_NEW_SESSION) {return;}
+    auto gate = verifiedWindow();
+    const bool observed = std::any_of(rebase_samples_.begin(), rebase_samples_.end(),
+      [&request](const RebaseSample & sample) {return sample.pose.header.stamp == request.candidate_stamp;});
+    if (!gate || !observed) {return;}
+    rebase_anchor_ = gate->trusted();
+    rebase_backend_epoch_ = upstream_epoch_ns_;
+    rebase_backend_id_ = upstream_id_;
+    rebase_source_generation_ = source_generation_;
+    rebase_source_epoch_ = source_epoch_;
+    started_at_ = now(); sequence_ = 0;
+    rebase_began_ = std::chrono::steady_clock::now();
+    rebase_phase_ = Status::DRAIN_OLD_NAV;
+    nav_drained_ = map_primed_ = false;
+    // Keep the verified candidates and old correction. The ordinary gate remains latched
+    // until the explicit transaction really commits; no seed/reset authority is implied.
+    valid_ = false;
+    pending_global_poses_.clear();
+    publishValid(false);
+    response.accepted = true;
+    response.transaction_session = started_at_;
+    response.detail = "verified candidate; old navigation must drain before map->odom commit";
+    correctionState("DRAIN_OLD_NAV");
+  }
+
+  void failRebase()
+  {
+    if (rebase_phase_ == Status::DRAIN_OLD_NAV || rebase_phase_ == Status::PRIME_NEW_SESSION) {
+      rebase_phase_ = Status::REBASE_FAILED;
+      valid_ = false;
+      correctionState("REBASE_FAILED: explicit fresh request required");
+    }
+  }
+
+  void advanceRebase()
+  {
+    if (rebase_phase_ != Status::DRAIN_OLD_NAV && rebase_phase_ != Status::PRIME_NEW_SESSION) {return;}
+    if (std::chrono::duration<double>(std::chrono::steady_clock::now() - rebase_began_).count() >
+      rebase_timeout_ || !source_healthy_ || !upstream_valid_ ||
+      upstream_epoch_ns_ != rebase_backend_epoch_ || upstream_id_ != rebase_backend_id_ ||
+      source_generation_ != rebase_source_generation_ || source_epoch_ != rebase_source_epoch_) {
+      failRebase(); return;
+    }
+    auto gate = verifiedWindow();
+    if (!gate) {return;}
+    const auto & sample = rebase_samples_.back();
+    auto anchor_check = rm_relocalization_bridge::CorrectionGate(correction_limits_);
+    for (std::size_t i = 0; i < correction_limits_.transaction_samples; ++i) {
+      anchor_check.evaluate(rebase_anchor_ * sample.odom_base, sample.odom_base);
+    }
+    if (anchor_check.evaluate(sample.map_base, sample.odom_base).decision !=
+      rm_relocalization_bridge::CorrectionDecision::Accept) {failRebase(); return;}
+    if (rebase_phase_ == Status::DRAIN_OLD_NAV && nav_drained_) {
+      map_to_odom_ = gate->trusted();
+      correction_gate_ = std::move(gate);
+      accepted_pose_ = sample.pose;
+      evidence_until_ = sample.deadline;
+      last_evidence_received_ = sample.received;
+      committed_at_ = now();
+      rebase_tf_published_ = false;
+      rebase_phase_ = Status::PRIME_NEW_SESSION;
+      correctionState("PRIME_NEW_SESSION");
+    } else if (rebase_phase_ == Status::PRIME_NEW_SESSION && map_primed_) {
+      // Require post-commit global evidence as well as the map-cache receipt.
+      if (rclcpp::Time(sample.pose.header.stamp) <= committed_at_) {return;}
+      // Cache prime covers the committed geometry. A later correction must also
+      // pass the ordinary gate against THAT C, not only the original request anchor.
+      auto ordinary = *correction_gate_;
+      if (ordinary.evaluate(sample.map_base, sample.odom_base).decision !=
+        rm_relocalization_bridge::CorrectionDecision::Accept) {failRebase(); return;}
+      *correction_gate_ = ordinary;
+      map_to_odom_ = ordinary.trusted();
+      accepted_pose_ = sample.pose;
+      evidence_until_ = sample.deadline;
+      last_evidence_received_ = sample.received;
+      rebase_phase_ = Status::ACTIVE;
+      valid_ = true;
+      correctionState("REBASE_ACTIVE");
+    }
+  }
+
   void correctionState(const std::string & text)
   {
     if (!correction_enabled_) {return;}
@@ -251,6 +416,8 @@ private:
 
   void invalidateLocked()
   {
+    failRebase();
+    rebase_samples_.clear();
     if (correction_enabled_) {correction_gate_->break_consensus();}
     valid_ = false;
     upstream_valid_ = false;
@@ -492,7 +659,7 @@ private:
       correction_gate_->break_consensus();
       return;
     }
-    if (correction_enabled_ && correction_gate_->latched()) {
+    if (correction_enabled_ && correction_gate_->latched() && !rebase_enabled_) {
       correctionState("FAULT_LATCHED: explicit prepare required");
       return;
     }
@@ -577,11 +744,16 @@ private:
       return;
     }
 
+    if (rebase_enabled_) {
+      rebase_samples_.push_back({map_to_base, odom_sample.transform, source_pose, deadline, received});
+      while (rebase_samples_.size() > correction_limits_.transaction_samples) {rebase_samples_.pop_front();}
+      if (rebase_phase_ != Status::ACTIVE) {return;}
+    }
     if (correction_enabled_) {
       const auto result = correction_gate_->evaluate(map_to_base, odom_sample.transform);
       using Decision = rm_relocalization_bridge::CorrectionDecision;
       if (result.decision == Decision::Latched) {
-        invalidateLocked();
+        if (valid_) {invalidateLocked();}
         correctionState("FAULT_LATCHED: explicit prepare required");
         return;
       }
@@ -592,6 +764,7 @@ private:
       }
       correctionState("GATED_ACCEPT");
     }
+    has_committed_ = true;
     map_to_odom_ = candidate;
     accepted_pose_ = source_pose;
     last_evidence_received_ = received;
@@ -620,25 +793,33 @@ private:
     status.valid_until = !source_health_topic_.empty() && source_until_ < evidence_until_ ?
       source_until_ : evidence_until_;
     status.pose = accepted_pose_;
+    status.transaction_phase = rebase_phase_;
+    status.committed_at = committed_at_;
     status_pub_->publish(status);
   }
 
   void publishCurrentTransform()
   {
     tf2::Transform transform;
+    rclcpp::Time stamp = now();
     {
       std::lock_guard<std::mutex> lock(mutex_);
       checkValidityLocked();
+      advanceRebase();
       publishValid(valid_ && (!upstream_valid_required_ || upstream_valid_));
-      if (!valid_ || (upstream_valid_required_ && !upstream_valid_) ||
+      if ((!valid_ && rebase_phase_ != Status::PRIME_NEW_SESSION) || (upstream_valid_required_ && !upstream_valid_) ||
         (!source_health_topic_.empty() && !source_healthy_)) {
         return;
       }
       transform = map_to_odom_;
+      if (rebase_phase_ == Status::PRIME_NEW_SESSION && !rebase_tf_published_) {
+        stamp = committed_at_;
+        rebase_tf_published_ = true;
+      }
     }
 
     geometry_msgs::msg::TransformStamped message;
-    message.header.stamp = now();
+    message.header.stamp = stamp;
     message.header.frame_id = map_frame_;
     message.child_frame_id = odom_frame_;
     message.transform = transformToMessage(transform);
@@ -648,6 +829,20 @@ private:
     }
   }
 
+  bool rebase_enabled_{false}, has_committed_{false}, nav_drained_{false}, map_primed_{false};
+  bool rebase_tf_published_{false};
+  uint8_t rebase_phase_{Status::ACTIVE};
+  double rebase_timeout_{8.0};
+  rm_relocalization_bridge::CorrectionLimits correction_limits_;
+  std::deque<RebaseSample> rebase_samples_;
+  tf2::Transform rebase_anchor_;
+  int64_t rebase_backend_epoch_{0}, rebase_source_epoch_{0};
+  uint64_t rebase_source_generation_{0};
+  std::string rebase_backend_id_;
+  rclcpp::Time committed_at_{0, 0, RCL_ROS_TIME};
+  std::chrono::steady_clock::time_point rebase_began_;
+  rclcpp::Service<rm_competition_interfaces::srv::BeginRebase>::SharedPtr begin_rebase_;
+  rclcpp::Subscription<rm_competition_interfaces::msg::LocalizationBarrier>::SharedPtr nav_barrier_, map_barrier_;
   bool correction_enabled_{false}, await_new_backend_{false};
   int64_t transaction_epoch_floor_{0};
   std::unique_ptr<rm_relocalization_bridge::CorrectionGate> correction_gate_;

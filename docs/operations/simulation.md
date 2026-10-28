@@ -241,3 +241,29 @@ ROS domain，第二个另隔离 Gazebo partition，并清理自己的进程。�
 手工运行该 profile 必须另提供测试输入，否则 invalid 是预期行为。显式重定位的服务
 顺序和源时间限制见 [bridge 合同](../../src/rm_relocalization_bridge/README.md#optional-correction-gate-and-explicit-relocalization)；
 不要通过只发布 `/initialpose` 或调大普通创新门限解除锁存。
+
+### 显式 map-only rebase 定向验证
+
+在上述统一 build/source 环境执行：
+
+```bash
+python3 src/rm_new_car_simulation/scripts/validate_rebase_navigation.py \
+  --scenario translation --output /tmp/rebase-translation
+```
+
+场景：`normal translation yaw combined planner controller event repeated invalid`。
+脚本使用 `navigation_policy:=event_driven localization_source:=rebase_fixture`，真实
+bridge/Mission/Nav2/Gazebo 和全局 `RebaseObstacleLayer`，受控物理真值候选；不运行真实
+AMCL/GICP。`planner`/`controller` 显式加载 BUILD_TESTING 构建的延迟装饰夹具，分别延迟
+Navfn 返回、MPPI cancel；算法主体仍为既有实现，不用于普通运行。
+
+独立软件反例/回归：
+
+```bash
+python3 src/rm_relocalization_bridge/test/test_rebase_ordering_runtime.py --output /tmp/rebase-ordering
+```
+
+增加 `--expect-gap` 会选择旧 admission-only 配置并断言历史次序缺口仍可复现。
+不将这个配置作为安全导航 rebase 使用。新入口默认关闭，旧 truth/correction profile
+不被自动升级。服务调用与候选条件见 [bridge rebase 合同](../../src/rm_relocalization_bridge/README.md#explicit-map-only-rebase-transaction)；
+本轮数值、异常与冻结决策见 [验证记录](../validation/localization_rebase_transaction_20261028.md)。

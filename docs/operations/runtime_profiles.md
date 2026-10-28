@@ -337,3 +337,8 @@ and AUD-003 prohibition are unchanged; see [stage freeze](../new_car_stage_freez
 测试程序提供 Gazebo 同时刻 raw odom 与 AMCL 形状候选，只有 bridge 发布统一 status。
 无外部注入时保持 invalid；未运行真实 AMCL/FAST-LIO 匹配，也不授予硬件运动权限。
 使用方法见 [仿真操作](simulation.md#correction-gate-定向验证)。默认 truth 不变。
+
+`localization_source:=rebase_fixture` 是 correction fixture 的显式事务组合：启用
+`rebase.enabled`、Mission 子 action drain 和 map-frame `RebaseObstacleLayer`。
+仍只由 adapter/bridge 拥有两个 canonical TF edge；不运行真实后端或硬件。
+使用与限制见 [rebase 仿真操作](simulation.md#显式-map-only-rebase-定向验证)。

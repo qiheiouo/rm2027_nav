@@ -1,0 +1,8 @@
+# Compare-and-start using a currently observed, quality-gated candidate.
+string producer_id
+builtin_interfaces/Time expected_session
+builtin_interfaces/Time candidate_stamp
+---
+bool accepted
+builtin_interfaces/Time transaction_session
+string detail
