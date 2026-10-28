@@ -26,8 +26,13 @@ target_include_directories(relocalization_math PUBLIC
 )
 ament_target_dependencies(relocalization_math tf2)
 
+add_library(correction_gate src/correction_gate.cpp)
+target_include_directories(correction_gate PUBLIC include)
+target_link_libraries(correction_gate relocalization_math)
+ament_target_dependencies(correction_gate tf2)
+
 add_executable(map_odom_from_global_pose src/map_odom_from_global_pose.cpp)
-target_link_libraries(map_odom_from_global_pose relocalization_math)
+target_link_libraries(map_odom_from_global_pose relocalization_math correction_gate)
 ament_target_dependencies(map_odom_from_global_pose
   rclcpp
   rm_competition_interfaces
@@ -61,6 +66,7 @@ ament_target_dependencies(global_pose_gate_node
   rclcpp
   geometry_msgs
   std_msgs
+  std_srvs
 )
 
 add_executable(fake_2d_localization_world src/fake_2d_localization_world.cpp)
@@ -71,6 +77,7 @@ ament_target_dependencies(fake_2d_localization_world
 )
 
 install(TARGETS
+  correction_gate
   relocalization_math
   map_odom_from_global_pose
   fake_global_pose_publisher
@@ -93,6 +100,8 @@ install(DIRECTORY
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
   find_package(ament_cmake_pytest REQUIRED)
+  ament_add_gtest(test_correction_gate test/test_correction_gate.cpp)
+  target_link_libraries(test_correction_gate correction_gate)
   ament_add_gtest(test_relocalization_math test/test_relocalization_math.cpp)
   target_link_libraries(test_relocalization_math relocalization_math)
   ament_target_dependencies(test_relocalization_math tf2)

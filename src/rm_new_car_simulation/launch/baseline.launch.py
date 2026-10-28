@@ -21,7 +21,8 @@ def setup(context):
     profile=LaunchConfiguration('profile').perform(context)
     sensors=LaunchConfiguration('sensors').perform(context)=='true'
     event_policy=LaunchConfiguration('navigation_policy').perform(context)=='event_driven'
-    health_fixture=LaunchConfiguration('localization_source').perform(context)=='lio_health_fixture'
+    correction_fixture=LaunchConfiguration('localization_source').perform(context)=='correction_gate_fixture'
+    health_fixture=correction_fixture or LaunchConfiguration('localization_source').perform(context)=='lio_health_fixture'
     if health_fixture and not event_policy:
         raise RuntimeError('lio_health_fixture requires event_driven Mission integration')
     nav_odom='/odometry/lio' if health_fixture else '/odometry/simulation'
@@ -86,7 +87,12 @@ def setup(context):
         for package, executable in [('rm_localization_adapters','lio_adapter'),
                                     ('rm_relocalization_bridge','map_odom_from_global_pose')]:
             nodes.append(Node(package=package, executable=executable, name=executable,
-                parameters=[str(root/'config/lio_health_fixture.yaml'), {'use_sim_time':True}], output='screen'))
+                parameters=[str(root/'config/lio_health_fixture.yaml'),
+                    *([str(root/'config/correction_gate_fixture.yaml')] if correction_fixture else []),
+                    {'use_sim_time':True}], output='screen'))
+    if correction_fixture:
+        nodes.append(Node(package='rm_relocalization_bridge', executable='global_pose_gate_node',
+            name='global_pose_gate', parameters=[{'use_sim_time':True}], output='screen'))
     rviz_config=root/'config/simulation.rviz'
     if event_policy:
         rviz=yaml.safe_load(rviz_config.read_text())
@@ -162,7 +168,7 @@ def setup(context):
 
 def generate_launch_description():
     return LaunchDescription([
-      DeclareLaunchArgument('localization_source',default_value='truth',choices=['truth','lio_health_fixture']),
+      DeclareLaunchArgument('localization_source',default_value='truth',choices=['truth','lio_health_fixture','correction_gate_fixture']),
       DeclareLaunchArgument('navigation_policy',default_value='baseline',choices=['baseline','event_driven']),
       DeclareLaunchArgument('field',default_value='rules2026_course',choices=['flat','rules2026_course','dog_slope','banked_ground','competition2025_reference']),
       DeclareLaunchArgument('lidar',default_value='A',choices=['A','B']),

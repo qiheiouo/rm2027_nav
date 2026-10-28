@@ -19,6 +19,7 @@ install(TARGETS rm_omni_wheel_drive LIBRARY DESTINATION lib)
 install(DIRECTORY config assets launch DESTINATION share/${PROJECT_NAME})
 install(PROGRAMS scripts/baseline_scene.py scripts/simulation_tf.py scripts/validate_baseline.py
   scripts/smoke_baseline.py scripts/validate_event_replanning.py scripts/validate_lio_health_navigation.py
+  scripts/validate_correction_navigation.py
   DESTINATION lib/${PROJECT_NAME})
 if(BUILD_TESTING)
   find_package(ament_cmake_test REQUIRED)

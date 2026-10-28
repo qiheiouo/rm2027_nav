@@ -19,7 +19,7 @@ def generate_launch_description():
         DeclareLaunchArgument('headless', default_value='true', choices=['true', 'false']),
         DeclareLaunchArgument('use_rviz', default_value='true', choices=['true', 'false']),
         DeclareLaunchArgument('sensors', default_value='true', choices=['true', 'false']),
-        DeclareLaunchArgument('localization_source', default_value='truth', choices=['truth', 'lio_health_fixture']),
+        DeclareLaunchArgument('localization_source', default_value='truth', choices=['truth', 'lio_health_fixture', 'correction_gate_fixture']),
         DeclareLaunchArgument('navigation_policy', default_value='baseline', choices=['baseline', 'event_driven']),
         DeclareLaunchArgument('output', default_value='/tmp/rm2027_simulation'),
     ]

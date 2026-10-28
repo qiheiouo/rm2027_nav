@@ -331,3 +331,9 @@ The two `*_source_reference` / `*_stable_epoch_pending` configs in rm_lio_bringu
 are opt-in software fixtures, not a combined hardware navigation profile.
 The existing dual experiment remains default-disabled. The published baseline
 and AUD-003 prohibition are unchanged; see [stage freeze](../new_car_stage_freeze_20261013.md).
+
+`event_driven + localization_source:=correction_gate_fixture` 是进一步的显式集成夹具：
+复用健康 adapter/bridge，增加 `global_pose_gate_node` 和 bridge correction gate。
+测试程序提供 Gazebo 同时刻 raw odom 与 AMCL 形状候选，只有 bridge 发布统一 status。
+无外部注入时保持 invalid；未运行真实 AMCL/FAST-LIO 匹配，也不授予硬件运动权限。
+使用方法见 [仿真操作](simulation.md#correction-gate-定向验证)。默认 truth 不变。

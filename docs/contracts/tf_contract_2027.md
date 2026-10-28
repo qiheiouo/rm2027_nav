@@ -207,3 +207,8 @@ The real install/clock/heading/covariance contract remains unaccepted; see
 map→odom；RSP 保持机械子树 owner。坏输入隔离后不发布新的 canonical odom/TF，
 已有 TF 缓存可能暂时仍可查询，不能替代 `/localization/status` 的有效性证据。
 健康包和恢复 session 语义见 [topic 合同](topic_contract_2027.md#lio-输入健康候选2026-10-28)。
+
+`event_driven + localization_source:=correction_gate_fixture` 复用上述两个 TF owner。
+修正候选只有经 bridge 接受才更新 map→odom；单次拒绝不能更新/续租修正，锁存或
+显式 prepare 停止续发 map→odom，健康 LIO 仍续发 odom→base_link。缓存 TF 不代表
+授权。显式事务不 rebase odom，仍由 Mission 根据统一 status 撤销旧 action/session。

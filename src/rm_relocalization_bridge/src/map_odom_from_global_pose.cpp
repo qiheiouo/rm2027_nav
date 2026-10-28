@@ -15,6 +15,7 @@
 #include "nav_msgs/msg/odometry.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/bool.hpp"
+#include "std_msgs/msg/string.hpp"
 #include "rm_competition_interfaces/msg/localization_status.hpp"
 #include "rm_competition_interfaces/msg/lio_source_status.hpp"
 #include "std_srvs/srv/trigger.hpp"
@@ -23,6 +24,7 @@
 #include "tf2_ros/transform_broadcaster.h"
 
 #include "rm_relocalization_bridge/relocalization_math.hpp"
+#include "rm_relocalization_bridge/correction_gate.hpp"
 
 namespace
 {
@@ -131,6 +133,21 @@ public:
           handleSourceHealth(*msg);
         });
     }
+    correction_enabled_ = declare_parameter<bool>("correction_gate.enabled", false);
+    rm_relocalization_bridge::CorrectionLimits limits;
+    limits.translation_m = declare_parameter<double>("correction_gate.translation_m", 0.4);
+    limits.yaw_rad = declare_parameter<double>("correction_gate.yaw_rad", 0.3);
+    const int rejects = declare_parameter<int>("correction_gate.rejection_count", 3);
+    const int samples = declare_parameter<int>("correction_gate.transaction_samples", 3);
+    if (rejects < 1 || samples < 2) {throw std::invalid_argument("invalid correction sample counts");}
+    limits.rejection_count = rejects;
+    limits.transaction_samples = samples;
+    correction_gate_ = std::make_unique<rm_relocalization_bridge::CorrectionGate>(limits);
+    if (correction_enabled_ && (upstream_valid_topic_.empty() || source_health_topic_.empty())) {
+      throw std::invalid_argument("correction gate requires selected backend status and atomic LIO health");
+    }
+    correction_state_pub_ = create_publisher<std_msgs::msg::String>(
+      "/localization/correction_state", rclcpp::QoS(1).reliable().transient_local());
     upstream_valid_required_ = !upstream_valid_topic_.empty();
     if (upstream_valid_required_) {
       upstream_status_sub_ = create_subscription<rm_competition_interfaces::msg::LocalizationStatus>(
@@ -145,7 +162,7 @@ public:
         [this](const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg) {
           std::lock_guard<std::mutex> lock(mutex_);
           checkValidityLocked();
-          handleGlobalPoseLocked(*msg);
+          handleGlobalPoseLocked(*msg, now() + rclcpp::Duration::from_seconds(status_timeout_sec_));
         });
     }
 
@@ -156,10 +173,25 @@ public:
         std::shared_ptr<std_srvs::srv::Trigger::Response> response)
       {
         std::lock_guard<std::mutex> lock(mutex_);
+        if (correction_enabled_) {
+          if (now().nanoseconds() <= started_at_.nanoseconds() || now().nanoseconds() < last_clock_ns_) {
+            response->success = false;
+            response->message = "prepare requires advancing ROS time";
+            return;
+          }
+          started_at_ = now();
+          sequence_ = 0;
+          correction_gate_->prepare();
+          await_new_backend_ = true;
+          transaction_epoch_floor_ = std::max(upstream_epoch_ns_, started_at_.nanoseconds());
+          odom_cache_.clear();
+          correctionState("PREPARED: reset selected backend session, then supply verified observations");
+        }
         recovery_after_ns_ = std::max(recovery_after_ns_, now().nanoseconds());
         invalidateLocked();
         response->success = true;
-        response->message = "map->odom correction invalidated";
+        response->message = correction_enabled_ ? "relocalization prepared; awaiting new backend epoch" :
+          "map->odom correction invalidated";
       });
 
     const auto period = std::chrono::duration<double>(1.0 / publish_rate_hz_);
@@ -181,6 +213,22 @@ public:
   }
 
 private:
+  void correctionState(const std::string & text)
+  {
+    if (!correction_enabled_) {return;}
+    std_msgs::msg::String message;
+    message.data = text;
+    correction_state_pub_->publish(message);
+  }
+
+  void rejectCandidate(const char * reason)
+  {
+    if (correction_enabled_) {
+      correction_gate_->break_consensus();
+      correctionState(std::string("REJECT: ") + reason);
+    } else {invalidateLocked();}
+  }
+
   bool validatePose(const geometry_msgs::msg::Pose & pose) const
   {
     const double quaternion_norm_squared =
@@ -203,6 +251,7 @@ private:
 
   void invalidateLocked()
   {
+    if (correction_enabled_) {correction_gate_->break_consensus();}
     valid_ = false;
     upstream_valid_ = false;
     recovery_after_ns_ = std::max(recovery_after_ns_, std::max(last_pose_ns_, upstream_pose_ns_));
@@ -297,7 +346,7 @@ private:
     last_clock_ns_ = std::max(last_clock_ns_, clock_ns);
     const double silence = std::chrono::duration<double>(
       std::chrono::steady_clock::now() - last_evidence_received_).count();
-    if (clock_reversed || ((valid_ || upstream_valid_) &&
+    if (clock_reversed || (valid_ &&
       (silence > status_timeout_sec_ || clock_ns > evidence_until_.nanoseconds() ||
       (upstream_valid_required_ &&
       (clock_ns - upstream_emitted_ns_) * 1.0e-9 > status_timeout_sec_))))
@@ -315,9 +364,9 @@ private:
         return stamp.sec >= 0 && stamp.nanosec < 1000000000U;
       };
     if (!well_formed(msg.header.stamp) || !well_formed(msg.started_at) ||
-      !well_formed(msg.valid_until))
+      !well_formed(msg.valid_until) || !well_formed(msg.pose.header.stamp))
     {
-      invalidateLocked();
+      rejectCandidate("malformed source stamp");
       return;
     }
     const auto current = now();
@@ -325,6 +374,11 @@ private:
     const auto epoch = rclcpp::Time(msg.started_at).nanoseconds();
     const auto deadline = rclcpp::Time(msg.valid_until);
     const double age = (current - emitted).seconds();
+    if (correction_enabled_ &&
+      ((await_new_backend_ && epoch <= transaction_epoch_floor_) ||
+      (!await_new_backend_ && !upstream_id_.empty() &&
+      (epoch != upstream_epoch_ns_ || msg.producer_id != upstream_id_))))
+    {rejectCandidate("unselected or retired backend epoch"); return;}
     if (msg.producer_id.empty() || msg.sequence == 0 || epoch <= 0 ||
       epoch > emitted.nanoseconds() || emitted.nanoseconds() <= started_at_.nanoseconds() ||
       age < -max_future_sec_ || age > status_timeout_sec_ || epoch < upstream_epoch_ns_ ||
@@ -332,7 +386,7 @@ private:
       (msg.producer_id == upstream_id_ && epoch == upstream_epoch_ns_ &&
       (msg.sequence <= upstream_sequence_ || emitted.nanoseconds() < upstream_emitted_ns_)))
     {
-      invalidateLocked();
+      rejectCandidate("stale, future or reordered backend status");
       return;
     }
     if (msg.producer_id != upstream_id_ || epoch != upstream_epoch_ns_) {
@@ -340,6 +394,7 @@ private:
       upstream_id_ = msg.producer_id;
       upstream_epoch_ns_ = epoch;
       upstream_pose_ns_ = 0;
+      await_new_backend_ = false;
     }
     upstream_sequence_ = msg.sequence;
     upstream_emitted_ns_ = emitted.nanoseconds();
@@ -350,14 +405,18 @@ private:
       return;
     }
     upstream_valid_ = true;
-    last_evidence_received_ = std::chrono::steady_clock::now();
-    evidence_until_ = deadline;
     const auto source_ns = rclcpp::Time(msg.pose.header.stamp).nanoseconds();
-    if (source_ns > upstream_pose_ns_) {
+    if (correction_enabled_ && source_ns <= upstream_epoch_ns_) {
+      rejectCandidate("measurement predates backend admission epoch");
+    } else if (source_ns > upstream_pose_ns_) {
       upstream_pose_ns_ = source_ns;
-      handleGlobalPoseLocked(msg.pose);
+      handleGlobalPoseLocked(msg.pose, deadline);
     } else if (source_ns < upstream_pose_ns_) {
-      invalidateLocked();
+      rejectCandidate("reordered backend measurement");
+    } else if (valid_ && source_ns == rclcpp::Time(accepted_pose_.header.stamp).nanoseconds()) {
+      // Only the accepted measurement may prove liveness, never a rejected pose.
+      last_evidence_received_ = std::chrono::steady_clock::now();
+      evidence_until_ = std::min(evidence_until_, deadline);
     }
     // A heartbeat for the held pose cannot restore validity after invalidation.
     publishValid(valid_ && upstream_valid_);
@@ -395,11 +454,15 @@ private:
     processPendingGlobalPoses();
   }
 
-  void handleGlobalPoseLocked(const geometry_msgs::msg::PoseWithCovarianceStamped & msg)
+  void handleGlobalPoseLocked(
+    const geometry_msgs::msg::PoseWithCovarianceStamped & msg, const rclcpp::Time & deadline)
   {
-    if (!source_health_topic_.empty() && !source_healthy_) {return;}
+    correctionState("OBSERVED");
+    if (msg.header.stamp.sec < 0 || msg.header.stamp.nanosec >= 1000000000U) {
+      rejectCandidate("malformed measurement stamp"); return;
+    }
     if (msg.header.frame_id != map_frame_) {
-      invalidateLocked();
+      rejectCandidate("frame, finite pose or measurement time");
       RCLCPP_WARN(
         get_logger(), "Rejecting global pose in frame '%s'; expected '%s'.",
         msg.header.frame_id.c_str(), map_frame_.c_str());
@@ -408,7 +471,7 @@ private:
 
     const rclcpp::Time stamp(msg.header.stamp);
     if (stamp.nanoseconds() <= 0 || !validatePose(msg.pose.pose)) {
-      invalidateLocked();
+      rejectCandidate("frame, finite pose or measurement time");
       RCLCPP_WARN(get_logger(), "Rejecting global pose with zero timestamp or invalid pose.");
       return;
     }
@@ -417,21 +480,32 @@ private:
     const double age = (current_time - stamp).seconds();
     if (stamp.nanoseconds() <= recovery_after_ns_ || stamp.nanoseconds() <= last_pose_ns_ ||
       age < -max_future_sec_ || age > max_global_pose_age_sec_) {
-      invalidateLocked();
+      rejectCandidate("frame, finite pose or measurement time");
       RCLCPP_WARN(
         get_logger(), "Rejecting stale, future, replayed or pre-session global pose: age %.3f s, age limit %.3f s.",
         age, max_global_pose_age_sec_);
       return;
     }
 
+    if (!source_health_topic_.empty() && !source_healthy_) {
+      correctionState("ELIGIBLE_WAIT_LIO: no commit or recovery authority");
+      correction_gate_->break_consensus();
+      return;
+    }
+    if (correction_enabled_ && correction_gate_->latched()) {
+      correctionState("FAULT_LATCHED: explicit prepare required");
+      return;
+    }
+    if (correction_enabled_ && correction_gate_->preparing() && last_pose_ns_ > 0 &&
+      (stamp.nanoseconds() - last_pose_ns_) * 1e-9 > status_timeout_sec_) {
+      // Do not accumulate transaction confidence across a source silence gap.
+      correction_gate_->break_consensus();
+    }
+    correctionState("ELIGIBLE");
     const auto map_to_base = poseToTransform(msg.pose.pose);
     const auto tolerance_ns = static_cast<std::int64_t>(max_pose_odom_dt_sec_ * 1.0e9);
 
     last_pose_ns_ = stamp.nanoseconds();
-    if (!upstream_valid_required_) {
-      last_evidence_received_ = std::chrono::steady_clock::now();
-      evidence_until_ = now() + rclcpp::Duration::from_seconds(status_timeout_sec_);
-    }
     const auto odom_sample = odom_cache_.nearest(stamp.nanoseconds(), tolerance_ns);
     if (!odom_sample.has_value()) {
       if (pending_global_poses_.size() >= pending_pose_max_size_) {
@@ -439,11 +513,11 @@ private:
         RCLCPP_WARN(get_logger(), "Global-pose pending queue full; dropped oldest pose.");
       }
       pending_global_poses_.push_back({
-        stamp.nanoseconds(), map_to_base, std::chrono::steady_clock::now(), msg});
+        stamp.nanoseconds(), map_to_base, std::chrono::steady_clock::now(), msg, deadline});
       return;
     }
 
-    acceptCorrection(map_to_base, *odom_sample, msg);
+    acceptCorrection(map_to_base, *odom_sample, msg, deadline, std::chrono::steady_clock::now());
   }
 
   struct PendingGlobalPose
@@ -452,6 +526,7 @@ private:
     tf2::Transform map_to_base;
     std::chrono::steady_clock::time_point received_at;
     geometry_msgs::msg::PoseWithCovarianceStamped pose;
+    rclcpp::Time deadline;
   };
 
   void processPendingGlobalPoses()
@@ -467,6 +542,7 @@ private:
         pending->stamp_nanoseconds <= recovery_after_ns_ ||
         (upstream_valid_required_ && !upstream_valid_))
       {
+        if (correction_enabled_) {correction_gate_->break_consensus();}
         pending = pending_global_poses_.erase(pending);
         continue;
       }
@@ -474,7 +550,7 @@ private:
       if (odom_sample.has_value()) {
         const auto matched = *pending;
         pending_global_poses_.erase(pending);
-        acceptCorrection(matched.map_to_base, *odom_sample, matched.pose);
+        acceptCorrection(matched.map_to_base, *odom_sample, matched.pose, matched.deadline, matched.received_at);
         pending = pending_global_poses_.begin();
         continue;
       }
@@ -485,18 +561,41 @@ private:
   void acceptCorrection(
     const tf2::Transform & map_to_base,
     const rm_relocalization_bridge::TimedTransform & odom_sample,
-    const geometry_msgs::msg::PoseWithCovarianceStamped & source_pose)
+    const geometry_msgs::msg::PoseWithCovarianceStamped & source_pose,
+    const rclcpp::Time & deadline, const std::chrono::steady_clock::time_point & received)
   {
-
-    map_to_odom_ = rm_relocalization_bridge::computeMapToOdom(
+    if (rclcpp::Time(source_pose.header.stamp).nanoseconds() <= recovery_after_ns_ ||
+      rclcpp::Time(source_pose.header.stamp) <= rclcpp::Time(accepted_pose_.header.stamp) ||
+      deadline <= now() || (correction_enabled_ && !source_healthy_)) {
+      rejectCandidate("expired or unhealthy at commit"); return;
+    }
+    const auto candidate = rm_relocalization_bridge::computeMapToOdom(
       map_to_base, odom_sample.transform);
-    if (!rm_relocalization_bridge::isFiniteTransform(map_to_odom_)) {
+    if (!rm_relocalization_bridge::isFiniteTransform(candidate)) {
       RCLCPP_ERROR(get_logger(), "Computed non-finite map->odom; correction rejected.");
       invalidateLocked();
       return;
     }
 
+    if (correction_enabled_) {
+      const auto result = correction_gate_->evaluate(map_to_base, odom_sample.transform);
+      using Decision = rm_relocalization_bridge::CorrectionDecision;
+      if (result.decision == Decision::Latched) {
+        invalidateLocked();
+        correctionState("FAULT_LATCHED: explicit prepare required");
+        return;
+      }
+      if (result.decision != Decision::Accept) {
+        correctionState(result.decision == Decision::Verifying ? "VERIFYING: consecutive correction samples" :
+          "REJECT: residual " + std::to_string(result.translation_m) + " m / " + std::to_string(result.yaw_rad) + " rad");
+        return;
+      }
+      correctionState("GATED_ACCEPT");
+    }
+    map_to_odom_ = candidate;
     accepted_pose_ = source_pose;
+    last_evidence_received_ = received;
+    evidence_until_ = deadline;
     valid_ = true;
     publishValid(valid_ && (!upstream_valid_required_ || upstream_valid_));
     RCLCPP_INFO_THROTTLE(
@@ -549,6 +648,10 @@ private:
     }
   }
 
+  bool correction_enabled_{false}, await_new_backend_{false};
+  int64_t transaction_epoch_floor_{0};
+  std::unique_ptr<rm_relocalization_bridge::CorrectionGate> correction_gate_;
+  rclcpp::Publisher<std_msgs::msg::String>::SharedPtr correction_state_pub_;
   std::string source_health_topic_, source_id_;
   double source_health_timeout_{0.3};
   bool source_healthy_{false}, source_epoch_pending_{false};

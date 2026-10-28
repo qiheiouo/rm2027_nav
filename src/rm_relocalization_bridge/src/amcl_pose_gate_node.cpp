@@ -9,6 +9,7 @@
 #include "geometry_msgs/msg/pose_with_covariance_stamped.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/bool.hpp"
+#include "std_srvs/srv/trigger.hpp"
 #include "rm_competition_interfaces/msg/localization_status.hpp"
 
 #include "rm_relocalization_bridge/global_pose_gate.hpp"
@@ -58,6 +59,24 @@ public:
       input_topic_, rclcpp::QoS(10).reliable(),
       [this](const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr message) {
         handlePose(*message);
+      });
+    reset_session_ = create_service<std_srvs::srv::Trigger>(
+      valid_topic_ + "/reset_session",
+      [this](const std::shared_ptr<std_srvs::srv::Trigger::Request>,
+        std::shared_ptr<std_srvs::srv::Trigger::Response> response) {
+        const auto t = now();
+        if (t.nanoseconds() <= started_at_.nanoseconds() || t.nanoseconds() < last_clock_ns_) {
+          response->success = false;
+          response->message = "backend session reset requires advancing ROS time";
+          return;
+        }
+        started_at_ = t;
+        sequence_ = 0;
+        recovery_after_ns_ = std::max(t.nanoseconds(), last_pose_ns_);
+        accepted_pose_ = geometry_msgs::msg::PoseWithCovarianceStamped{};
+        invalidate();
+        response->success = true;
+        response->message = "new admission epoch; no seed or algorithm reset was performed";
       });
     timer_ = create_wall_timer(
       std::chrono::milliseconds(100), [this]() {checkTimeout();});
@@ -154,6 +173,7 @@ private:
     valid_pub_->publish(message);
   }
 
+  rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr reset_session_;
   std::string producer_id_;
   rclcpp::Time started_at_{0, 0, RCL_ROS_TIME};
   rclcpp::Time valid_until_{0, 0, RCL_ROS_TIME};

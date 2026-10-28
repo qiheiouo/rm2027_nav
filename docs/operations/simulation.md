@@ -221,3 +221,23 @@ Nav2 只消费经过健康门的 `/odometry/lio`；truth TF/status 被关闭。�
 不要把测试真值接入硬件域；配置内的限值仅用于此软件验证。
 
 [机制、F1–F12、历史证据与限制](../validation/lio_input_health_port_20261028.md)。
+
+### Correction gate 定向验证
+
+在已完成本页统一构建/source 的 Jazzy 环境中：
+
+```bash
+python3 src/rm_relocalization_bridge/test/test_correction_runtime.py --output /tmp/correction_runtime
+python3 src/rm_new_car_simulation/scripts/validate_correction_navigation.py --output /tmp/correction_navigation
+```
+
+第一个运行真实 adapter / quality gate / correction bridge，验证 C1–C12、合法大初值、
+显式新 session、运动与渐进漂移。第二个自动选择
+`navigation_policy:=event_driven localization_source:=correction_gate_fixture`，验证
+Mission / Nav2 中 C13–C15：拒绝、显式会话撤销、Wait 中锁存及恢复。各脚本使用隔离
+ROS domain，第二个另隔离 Gazebo partition，并清理自己的进程。结果与日志留在 `/tmp`，
+不进入 Git。来源是物理真值注入夹具，不是真实 AMCL/LIO 算法精度验收。
+
+手工运行该 profile 必须另提供测试输入，否则 invalid 是预期行为。显式重定位的服务
+顺序和源时间限制见 [bridge 合同](../../src/rm_relocalization_bridge/README.md#optional-correction-gate-and-explicit-relocalization)；
+不要通过只发布 `/initialpose` 或调大普通创新门限解除锁存。

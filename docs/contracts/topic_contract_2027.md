@@ -297,3 +297,19 @@ localization session；恢复要求连续可信 LIO 和失效后的新 global po
 status；真实 adapter/bridge 分别独占 odom→base_link、map→odom 与统一 status，Nav2 的
 odom 输入切到 `/odometry/lio`。测量来自 Gazebo 注入夹具，不代表运行了 FAST-LIO。
 默认 `localization_source:=truth` 延续前一候选。两种模式不能同时占有 canonical TF。
+
+## Correction gate 候选（2026-10-28）
+
+显式开启 `correction_gate.enabled` 后，candidate 只提供观测；bridge 在原有 source
+quality / freshness / LIO health 检查后判定创新与连续性，仍独占统一 status 和 map→odom。
+`/localization/correction_state` 为 reliable transient-local String 诊断，不授权运动。
+单次创新拒绝保留旧修正的原截止时间；连续矛盾锁存撤销统一有效性，不修改 LIO 健康。
+
+`/localization/reset_map_to_odom`（Trigger）在该模式成为显式 prepare：撤销旧有效性并
+预留新 session，等待后端新准入 epoch。新增 `<selected_valid_topic>/reset_session`
+（Trigger）仅重置 quality gate 准入，不重置算法或发布 initialpose；旧 stamp 不得改写。
+连续可信新候选才可 commit；不自动调用这两个服务。服务顺序、reset 限制、状态及参数
+以 [bridge 合同](../../src/rm_relocalization_bridge/README.md#optional-correction-gate-and-explicit-relocalization) 为准。
+
+`localization_source:=correction_gate_fixture` 复用 LIO health 仿真 owner，另启动真实
+quality gate 与创新门，输入为合成 AMCL 形状候选，不代表运行了 AMCL 匹配算法。

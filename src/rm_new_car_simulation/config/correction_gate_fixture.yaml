@@ -1,0 +1,9 @@
+# Explicit software/physics fixture; these limits are NOT vehicle calibration.
+map_odom_from_global_pose:
+  ros__parameters:
+    upstream_valid_topic: /localization/amcl_backend_valid
+    correction_gate.enabled: true
+    correction_gate.translation_m: 0.4
+    correction_gate.yaw_rad: 0.3
+    correction_gate.rejection_count: 3
+    correction_gate.transaction_samples: 3

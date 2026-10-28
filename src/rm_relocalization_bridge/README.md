@@ -59,8 +59,8 @@ status **including the pose**, rather than independently pairing a cached Bool
 and an unqualified pose. It still exposes `/localization/global_pose` upstream
 for inspection, but that topic cannot bypass the selected gate. The bridge is
 still the only dynamic map/odom owner. It publishes `/localization/status`
-with its own instance identity and the last matched pose; correction math and
-backend quality thresholds are unchanged.
+with its own instance identity and the last accepted matched pose. The optional
+correction gate below adds an admission step; backend quality thresholds stay separate.
 
 The bridge and localization consumers require source validity, fresh emission
 time, increasing sequence/epoch (equal emission timestamps are legal within one
@@ -121,6 +121,87 @@ handoff cancels and retires the old action before a new goal can run.
 
 The selected AMCL/GICP gate may restart its sequence in a **new** epoch even with
 the same producer ID. Duplicate/out-of-order sequences inside one epoch remain
-invalid. This adds no correction-innovation gate or autonomous recovery behavior.
+invalid. With the optional correction gate below, a new backend epoch instead
+requires explicit prepare. LIO health itself grants no autonomous recovery authority.
 `/localization/status` remains the sole validity authority, the bridge remains the
 sole map/odom owner, and the adapter remains the sole odom/base owner.
+
+## Optional correction gate and explicit relocalization
+
+`correction_gate.enabled=false` remains the default. When enabled, both a selected
+`upstream_valid_topic` and atomic `source_health_topic` are mandatory. The bridge
+pins one backend producer/admission epoch; another producer/epoch requires an
+explicit transaction. AMCL and GICP remain mutually exclusive selected backends.
+The backend is responsible for meaningful quality checks (AMCL covariance,
+GICP convergence/fitness plus existing pose quality). Existing GICP covariance
+is a clamped score-derived proxy, not calibrated measurement uncertainty; this
+port neither creates nor upgrades that proxy. Small covariance does not establish
+geometric correctness. The bridge never invents a score or covariance.
+
+A candidate is OBSERVED, then ELIGIBLE only after source identity, monotonic
+sequence/source time, finite pose, original source deadline, source quality and
+healthy LIO match checks. Compute `C = T_map_base(t) * inverse(T_odom_base(t))`;
+compare the observation with `C_trusted * T_odom_base(t)`. Residuals are 3D
+position distance in metres and shortest wrapped yaw in radians. Using the
+matched source time avoids treating ordinary robot motion as correction error,
+and avoids comparing translation origins under a distant yaw pivot. The nearest
+odometry match remains bounded by `max_pose_odom_dt_sec`; its timing error is
+still a vehicle-dependent limitation, especially during spin.
+
+- GATED_ACCEPT alone replaces map/odom and the accepted pose/deadline.
+- REJECT retains the trusted correction and its **existing** finite lease;
+  rejected observations and their heartbeats cannot renew that lease.
+- `correction_gate.rejection_count` consecutive contradictory **eligible**
+  observations cause FAULT_LATCHED. An accepted observation resets this count.
+  Stale/invalid/source-quality failures are rejected or invalidate their existing
+  source lease; they do not manufacture an innovation residual.
+- FAULT_LATCHED withdraws unified validity and new map/odom TF timestamps. It does
+  not change LIO health or publish commands. Mission cancels through its existing
+  unified-validity input. Healthy LIO keeps its canonical odometry/TF.
+- A good frame, source reconnect, `/initialpose`, or LIO recovery cannot clear
+  the latch. There is no autonomous reseed, cooldown timer or motion-stop detector.
+
+Startup and explicit relocalization use `transaction_samples` consecutive
+consistent candidate transforms, permitting a large initial offset. A broken
+eligibility/matching sequence or an inter-candidate gap exceeding
+`status_timeout_sec` restarts verification. Explicit relocalization:
+
+1. Call `/localization/reset_map_to_odom` (`Trigger`): **prepare**, reserve a newer
+   bridge session, revoke old validity, clear pending/matching data and reset the
+   gate for verification. It does not immediately grant validity.
+2. After ROS time advances, call `<selected_valid_topic>/reset_session` (`Trigger`):
+   reset the selected quality gate's admission epoch, discard prior accepted pose
+   and reject source measurements at/before its cutoff. This neither seeds nor
+   resets AMCL/GICP. Any required algorithm seed remains an explicit operation
+   through the existing backend interface. Stop/drain old backend work before
+   resetting admission, and retain original acquisition stamps.
+3. Only the newer selected epoch's post-cutoff, healthy-LIO-matched, quality-valid
+   and mutually consistent samples commit validity in the reserved session.
+   The old action must terminate before Mission submits a replacement goal.
+
+Until step 3 the transaction stays invalid. No automatic coordinator calls these
+services. A backend restart without prepare cannot silently reset the baseline.
+The gate requires strictly advancing epochs; a paused or reversed clock cannot
+mint a new session. A single large accumulated drift needs this explicit entry;
+gradual within-limit corrections may accumulate beyond the per-step threshold.
+
+Raw `PoseWithCovarianceStamped` has no algorithm transaction identity. Admission
+epochs cannot distinguish an old computation deliberately re-stamped as new.
+This candidate therefore requires one controlled source, original acquisition
+timestamps and a drained/explicitly seeded backend. It is not an authenticated
+backend reset protocol or a general recovery solution. Source loss invalidates
+its lease; good correction while LIO INVALID/RECOVERING is diagnostic eligibility
+only and cannot queue a commit or drive recovery. Normal LIO reacquisition still
+follows the existing health contract and then requires new correction evidence;
+a correction latch, if set, persists.
+
+`/localization/correction_state` (`std_msgs/String`, reliable transient-local)
+is diagnostic only: OBSERVED / ELIGIBLE / ELIGIBLE_WAIT_LIO / VERIFYING /
+GATED_ACCEPT / REJECT / FAULT_LATCHED / PREPARED. It is not a second validity or
+motion authority. `/localization/status` and the existing TF owners are unchanged.
+
+The explicit simulation profile uses 0.4 m, 0.3 rad, 3 contradictory samples and
+3 transaction samples. These are integration-fixture values, **Hardware Blocked**,
+including matching tolerances, source quality limits and motion uncertainty.
+No real-vehicle launch enables this gate by default. See the
+[port evidence](../../docs/validation/localization_correction_gate_port_20261028.md).
