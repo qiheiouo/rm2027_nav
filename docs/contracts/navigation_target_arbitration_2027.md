@@ -14,8 +14,8 @@ Nav2 自己的 BT 调用 controller 的 `FollowPath`；本仓任务层不直接�
 
 | 优先级 | 选择条件 | 抢占与后续行为 |
 | --- | --- | --- |
-| 1 SAFETY_STOP | disable、显式 hold、必需安全证据失效、底盘撤权/ESTOP，或已观察 V2 guard 非 PERMITTED/过期 | 否决 HOME/PURSUIT/PATROL，取消 Navigate/Spin，不发替代目标 |
-| 2 RETURN_HOME | 新鲜且 validity gate 有效的 referee HP ≤ retreat_hp_threshold，或显式 home | 高于 pursuit/patrol；无 home 坐标则 hold_missing_home，不降级 |
+| 1 SAFETY_STOP | DEAD、复活尚未满足定位条件、disable、显式 hold、必需安全证据失效、底盘撤权/ESTOP，或已观察 V2 guard 非 PERMITTED/过期 | 否决 HOME/PURSUIT/PATROL，取消 Navigate/Spin，不发替代目标 |
+| 2 RETURN_HOME | 新鲜且 validity gate 有效的 referee 0 < HP ≤ retreat_hp_threshold，或显式 home | 高于 pursuit/patrol；无 home 坐标则 hold_missing_home，不降级 |
 | 3 PURSUIT | allow_pursuit，模式 auto/pursuit，候选有效 | 可抢占 auto 巡逻；不能抢占 HOME/Safety |
 | 4 PATROL | 模式 auto/patrol，已配置 waypoint | 保留 patrol_index，只有当前未撤销的成功才推进 |
 | 5 IDLE/HOLD | 没有合格目标 | 不发导航 action |
@@ -151,15 +151,59 @@ Mission 保留既有 LocalizationStatus 合同；对 referee/chassis/V2 guard �
 2027 导航组合只启动 Mission/planner，不启动 Nav2、serial、定位、referee 或物理设备；缺少
 外部安全证据时保持停止。不得与 dog-hole manager、手动目标工具或另一 Mission 同域共同控 Nav2。
 
-### DEAD / REVIVED 边界
+## Life-State Authority Contract
 
-当前 `RobotPosture` 的六态实际为 ATTACK/MOVE/DEFENSE 与 ENHANCED_ATTACK/
-ENHANCED_DEFENSE/ENHANCED_MOVE；没有 MOBILE/WEAKENED/DEAD/REVIVED 消息枚举。
-Mission 不消费 `/robot/posture/state`。HP=0 目前仍进入低 HP HOME 选择，不能把它
-描述成 DEAD 撤权。DEAD→Safety veto、REVIVED→重新授权的生产映射尚未接入；
-禁止以 fixture 的 guard 恢复冒充复活策略。当前只保证已接入 guard/chassis/localization
-否决到达后停止发新 action、等待旧 action 终态；恢复后按当前请求重建，定位无效则 hold。
-姿态映射未完成前，本合同的通过范围不含完整死亡/复活比赛生命周期。
+生命状态独立于 Mission 请求模式和六态 `RobotPosture`。不增加姿态枚举、速度限制、gain
+或新 mode。当前没有可消费的独立 referee DEAD/REVIVED event；使用唯一规范输入
+`/referee/state` 的有效 HP：**HP=0 为 DEAD；DEAD 后更新且有效的 HP>0 为 REVIVED**。
+这是本候选的明确软件策略，不是对未确认 MCU `life` 字节或 heartbeat 的解释。
+
+输入必须 `valid=true`、时间结构合法、非零、年龄在既有 −0.05～0.5 s 窗口内，且源
+时间戳严格大于已接受水位（上述为默认年龄窗口）。同 stamp 的重复或冲突包、乱序包不能改变生命状态或续租；
+非法未来包不能推进水位。正常比赛组合还要求 `/referee/state_valid` 与其他 Safety
+证据。不加 debounce：经 gate 确认的死亡立即生效；重复相同生命状态不重复换代。
+失联只使现有证据过期，不构造死亡或复活事件；DEAD 保持锁存直到有效的新 HP>0。
+
+- **DEAD**：在输入回调中撤销 Mission 导航授权，取消 Navigate/Spin，清除旧执行完成/
+  失败记忆与 pursuit 候选有效性；保留请求模式和未完成巡逻索引。显式 HOME、低 HP、
+  pursuit、patrol、event replan 均不能绕过。取消中的 action 仍占 owner 直到 terminal，
+  但已无 Mission authority；不把“尚未终态”错误解释成继续授权。
+- **REVIVED**：增加 life generation，重新仲裁当前请求；每个新 Navigate 再取得新的
+  goal generation。执行身份是 `(life_generation, goal_generation, localization session)`。
+  不提前改旧 goal generation 丢失终态屏障；旧生命代次的成功/失败只能释放旧 handle，
+  不能推进 patrol、完成新目标或消耗新预算。Spin 同样检查 life generation。
+- **定位条件**：复活时定位有效，仍须通过所有 Safety 门并等旧 terminal 后重建。
+  复活时定位无效，保持 HOLD，直到严格更新的定位 session 且状态新鲜有效；同一 session
+  的 valid 心跳不足以放行。rebase 可以在 DEAD 中完成 drain/commit/prime，但不自动复活。
+- **目标条件**：复活前缓存的 pursuit/temporary commitment 不恢复；须有撤权后新的源
+  观测。新鲜目标可以在 DEAD 时作为输入到达，但不能获得导航授权。
+- **Safety 关系**：ALIVE 只移除生命否决，不创建最终串口正授权，也不覆盖定位、guard、
+  chassis、ESTOP 或操作员 hold。HP>0 仍可能因低血量选择 HOME。
+
+```mermaid
+stateDiagram-v2
+    [*] --> ALIVE: 启动待有效安全证据
+    ALIVE --> DEAD: 接受有效更新 HP=0 / 撤权并取消
+    DEAD --> DEAD: 重复死亡 / 失联 / 旧包 / 目标到达
+    DEAD --> ALIVE: 接受更新 HP>0 / life generation 增加
+    ALIVE --> ALIVE: HP 更新不换生命代次
+```
+
+该图与 HOLD/HOME/PATROL/PURSUIT/AUTO 请求模式正交；ALIVE **不等于已授权**。
+复活等待新定位会话是一个条件，不引入第二套 REVIVING enum。
+`MissionState.detail` 追加 `life_state`、`life_generation`、`mission_generation`（既有
+Navigate 请求序号）、`localization_session`、`navigation_authority`，用于观察而非命令。
+最后一项仅表示当前 Mission 执行承诺仍获软件授权，不表示 MCU 或车辆实际运动状态。
+
+**输入边界**：RefereeState 没有 producer/session/sequence 字段。gate 保留 ROS 源 stamp，
+上述排序保障只适用于同一受信任来源和时钟域。HPM 帧无源序号/源时间；V2 虽有 frame
+sequence，当前 referee 接收路径未用它去重且会重新打 host RX stamp。旧线上包若被上游
+重新打成新 stamp，本层无法识别。真实传输去重、MCU 重启、referee 延迟与生命字节语义
+必须在硬件输入验收中确认；不能用这份规范声称已闭合 wire-level replay 或物理停车。
+本轮没有修改这些协议，也没有新增自动切源/时钟复位恢复。
+
+生命语义验证和系统线冻结决定见
+[DEAD/REVIVED 最小闭合](../validation/mission_life_authority_20261029.md)。
 
 [受控验证与审计](../validation/event_replanning_port_20261027.md) 给出证据和适用限制。
 

@@ -47,6 +47,7 @@ class ArbitrationFixture(Node):
         self.guard = V2MotionGuardState.PERMITTED
         self.publish_guard = True
         self.publish_chassis = True
+        self.publish_referee = True
         self.track = None
         self.research_track = False
         self.state = None
@@ -152,7 +153,8 @@ class ArbitrationFixture(Node):
         referee.valid = True
         referee.game_progress = 4
         referee.current_hp = self.hp
-        self.ref_pub.publish(referee)
+        if self.publish_referee:
+            self.ref_pub.publish(referee)
         self.ref_valid.publish(Bool(data=True))
         mode = ChassisMode()
         mode.header.stamp = now.to_msg()

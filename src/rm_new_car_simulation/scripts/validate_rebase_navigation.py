@@ -91,7 +91,7 @@ class RebaseProbe(CorrectionProbe):
         future=self.begin.call_async(req);self.until(future.done,5,'begin response')
         return future.result()
 
-    def rebase(self,bias,result):
+    def rebase(self,bias,result,during_drain=None,expect_resume=True):
         old_epoch=ns(self.validity.started_at)
         old_goals={name:set(self.actions[name]) for name in self.actions}
         old_c=self.transforms[-1][2:]
@@ -100,6 +100,7 @@ class RebaseProbe(CorrectionProbe):
         reply=self.request();assert reply.accepted,reply.detail
         epoch=ns(reply.transaction_session)
         assert epoch>old_epoch
+        if during_drain is not None:during_drain()
         self.until(lambda:self.validity.valid and ns(self.validity.started_at)==epoch,10,'prime and active')
         commit=next(row[0] for row in self.transactions if row[1]==LocalizationStatus.PRIME_NEW_SESSION and row[3]==epoch)
         # All old upper/child actions must have terminal statuses before C changes.
@@ -112,7 +113,10 @@ class RebaseProbe(CorrectionProbe):
                 terminal[name]=max(terminal.get(name,0),ends[0])
         assert any(e==epoch for _,e in self.barriers),'missing actual obstacle-layer receipt'
         new_goals=[v for k,v in self.actions['navigate_to_pose'].items() if k not in old_goals['navigate_to_pose']]
-        self.until(lambda:len(self.actions['navigate_to_pose'])>len(old_goals['navigate_to_pose']),6,'new Mission goal')
+        if expect_resume:
+            self.until(lambda:len(self.actions['navigate_to_pose'])>len(old_goals['navigate_to_pose']),6,'new Mission goal')
+        else:
+            assert len(self.actions['navigate_to_pose'])==len(old_goals['navigate_to_pose'])
         new_goals=[v for k,v in self.actions['navigate_to_pose'].items() if k not in old_goals['navigate_to_pose']]
         assert all(v['time']>=commit for v in new_goals)
         # No canonical odometry reset or map-jump-derived velocity.

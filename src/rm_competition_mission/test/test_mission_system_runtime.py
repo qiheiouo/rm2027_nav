@@ -29,6 +29,8 @@ class SystemFixture(ArbitrationFixture):
         self.abort = set()
         self.late_failure = False
         self.trace = []
+        self.states = []
+        self.action_ids = {}
         self.cases = []
         self.result_replies = []
         # Test-only wire fault injection against the installed Jazzy action API.
@@ -42,6 +44,7 @@ class SystemFixture(ArbitrationFixture):
     async def execute(self, handle):
         index = len(self.goals)
         self.goals.append((time.monotonic(), handle.request.pose.pose.position.x))
+        self.action_ids[index] = bytes(handle.goal_id.uuid).hex()
         self.active.add(index)
         self.max_active = max(self.max_active, len(self.active))
         self.record('accepted', index)
@@ -61,8 +64,15 @@ class SystemFixture(ArbitrationFixture):
     def record(self, event, generation=None):
         self.trace.append(dict(time=time.monotonic(), event=event,
             observed_goal_generation=generation, active=sorted(self.active),
+            action_uuid=self.action_ids.get(generation), owner='competition_mission_node',
+            mission_detail=self.state.detail if self.state else None,
             localization_session=[self.started_at.sec, self.started_at.nanosec],
             target=self.track, branch=self.state.active_branch if self.state else None))
+
+    def on_state(self, message):
+        super().on_state(message)
+        self.states.append(dict(time=time.monotonic(), branch=message.active_branch,
+            status=message.navigation_status, detail=message.detail))
 
     def checkpoint(self, *cases):
         self.cases.extend(cases)
@@ -92,6 +102,9 @@ def system(request):
         'mission_config:=' + str(config)], stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
     try:
         wait(lambda: node.state is not None, 'Mission startup', 10)
+        wait(lambda: any(info.node_name == 'pursuit_goal_planner' for info in
+             node.get_publishers_info_by_topic('/mission/pursuit_candidate')),
+             'pursuit planner startup', 10)
         yield node
         assert node.max_active <= 1, node.trace
         for index, replacement in enumerate(node.requests[1:]):
@@ -108,7 +121,8 @@ def system(request):
         node.complete.update(range(len(node.goals)))
         wait(lambda: not node.active, 'fixture action cleanup', 4)
         (output / 'result.json').write_text(json.dumps(dict(cases=node.cases, max_active=node.max_active,
-            requests=node.requests, terminals=node.terminals, trace=node.trace,
+            requests=node.requests, cancels=node.cancels, terminals=node.terminals,
+            trace=node.trace, states=node.states,
             launch_exit=process.returncode, process_deaths=deaths), indent=2))
         executor.shutdown(timeout_sec=3); thread.join(timeout=3)
         node.destroy_node(); rclpy.try_shutdown()
@@ -193,19 +207,21 @@ def test_duplicate_terminal_response(system):
     n.checkpoint('duplicate_old_result_response_rejected')
 
 
-def test_posture_boundary_is_not_integrated(system):
+def test_life_authority_without_posture_enum(system):
     from rm_competition_interfaces.msg import RobotPosture
     n = system
     assert not hasattr(RobotPosture, 'DEAD') and not hasattr(RobotPosture, 'REVIVED')
     subscriptions = n.get_subscriber_names_and_types_by_node('competition_mission_node', '/')
     assert not any(name == '/robot/posture/state' for name, _ in subscriptions)
     n.mode('patrol'); wait_goal(n, 1.)
-    n.hp = 0; wait_goal(n, 0., 1)  # Actual current HP policy is HOME, not a DEAD mapping.
-    n.checkpoint('D1_D5_NOT_INTEGRATED_HP0_SELECTS_HOME')
-    n.guard = V2MotionGuardState.BLOCKED; wait(lambda: not n.active, 'guard veto')
-    n.localization_valid = False; n.guard = V2MotionGuardState.PERMITTED
+    n.hp = 0; wait(lambda: not n.active and 'life_state=dead' in n.state.detail, 'HP0 revokes')
+    stable_count(n, .3); assert len(n.requests) == 1 and n.state.active_branch == 'hold'
+    n.localization_valid = False
+    wait(lambda: n.state.detail.startswith('safety_gate_closed'), 'invalid localization')
+    n.hp = 400
+    wait(lambda: 'life_state=alive' in n.state.detail, 'revival evidence')
     stable_count(n, .3); assert n.state.active_branch == 'hold'
-    n.checkpoint('guard_restoration_with_invalid_localization_holds')
+    n.checkpoint('D1_D5_HP_authority_without_posture_enum')
 
 
 @pytest.mark.parametrize('seed', [7, 19, 41])

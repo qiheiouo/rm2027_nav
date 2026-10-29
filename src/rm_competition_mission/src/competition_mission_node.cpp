@@ -179,9 +179,7 @@ public:
     referee_sub_ = create_subscription<rm_competition_interfaces::msg::RefereeState>(
       "/referee/state", latched,
       [this](rm_competition_interfaces::msg::RefereeState::SharedPtr message) {
-        referee_state_ = *message;
-        referee_received_ = true;
-        referee_received_at_ = std::chrono::steady_clock::now();
+        handleRefereeState(*message);
       });
     chassis_sub_ = create_subscription<rm_competition_interfaces::msg::ChassisMode>(
       "/chassis/mode", latched,
@@ -247,6 +245,39 @@ public:
   }
 
 private:
+  void handleRefereeState(const rm_competition_interfaces::msg::RefereeState & message)
+  {
+    const auto received = std::chrono::steady_clock::now();
+    // The gate preserves the source stamp. Replays must neither change life
+    // state nor renew the lease; validate before advancing the watermark.
+    if (!message.valid || !inputFresh(message.header.stamp, received)) {return;}
+    const auto stamp = rclcpp::Time(message.header.stamp);
+    if (referee_received_ && stamp <= rclcpp::Time(referee_state_.header.stamp)) {return;}
+    const bool dead = message.current_hp == 0;
+    const bool transition = !referee_received_ || dead != life_dead_;
+    const bool revived = referee_received_ && life_dead_ && !dead;
+    referee_state_ = message;
+    referee_received_ = true;
+    referee_received_at_ = received;
+    if (!transition) {return;}
+
+    life_dead_ = dead;
+    ++life_generation_;
+    revival_needs_localization_session_ = revived && !localizationFresh();
+    revival_localization_epoch_ns_ = localization_epoch_ns_;
+    // Preserve intent/index, revoke execution immediately, and retain handles
+    // until terminal. Do not increment goal_generation_ and lose that barrier.
+    desired_goal_.reset();
+    active_branch_ = "hold";
+    cancelNavigation(dead ? "referee dead" : "life generation changed");
+    cancelSpin(dead ? "referee dead" : "life generation changed");
+    failed_goal_.reset();
+    consecutive_goal_failures_ = 0;
+    pursuit_not_before_ = std::max(now(), rclcpp::Time(pursuit_candidate_.header.stamp));
+    pursuit_candidate_.valid = false;
+    publishState();
+  }
+
   struct GoalRequest
   {
     geometry_msgs::msg::PoseStamped pose;
@@ -287,7 +318,7 @@ private:
       "ShouldReturnHome", [this](BT::TreeNode &) {
         const bool low_hp = referee_valid_ && referee_received_ &&
           inputFresh(referee_state_.header.stamp, referee_received_at_) &&
-          referee_state_.current_hp <= retreat_hp_threshold_;
+          referee_state_.current_hp > 0 && referee_state_.current_hp <= retreat_hp_threshold_;
         return (requested_mode_ == "home" || low_hp) ?
                BT::NodeStatus::SUCCESS : BT::NodeStatus::FAILURE;
       });
@@ -408,6 +439,11 @@ private:
 
   bool safetyReady() const
   {
+    if (life_dead_ || (revival_needs_localization_session_ &&
+      (localization_epoch_ns_ <= revival_localization_epoch_ns_ || !localizationFresh())))
+    {
+      return false;
+    }
     if (require_localization_valid_ && !localizationFresh()) {
       return false;
     }
@@ -502,7 +538,7 @@ private:
     if (!operator_enabled_ || requested_mode_ == "hold" || !safetyReady()) {
       // A new target observation is required after a hold/revocation, even if
       // the previous candidate still has a short remaining lease.
-      pursuit_not_before_ = now();
+      pursuit_not_before_ = std::max(pursuit_not_before_, now());
       active_branch_ = "hold";
     } else {
 #ifdef MISSION_BT_V4
@@ -608,6 +644,7 @@ private:
     goal.pose = request.pose;
     const std::uint64_t generation = ++goal_generation_;
     const auto session = localization_generation_;
+    const auto life = life_generation_;
     last_sent_goal_ = request;
     completed_goal_.reset();
     last_goal_send_time_ = now();
@@ -642,16 +679,16 @@ private:
         }
       };
     options.result_callback =
-      [this, generation, session](const GoalHandle::WrappedResult & result) {
+      [this, generation, session, life](const GoalHandle::WrappedResult & result) {
         if (generation != goal_generation_) {
           return;
         }
         active_goal_handle_.reset();
         navigation_pending_ = false;
-        if (session != localization_generation_ || navigation_cancel_requested_) {
-          if (session != localization_generation_) {
+        if (life != life_generation_ || session != localization_generation_ || navigation_cancel_requested_) {
+          if (life != life_generation_ || session != localization_generation_) {
             ++stale_results_rejected_;
-            RCLCPP_WARN(get_logger(), "rejected stale navigation result from old localization session");
+            RCLCPP_WARN(get_logger(), "rejected stale navigation result from old life/localization generation");
           }
           navigation_cancel_requested_ = false;
           last_sent_goal_.reset();
@@ -726,6 +763,7 @@ private:
 
     const std::uint64_t generation = ++spin_generation_;
     const auto session = localization_generation_;
+    const auto life = life_generation_;
     spin_goal_sent_ = true;
     spin_cancel_requested_ = false;
     spin_cancel_sent_ = false;
@@ -759,14 +797,14 @@ private:
         }
       };
     options.result_callback =
-      [this, generation, session](const SpinGoalHandle::WrappedResult & result) {
+      [this, generation, session, life](const SpinGoalHandle::WrappedResult & result) {
         if (generation != spin_generation_) {
           return;
         }
         active_spin_goal_handle_.reset();
         spin_goal_sent_ = false;
-        if (session != localization_generation_ || spin_cancel_requested_) {
-          if (session != localization_generation_) {++stale_results_rejected_;}
+        if (life != life_generation_ || session != localization_generation_ || spin_cancel_requested_) {
+          if (life != life_generation_ || session != localization_generation_) {++stale_results_rejected_;}
           spin_cancel_requested_ = false;
           navigation_status_ = "spin_cancel_complete";
           return;
@@ -871,7 +909,14 @@ private:
     state.active_branch = active_branch_;
     state.navigation_status = navigation_status_;
     state.detail = std::string(safetyReady() ? "safety_ready" : "safety_gate_closed") +
-      "; stale_results_rejected=" + std::to_string(stale_results_rejected_);
+      "; stale_results_rejected=" + std::to_string(stale_results_rejected_) +
+      "; life_state=" + (life_dead_ ? "dead" : "alive") +
+      "; life_generation=" + std::to_string(life_generation_) +
+      "; mission_generation=" + std::to_string(goal_generation_) +
+      "; localization_session=" + std::to_string(localization_epoch_ns_) +
+      "; navigation_authority=" + (operator_enabled_ && requested_mode_ != "hold" && safetyReady() &&
+      ((navigationOutstanding() && !navigation_cancel_requested_) ||
+      (spinOutstanding() && !spin_cancel_requested_)) ? "1" : "0");
     mission_state_pub_->publish(state);
   }
 
@@ -890,6 +935,10 @@ private:
   bool allow_pursuit_;
   bool radar_only_;
   bool require_motion_guard_;
+  bool life_dead_{false};
+  std::uint64_t life_generation_{0};
+  bool revival_needs_localization_session_{false};
+  std::int64_t revival_localization_epoch_ns_{0};
   double input_timeout_sec_;
   bool motion_guard_received_{false};
   GuardState motion_guard_;

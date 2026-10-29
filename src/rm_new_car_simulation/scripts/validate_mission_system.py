@@ -15,22 +15,31 @@ import time
 import rclpy
 from rclpy.parameter import Parameter
 from rclpy.parameter_client import AsyncParameterClient
+from rclpy.qos import DurabilityPolicy, QoSProfile
 from lifecycle_msgs.srv import ChangeState, GetState
-from rm_competition_interfaces.msg import V2MotionGuardState
+from rm_competition_interfaces.msg import LocalizationStatus, RefereeState, V2MotionGuardState
+from std_msgs.msg import Bool
 from validate_rebase_navigation import RebaseProbe
 from validate_event_replanning import obstacle
 
 SCENARIOS = ('normal', 'patrol_blocked', 'planner_home', 'planner_session',
              'controller_home', 'replan_home', 'replan_guard', 'replan_new_target',
-             'replan_lio', 'patrol_lio', 'costmap_unavailable', 'patrol_rebase', 'cancel_pending', 'long')
+             'replan_lio', 'patrol_lio', 'costmap_unavailable', 'patrol_rebase', 'cancel_pending', 'long',
+             'life_replan', 'life_rebase')
 
 
 class SystemProbe(RebaseProbe):
-    def __init__(self, bias):
+    def __init__(self, bias, life_fixture=False):
         super().__init__(bias)
         self.guard_phase = V2MotionGuardState.PERMITTED
         self.guard = self.create_publisher(V2MotionGuardState, '/motion/v2_guard/state', 10)
         self.create_timer(.05, self.publish_guard)
+        if life_fixture:
+            self.hp = 400
+            qos = QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL)
+            self.referee = self.create_publisher(RefereeState, '/referee/state', qos)
+            self.referee_valid = self.create_publisher(Bool, '/referee/state_valid', qos)
+            self.create_timer(.05, self.publish_referee)
         self.state_clients = {name: self.create_client(GetState, name + '/get_state') for name in
             ('/planner_server', '/controller_server', '/bt_navigator', '/global_costmap/global_costmap')}
 
@@ -39,6 +48,16 @@ class SystemProbe(RebaseProbe):
         m.header.stamp = self.get_clock().now().to_msg()
         m.endpoint_instance = 'simulation-veto-fixture'; m.phase = self.guard_phase
         self.guard.publish(m)
+
+    def publish_referee(self):
+        m = RefereeState(); m.header.stamp = self.get_clock().now().to_msg()
+        m.valid = True; m.game_progress = 4; m.current_hp = self.hp
+        self.referee.publish(m); self.referee_valid.publish(Bool(data=True))
+
+    def dead(self):
+        self.hp = 0
+        self.until(lambda: 'life_state=dead' in self.state.detail, 3, 'DEAD authority')
+        assert self.state.active_branch == 'hold' and 'navigation_authority=0' in self.state.detail
 
     def restore_progress(self):
         client = AsyncParameterClient(self, '/controller_server')
@@ -84,7 +103,7 @@ def run_case(n, scenario, output, result):
         assert len(n.actions['navigate_to_pose']) == before and not n.paths
         return
     n.mode('patrol')
-    if scenario in ('planner_home', 'planner_session', 'cancel_pending'):
+    if scenario in ('planner_home', 'planner_session', 'cancel_pending', 'life_rebase'):
         n.until(lambda: n.active('compute_path_to_pose'), 15, 'pending planner')
     else:
         n.until(lambda: n.active('follow_path'), 20, 'FollowPath')
@@ -92,7 +111,17 @@ def run_case(n, scenario, output, result):
         n.mode('hold')
         n.until(lambda: 'cancel' in n.state.navigation_status, 3, 'cancel pending shutdown')
         return
-    if scenario in ('patrol_rebase', 'planner_session'):
+    if scenario == 'life_rebase':
+        def during_drain():
+            n.until(lambda: n.validity.transaction_phase == LocalizationStatus.DRAIN_OLD_NAV, 3, 'rebase draining')
+            n.dead()
+        n.rebase((0., 0., 0.), result['rebases'], during_drain=during_drain, expect_resume=False)
+        before = len(n.actions['navigate_to_pose']); n.spin(.5)
+        assert len(n.actions['navigate_to_pose']) == before and not n.active('navigate_to_pose')
+        assert 'life_state=dead' in n.state.detail and n.validity.valid
+        n.mode('home'); n.hp = 400
+        result['life_cases'] = ['D7', 'dead_during_drain', 'prime_does_not_revive_dead']
+    elif scenario in ('patrol_rebase', 'planner_session'):
         n.rebase((0., 0., 0.), result['rebases'])
         n.mode('home')
     elif scenario in ('planner_home', 'controller_home'):
@@ -109,7 +138,7 @@ def run_case(n, scenario, output, result):
         assert n.state.active_branch == 'patrol'
         result['patrol_intent_survived_lio_loss'] = True
         n.mode('home')
-    elif scenario.startswith('replan_') or scenario in ('patrol_blocked', 'long'):
+    elif scenario.startswith('replan_') or scenario in ('patrol_blocked', 'long', 'life_replan'):
         if scenario != 'patrol_blocked':
             n.mode('pursuit')
             n.until(lambda: n.state.active_branch == 'pursuit' and n.active('follow_path'), 10, 'pursuit')
@@ -119,6 +148,13 @@ def run_case(n, scenario, output, result):
         n.until(lambda: n.active('wait'), 18, 'event Wait')
         n.restore_progress()
         result['intent_during_wait'] = n.state.active_branch
+        if scenario == 'life_replan':
+            n.dead()
+            n.until(lambda: not any(n.active(name) for name in n.actions), 6, 'DEAD cancels Nav2 and children')
+            before = {name: len(goals) for name, goals in n.actions.items()}; n.spin(2)
+            assert before == {name: len(goals) for name, goals in n.actions.items()}
+            n.mode('home'); n.hp = 400
+            result['life_cases'] = ['D6', 'D8', 'no_replan_during_dead']
         if scenario in ('replan_home', 'long'):
             n.mode('home')
         if scenario in ('replan_lio', 'long'):
@@ -156,8 +192,9 @@ def main(output, scenario, shutdown_backtrace=False):
     os.environ.update(ROS_DOMAIN_ID=str(50 + os.getpid() % 100),
         ROS_AUTOMATIC_DISCOVERY_RANGE='LOCALHOST', GZ_PARTITION=f'mission-system-{os.getpid()}',
         ROS_LOG_DIR=str(output / 'ros_log'))
-    rclpy.init(); n = SystemProbe((.8, 0., 0.) if scenario in ('patrol_rebase', 'planner_session') else (0., 0., 0.))
-    delay = 'planner' if scenario in ('planner_home', 'planner_session', 'cancel_pending') else (
+    rclpy.init(); n = SystemProbe((.8, 0., 0.) if scenario in ('patrol_rebase', 'planner_session', 'life_rebase') else (0., 0., 0.),
+        life_fixture=scenario.startswith('life_'))
+    delay = 'planner' if scenario in ('planner_home', 'planner_session', 'cancel_pending', 'life_rebase') else (
         'controller' if scenario in ('controller_home', 'long') else 'none')
     log = (output / 'launch.log').open('w')
     child = subprocess.Popen(['ros2', 'launch', 'rm_navigation_bringup', 'simulation.launch.py',
@@ -172,6 +209,10 @@ def main(output, scenario, shutdown_backtrace=False):
             ends = [t for t, status in old['statuses'] if status >= 4]
             assert ends and ends[0] <= new['time'], (old, new)
         result['max_active_mission_actions'] = 1 if goals else 0
+        if scenario.startswith('life_'):
+            dead_states = [row for row in n.states if 'life_state=dead' in row[-1]]
+            assert dead_states and all('navigation_authority=0' in row[-1] for row in dead_states)
+            result['max_dead_navigation_authority'] = 0
         result['functional_pass'] = True
     except Exception as error:
         result['error'] = repr(error)

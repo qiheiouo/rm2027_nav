@@ -3,6 +3,8 @@
 2026-10-29，Integration。基于 `b105183`，分支
 `codex/competition-mission-arbitration-validation`；不合并 main，不访问硬件。
 定位恢复开发继续保持 `FROZEN_WAIT_HARDWARE_RECOVERY_DATA`。
+本文保留 `5f52d8e` 阶段结论；后续生命授权闭合见
+[Mission life authority](mission_life_authority_20261029.md)，不将本轮 D 组缺失记录改写成通过。
 
 ## 架构与合同
 
@@ -131,6 +133,15 @@ wait channel 不能区分 Gazebo/Harmonic 内部、render/transport 或 launch �
 之后启用有界线程栈诊断的 3 次复核均正常退出，没有进入抓栈条件，因此未取得失败栈。
 保留 **Reproduced / root cause unknown**；不得用成功复跑覆盖此失败，也不为退出问题
 大改 Mission。上述 23/24 是本轮受控样本结果，不是退出可靠性概率估计。
+
+### S12 独立基础设施 issue
+
+**OPEN_SIM_INFRASTRUCTURE — Gazebo shutdown timeout**。功能阶段正常，多轮已复现；
+强制终止后无残留，同配置也有成功退出，root cause unknown。已有证据只定位到 Gazebo
+进程退出未完成，不能进一步声称 transport shutdown 已确诊，也无我方节点 lifecycle
+直接致因证据。后续生命授权闭合仅复用该 issue，不将其混入 Mission 语义修复。
+受控复跑需确认无残留、下一轮能独立启动且没有观察到数据/状态损坏；该条件满足时，
+它保留独立 infrastructure Modify，不否决通过的 Mission 软件合同。
 
 ## 裁决与硬件边界
 
