@@ -50,7 +50,8 @@ class RebaseProbe(CorrectionProbe):
         Probe.on_pose(self,m)
         if not hasattr(self,'bias'):return
         self.truth=m
-        self.raw.publish(m)
+        if self.input_mode != 'lio_silence':
+            self.raw.publish(m)
         p=PoseWithCovarianceStamped();p.header=copy.deepcopy(m.header)
         p.header.frame_id='map';p.pose=copy.deepcopy(m.pose)
         dx,dy,angle=self.bias

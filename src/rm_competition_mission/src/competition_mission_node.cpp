@@ -193,7 +193,13 @@ public:
     pursuit_sub_ = create_subscription<Candidate>(
       "/mission/pursuit_candidate", 10,
       [this](Candidate::SharedPtr message) {
+        // Validate before advancing the ordering watermark: a bad future sample
+        // must not exclude all subsequent causal observations.
+        if (message->header.stamp.sec < 0 || message->header.stamp.nanosec >= 1000000000U ||
+          message->valid_until.sec < 0 || message->valid_until.nanosec >= 1000000000U) {return;}
         const auto stamp = rclcpp::Time(message->header.stamp);
+        const auto age = (now() - stamp).seconds();
+        if (stamp.nanoseconds() <= 0 || age < -0.05 || age > input_timeout_sec_) {return;}
         if (stamp < rclcpp::Time(pursuit_candidate_.header.stamp)) {return;}
         if (stamp > rclcpp::Time(pursuit_candidate_.header.stamp)) {
           pursuit_received_at_ = std::chrono::steady_clock::now();
@@ -376,6 +382,7 @@ private:
     const builtin_interfaces::msg::Time & stamp,
     const std::chrono::steady_clock::time_point & received) const
   {
+    if (stamp.sec < 0 || stamp.nanosec >= 1000000000U) {return false;}
     const double age = (now() - rclcpp::Time(stamp)).seconds();
     return rclcpp::Time(stamp).nanoseconds() > 0 && age >= -0.05 &&
       age <= input_timeout_sec_ &&

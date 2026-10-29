@@ -51,6 +51,7 @@ class ArbitrationFixture(Node):
         self.research_track = False
         self.state = None
         self.sequence = 0
+        self.localization_valid = True
         self.started_at = self.get_clock().now().to_msg()
         self.nav = ActionServer(
             self, NavigateToPose, "/navigate_to_pose",
@@ -143,7 +144,7 @@ class ArbitrationFixture(Node):
         loc.producer_id = "arbitration_fixture"
         self.sequence += 1
         loc.sequence = self.sequence
-        loc.valid = True
+        loc.valid = self.localization_valid
         loc.valid_until = (now + Duration(seconds=1.0)).to_msg()
         self.loc_pub.publish(loc)
         referee = RefereeState()

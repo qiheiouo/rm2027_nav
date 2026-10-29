@@ -54,6 +54,12 @@ install(DIRECTORY config launch trees DESTINATION share/${PROJECT_NAME})
 if(BUILD_TESTING)
   find_package(ament_cmake_pytest REQUIRED)
   ament_add_pytest_test(
+    test_mission_system_runtime
+    test/test_mission_system_runtime.py
+    TIMEOUT 180
+    APPEND_ENV "RM_COMPETITION_MISSION_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}"
+  )
+  ament_add_pytest_test(
     test_navigation_arbitration_runtime
     test/test_navigation_arbitration_runtime.py
     TIMEOUT 90

@@ -112,7 +112,15 @@ class PursuitGoalPlanner(Node):
         )
 
     def _handle_track(self, message: TargetTrack) -> None:
+        # Reject malformed/future data before it can poison sample ordering or
+        # throw from Time.from_msg. Preserve the existing source-age tolerance.
+        stamp = message.header.stamp
+        if stamp.sec < 0 or stamp.nanosec >= 1000000000:
+            return
         stamp_ns = rclpy.time.Time.from_msg(message.header.stamp).nanoseconds
+        age = (self.get_clock().now().nanoseconds - stamp_ns) * 1.0e-9
+        if stamp_ns <= 0 or abs(age) > self._max_track_age_sec:
+            return
         if self._latest_track is not None:
             previous = rclpy.time.Time.from_msg(self._latest_track.header.stamp).nanoseconds
             if stamp_ns < previous:
