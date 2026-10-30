@@ -26,6 +26,11 @@ install(PROGRAMS
 
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
+  find_package(nav2_behavior_tree REQUIRED)
+  ament_add_gtest(test_event_retry_exhaustion test/test_event_retry_exhaustion.cpp)
+  ament_target_dependencies(test_event_retry_exhaustion nav2_behavior_tree)
+  target_compile_definitions(test_event_retry_exhaustion PRIVATE
+    EVENT_RETRY_XML="${CMAKE_CURRENT_SOURCE_DIR}/behavior_trees/event_driven_replanning.xml")
   ament_add_gtest(test_rebase_obstacle_layer test/test_rebase_obstacle_layer.cpp)
   ament_target_dependencies(test_rebase_obstacle_layer nav2_costmap_2d pluginlib rm_competition_interfaces)
 endif()

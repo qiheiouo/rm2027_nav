@@ -222,6 +222,15 @@ Spin/BackUp、不轮询 IsPathValid。任务层目标变化由上述取消/终�
 NavigateToPose。仿真 Mission 配置将外层目标尝试限制为 1，耗尽后保持 goal_retry_limit，
 直到新的意图或受信任的显式 set_mode 重置预算。
 
+此处约束的是失败后的重试次数，不是 NavigateToPose 或单次 FollowPath 的绝对时限。
+第 4 次尝试仍 RUNNING 时，已无后续 retry，但尚未发生最终 FAILURE；RecoveryNode
+继续等待当前 action。第 4 次 FAILURE 直接向上传播，不能再 Wait/Compute；已 terminal
+的 Follow 无须再次 cancel。若 Mission 在它 RUNNING 时撤销意图，则由既有
+Navigate cancel → BT halt → Follow cancel 链终止。当前候选的 SimpleProgressChecker
+检查相对基准位置的平移，不保证目标距离单调减少。70 s 是 `no_route` 验证窗口，
+不能从 3 次 recovery 和 3 s 进度 allowance 推导出该完成上限。具体证据及未闭合项见
+[no_route 定向诊断](../validation/no_route_forensics_20261030.md)。
+
 Nav2 自带的 `goal_pose` 订阅具有内部 self-client，不是第二个任务 owner；此 profile
 把该订阅重映射至 `/simulation/unused_direct_goal_pose` 并移除 RViz GoalTool。
 不允许测试工具、RViz 或 dog-hole manager 同时发目标。仿真探针只提供 Mission 输入。

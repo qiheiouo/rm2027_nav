@@ -3,6 +3,10 @@
 Integration，基于 `5f52d8e06310e4932863d11f306b6647d2e0d05a`，分支
 `codex/mission-dead-revived-authority`。本轮只改生命授权、直接验证和合同；无硬件访问。
 
+后续 `no_route` 的重复运行、父提交对照与 retry transaction 诊断见
+[2026-10-30 定向诊断](no_route_forensics_20261030.md)。下述两次失败及当时裁决保留，
+不以之后成功样本覆盖历史失败。
+
 ## 当前真实输入与修复
 
 | 层 | 当前事实及边界 |

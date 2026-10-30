@@ -1,0 +1,1083 @@
+{
+  "scope": "Selected observations, not full logs; wall times relative to each Probe. Post-verdict HOLD never changes original acceptance.",
+  "current_29a2fa9": {
+    "passed": false,
+    "error": "timed out: bounded exhaustion; state=[[4.6809, 'hold', 'holding', 'safety_ready; stale_results_rejected=0; life_state=alive; life_generation=0; mission_generation=0; localization_session=100000000; navigation_authority=0'], [7.4821, 'pursuit', 'goal_pending', 'safety_ready; stale_results_rejected=0; life_state=alive; life_generation=0; mission_generation=1; localization_session=100000000; navigation_authority=1'], [7.581, 'pursuit', 'goal_active', 'safety_ready; stale_results_rejected=0; life_state=alive; life_generation=0; mission_generation=1; localization_session=100000000; navigation_authority=1']]",
+    "scenario_wall_time": 78.94495118699999,
+    "original_verdict_time": 79.0335,
+    "hold_intervention_time": 79.3054,
+    "hold_terminal_time": 79.8975,
+    "hold_final_state": [
+      79.4809,
+      "hold",
+      "goal_cancel_complete",
+      "safety_ready; stale_results_rejected=0; life_state=alive; life_generation=0; mission_generation=1; localization_session=100000000; navigation_authority=0"
+    ],
+    "clean_shutdown": true,
+    "launch_process_deaths": [],
+    "mission_package_prefix": "/home/qihei/projects/rm2027_navigation_clean/install/rm_competition_mission",
+    "original_actions": {
+      "navigate_to_pose": {
+        "fd7f5e168c0d7545566ffa0a3ec28213": {
+          "time": 7.4824,
+          "statuses": [
+            [
+              7.4825,
+              2
+            ]
+          ]
+        }
+      },
+      "compute_path_to_pose": {
+        "ca325a504840061ccbe2ded66277bcb9": {
+          "time": 7.4848,
+          "statuses": [
+            [
+              7.4848,
+              2
+            ],
+            [
+              7.4961,
+              4
+            ]
+          ]
+        },
+        "e5f37562955606c0510f23f369d12cd3": {
+          "time": 23.7426,
+          "statuses": [
+            [
+              23.7426,
+              2
+            ],
+            [
+              23.752,
+              4
+            ]
+          ]
+        },
+        "7145f82fe75dd091a5fe131fa9f1556d": {
+          "time": 36.1033,
+          "statuses": [
+            [
+              36.1033,
+              2
+            ],
+            [
+              36.1132,
+              4
+            ]
+          ]
+        },
+        "e44abcf38a553e7de8948971c5f16f27": {
+          "time": 48.363,
+          "statuses": [
+            [
+              48.363,
+              2
+            ],
+            [
+              48.3712,
+              4
+            ]
+          ]
+        }
+      },
+      "follow_path": {
+        "6f16d46e3b8d3662fae4f456c619ebf4": {
+          "time": 7.515,
+          "statuses": [
+            [
+              7.515,
+              2
+            ],
+            [
+              22.1048,
+              6
+            ]
+          ]
+        },
+        "9a9b11a61bf4ad0c4894f563970aaa54": {
+          "time": 23.7628,
+          "statuses": [
+            [
+              23.7628,
+              2
+            ],
+            [
+              34.4638,
+              6
+            ]
+          ]
+        },
+        "331ffe60a6725728159fdb71c9bbcbd2": {
+          "time": 36.1266,
+          "statuses": [
+            [
+              36.1266,
+              2
+            ],
+            [
+              46.7238,
+              6
+            ]
+          ]
+        },
+        "b6613846d6f674c8a46ef7f28d8591f7": {
+          "time": 48.3877,
+          "statuses": [
+            [
+              48.3877,
+              2
+            ]
+          ]
+        }
+      },
+      "wait": {
+        "7f2bf8e07c2847dedd5d39f807c08993": {
+          "time": 22.1229,
+          "statuses": [
+            [
+              22.1229,
+              2
+            ],
+            [
+              23.7241,
+              4
+            ]
+          ]
+        },
+        "1c3d0c7c49aba7a5a1cb34f516bce56a": {
+          "time": 34.483,
+          "statuses": [
+            [
+              34.483,
+              2
+            ],
+            [
+              36.0851,
+              4
+            ]
+          ]
+        },
+        "d34f9fc42a98d71811a74734330d3da1": {
+          "time": 46.7432,
+          "statuses": [
+            [
+              46.7432,
+              2
+            ],
+            [
+              48.3433,
+              4
+            ]
+          ]
+        }
+      }
+    },
+    "post_verdict_actions": {
+      "navigate_to_pose": {
+        "fd7f5e168c0d7545566ffa0a3ec28213": {
+          "time": 7.4824,
+          "statuses": [
+            [
+              7.4825,
+              2
+            ],
+            [
+              79.3829,
+              3
+            ],
+            [
+              79.3843,
+              5
+            ]
+          ]
+        }
+      },
+      "follow_path": {
+        "b6613846d6f674c8a46ef7f28d8591f7": {
+          "time": 48.3877,
+          "statuses": [
+            [
+              48.3877,
+              2
+            ],
+            [
+              79.3845,
+              5
+            ]
+          ]
+        }
+      }
+    },
+    "original_mission_state": [
+      7.581,
+      "pursuit",
+      "goal_active",
+      "safety_ready; stale_results_rejected=0; life_state=alive; life_generation=0; mission_generation=1; localization_session=100000000; navigation_authority=1"
+    ],
+    "results": {
+      "compute_path_to_pose": {
+        "ca325a504840061ccbe2ded66277bcb9": [
+          7.5077,
+          {
+            "status": 4,
+            "error_code": 0,
+            "error_msg": ""
+          }
+        ],
+        "e5f37562955606c0510f23f369d12cd3": [
+          23.7559,
+          {
+            "status": 4,
+            "error_code": 0,
+            "error_msg": ""
+          }
+        ],
+        "7145f82fe75dd091a5fe131fa9f1556d": [
+          36.1215,
+          {
+            "status": 4,
+            "error_code": 0,
+            "error_msg": ""
+          }
+        ],
+        "e44abcf38a553e7de8948971c5f16f27": [
+          48.3804,
+          {
+            "status": 4,
+            "error_code": 0,
+            "error_msg": ""
+          }
+        ]
+      },
+      "follow_path": {
+        "6f16d46e3b8d3662fae4f456c619ebf4": [
+          22.1063,
+          {
+            "status": 6,
+            "error_code": 105,
+            "error_msg": ""
+          }
+        ],
+        "9a9b11a61bf4ad0c4894f563970aaa54": [
+          34.4644,
+          {
+            "status": 6,
+            "error_code": 105,
+            "error_msg": ""
+          }
+        ],
+        "331ffe60a6725728159fdb71c9bbcbd2": [
+          46.7245,
+          {
+            "status": 6,
+            "error_code": 105,
+            "error_msg": ""
+          }
+        ],
+        "b6613846d6f674c8a46ef7f28d8591f7": [
+          79.3863,
+          {
+            "status": 5,
+            "error_code": 0,
+            "error_msg": ""
+          }
+        ]
+      },
+      "wait": {
+        "7f2bf8e07c2847dedd5d39f807c08993": [
+          23.7243,
+          {
+            "status": 4,
+            "error_code": 0,
+            "error_msg": ""
+          }
+        ],
+        "1c3d0c7c49aba7a5a1cb34f516bce56a": [
+          36.0865,
+          {
+            "status": 4,
+            "error_code": 0,
+            "error_msg": ""
+          }
+        ],
+        "d34f9fc42a98d71811a74734330d3da1": [
+          48.3443,
+          {
+            "status": 4,
+            "error_code": 0,
+            "error_msg": ""
+          }
+        ]
+      },
+      "navigate_to_pose": {
+        "fd7f5e168c0d7545566ffa0a3ec28213": [
+          79.3864,
+          {
+            "status": 5,
+            "error_code": 0,
+            "error_msg": ""
+          }
+        ]
+      }
+    },
+    "goal_stamps": {
+      "fd7f5e168c0d7545566ffa0a3ec28213": {
+        "sec": 2,
+        "nanosec": 915000000
+      },
+      "ca325a504840061ccbe2ded66277bcb9": {
+        "sec": 2,
+        "nanosec": 916000000
+      },
+      "6f16d46e3b8d3662fae4f456c619ebf4": {
+        "sec": 2,
+        "nanosec": 936000000
+      },
+      "7f2bf8e07c2847dedd5d39f807c08993": {
+        "sec": 16,
+        "nanosec": 631000000
+      },
+      "e5f37562955606c0510f23f369d12cd3": {
+        "sec": 18,
+        "nanosec": 217000000
+      },
+      "9a9b11a61bf4ad0c4894f563970aaa54": {
+        "sec": 18,
+        "nanosec": 237000000
+      },
+      "1c3d0c7c49aba7a5a1cb34f516bce56a": {
+        "sec": 28,
+        "nanosec": 742000000
+      },
+      "7145f82fe75dd091a5fe131fa9f1556d": {
+        "sec": 30,
+        "nanosec": 329000000
+      },
+      "331ffe60a6725728159fdb71c9bbcbd2": {
+        "sec": 30,
+        "nanosec": 349000000
+      },
+      "d34f9fc42a98d71811a74734330d3da1": {
+        "sec": 40,
+        "nanosec": 754000000
+      },
+      "e44abcf38a553e7de8948971c5f16f27": {
+        "sec": 42,
+        "nanosec": 339000000
+      },
+      "b6613846d6f674c8a46ef7f28d8591f7": {
+        "sec": 42,
+        "nanosec": 358000000
+      }
+    },
+    "fourth_follow": {
+      "uuid": "b6613846d6f674c8a46ef7f28d8591f7",
+      "feedback_count": 307,
+      "feedback_first": [
+        48.3879,
+        42.363,
+        {
+          "distance_to_goal": 5.223169803619385,
+          "speed": 0.07815185189247131
+        }
+      ],
+      "feedback_last": [
+        78.985,
+        72.352,
+        {
+          "distance_to_goal": 2.8707103729248047,
+          "speed": 0.13393734395503998
+        }
+      ],
+      "max_feedback_wall_gap": 0.10150000000000148,
+      "sampled_travel_m": 5.920519015900663,
+      "command_speed_median": 0.318688286007235,
+      "command_speed_max": 0.6505990215203504,
+      "lifecycle_states": [
+        [
+          "bt_navigator",
+          3,
+          "active"
+        ],
+        [
+          "controller_server",
+          3,
+          "active"
+        ],
+        [
+          "global_costmap/global_costmap",
+          3,
+          "active"
+        ],
+        [
+          "local_costmap/local_costmap",
+          3,
+          "active"
+        ],
+        [
+          "planner_server",
+          3,
+          "active"
+        ]
+      ],
+      "costmap_update_counts": {
+        "local_costmap": 102,
+        "global_costmap": 51
+      },
+      "clock_samples": [
+        [
+          50.0605,
+          44.0
+        ],
+        [
+          52.101,
+          46.0
+        ],
+        [
+          54.1383,
+          48.0
+        ],
+        [
+          56.1809,
+          50.0
+        ],
+        [
+          58.2211,
+          52.0
+        ],
+        [
+          60.2612,
+          54.0
+        ],
+        [
+          62.3046,
+          56.0
+        ],
+        [
+          64.3469,
+          58.0
+        ],
+        [
+          66.3891,
+          60.0
+        ],
+        [
+          68.4277,
+          62.0
+        ],
+        [
+          70.4666,
+          64.0
+        ],
+        [
+          72.506,
+          66.0
+        ],
+        [
+          74.5462,
+          68.0
+        ],
+        [
+          76.5847,
+          70.0
+        ],
+        [
+          78.6265,
+          72.0
+        ]
+      ],
+      "last_commands": [
+        [
+          79.4241,
+          0.029973772168159482,
+          -0.08465747237205505,
+          0.0
+        ],
+        [
+          79.4736,
+          0.0,
+          -0.03465747237205505,
+          0.0
+        ],
+        [
+          79.5236,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          79.5748,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          79.6235,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          79.6736,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          79.7236,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          79.7737,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          79.8243,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          79.8738,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ]
+    },
+    "controller_parameters": {
+      "progress_checker_plugins": [
+        "progress_checker"
+      ],
+      "progress_checker.plugin": "nav2_controller::SimpleProgressChecker",
+      "progress_checker.required_movement_radius": 0.1,
+      "progress_checker.movement_time_allowance": 3.0,
+      "failure_tolerance": 0.3,
+      "costmap_update_timeout": 0.3,
+      "FollowPath.regenerate_noises": false,
+      "controller_frequency": 10.0
+    }
+  },
+  "parent_5f52d8e": {
+    "passed": true,
+    "error": null,
+    "scenario_wall_time": 65.64413382699996,
+    "original_verdict_time": 65.7272,
+    "hold_intervention_time": null,
+    "hold_terminal_time": null,
+    "hold_final_state": null,
+    "clean_shutdown": true,
+    "launch_process_deaths": [],
+    "mission_package_prefix": "/home/qihei/projects/rm2027_navigation_clean/log/no-route-forensics/parent/install/rm_competition_mission",
+    "original_actions": {
+      "navigate_to_pose": {
+        "1b151c97cec3bfe4c851723d9d1df86a": {
+          "time": 7.4984,
+          "statuses": [
+            [
+              7.4984,
+              2
+            ],
+            [
+              60.6283,
+              6
+            ]
+          ]
+        }
+      },
+      "compute_path_to_pose": {
+        "9b721d2618660eaa1549c28a2cbb8cce": {
+          "time": 7.5002,
+          "statuses": [
+            [
+              7.5002,
+              2
+            ],
+            [
+              7.5142,
+              4
+            ]
+          ]
+        },
+        "ef2eeff21b37a86724b59249e5e0d41f": {
+          "time": 21.358,
+          "statuses": [
+            [
+              21.358,
+              2
+            ],
+            [
+              21.3647,
+              4
+            ]
+          ]
+        },
+        "48968c368f7700fdbb9849bafb13f389": {
+          "time": 32.7181,
+          "statuses": [
+            [
+              32.7181,
+              2
+            ],
+            [
+              32.7235,
+              4
+            ]
+          ]
+        },
+        "df711910b15ed9ab25ba5bab45fe776f": {
+          "time": 43.578,
+          "statuses": [
+            [
+              43.578,
+              2
+            ],
+            [
+              43.586,
+              4
+            ]
+          ]
+        }
+      },
+      "follow_path": {
+        "3a214358b1adc4e12bfc86c3c55bee43": {
+          "time": 7.5298,
+          "statuses": [
+            [
+              7.5298,
+              2
+            ],
+            [
+              19.7204,
+              6
+            ]
+          ]
+        },
+        "78459f15337bfc01522324bb3de72043": {
+          "time": 21.3784,
+          "statuses": [
+            [
+              21.3784,
+              2
+            ],
+            [
+              31.0799,
+              6
+            ]
+          ]
+        },
+        "d072691ffb353a1034ac96db8c91141b": {
+          "time": 32.7383,
+          "statuses": [
+            [
+              32.7383,
+              2
+            ],
+            [
+              41.9391,
+              6
+            ]
+          ]
+        },
+        "11c6020a4a981cf5c3de7b9dba247891": {
+          "time": 43.5983,
+          "statuses": [
+            [
+              43.5983,
+              2
+            ],
+            [
+              60.6004,
+              6
+            ]
+          ]
+        }
+      },
+      "wait": {
+        "11d035d8a506fe73d491df29b1507ce8": {
+          "time": 19.7385,
+          "statuses": [
+            [
+              19.7385,
+              2
+            ],
+            [
+              21.3393,
+              4
+            ]
+          ]
+        },
+        "0d9e83f2b456ef138e5e4ed83f86edca": {
+          "time": 31.0993,
+          "statuses": [
+            [
+              31.0993,
+              2
+            ],
+            [
+              32.6991,
+              4
+            ]
+          ]
+        },
+        "5903f715dcde2e27192a9177418f9192": {
+          "time": 41.958,
+          "statuses": [
+            [
+              41.958,
+              2
+            ],
+            [
+              43.5583,
+              4
+            ]
+          ]
+        }
+      }
+    },
+    "post_verdict_actions": {},
+    "original_mission_state": [
+      60.6965,
+      "pursuit",
+      "goal_retry_limit",
+      "safety_ready; stale_results_rejected=0"
+    ],
+    "results": {
+      "compute_path_to_pose": {
+        "9b721d2618660eaa1549c28a2cbb8cce": [
+          7.5216,
+          {
+            "status": 4,
+            "error_code": 0,
+            "error_msg": ""
+          }
+        ],
+        "ef2eeff21b37a86724b59249e5e0d41f": [
+          21.3695,
+          {
+            "status": 4,
+            "error_code": 0,
+            "error_msg": ""
+          }
+        ],
+        "48968c368f7700fdbb9849bafb13f389": [
+          32.7268,
+          {
+            "status": 4,
+            "error_code": 0,
+            "error_msg": ""
+          }
+        ],
+        "df711910b15ed9ab25ba5bab45fe776f": [
+          43.5901,
+          {
+            "status": 4,
+            "error_code": 0,
+            "error_msg": ""
+          }
+        ]
+      },
+      "follow_path": {
+        "3a214358b1adc4e12bfc86c3c55bee43": [
+          19.7206,
+          {
+            "status": 6,
+            "error_code": 105,
+            "error_msg": ""
+          }
+        ],
+        "78459f15337bfc01522324bb3de72043": [
+          31.0801,
+          {
+            "status": 6,
+            "error_code": 105,
+            "error_msg": ""
+          }
+        ],
+        "d072691ffb353a1034ac96db8c91141b": [
+          41.9398,
+          {
+            "status": 6,
+            "error_code": 105,
+            "error_msg": ""
+          }
+        ],
+        "11c6020a4a981cf5c3de7b9dba247891": [
+          60.6014,
+          {
+            "status": 6,
+            "error_code": 105,
+            "error_msg": ""
+          }
+        ]
+      },
+      "wait": {
+        "11d035d8a506fe73d491df29b1507ce8": [
+          21.3399,
+          {
+            "status": 4,
+            "error_code": 0,
+            "error_msg": ""
+          }
+        ],
+        "0d9e83f2b456ef138e5e4ed83f86edca": [
+          32.6998,
+          {
+            "status": 4,
+            "error_code": 0,
+            "error_msg": ""
+          }
+        ],
+        "5903f715dcde2e27192a9177418f9192": [
+          43.5593,
+          {
+            "status": 4,
+            "error_code": 0,
+            "error_msg": ""
+          }
+        ]
+      },
+      "navigate_to_pose": {
+        "1b151c97cec3bfe4c851723d9d1df86a": [
+          60.6291,
+          {
+            "status": 6,
+            "error_code": 105,
+            "error_msg": ""
+          }
+        ]
+      }
+    },
+    "goal_stamps": {
+      "1b151c97cec3bfe4c851723d9d1df86a": {
+        "sec": 3,
+        "nanosec": 44000000
+      },
+      "9b721d2618660eaa1549c28a2cbb8cce": {
+        "sec": 3,
+        "nanosec": 45000000
+      },
+      "3a214358b1adc4e12bfc86c3c55bee43": {
+        "sec": 3,
+        "nanosec": 65000000
+      },
+      "11d035d8a506fe73d491df29b1507ce8": {
+        "sec": 14,
+        "nanosec": 467000000
+      },
+      "ef2eeff21b37a86724b59249e5e0d41f": {
+        "sec": 16,
+        "nanosec": 54000000
+      },
+      "78459f15337bfc01522324bb3de72043": {
+        "sec": 16,
+        "nanosec": 74000000
+      },
+      "0d9e83f2b456ef138e5e4ed83f86edca": {
+        "sec": 25,
+        "nanosec": 607000000
+      },
+      "48968c368f7700fdbb9849bafb13f389": {
+        "sec": 27,
+        "nanosec": 194000000
+      },
+      "d072691ffb353a1034ac96db8c91141b": {
+        "sec": 27,
+        "nanosec": 214000000
+      },
+      "5903f715dcde2e27192a9177418f9192": {
+        "sec": 36,
+        "nanosec": 243000000
+      },
+      "df711910b15ed9ab25ba5bab45fe776f": {
+        "sec": 37,
+        "nanosec": 833000000
+      },
+      "11c6020a4a981cf5c3de7b9dba247891": {
+        "sec": 37,
+        "nanosec": 853000000
+      }
+    },
+    "fourth_follow": {
+      "uuid": "11c6020a4a981cf5c3de7b9dba247891",
+      "feedback_count": 170,
+      "feedback_first": [
+        43.5999,
+        37.855,
+        {
+          "distance_to_goal": 4.68559455871582,
+          "speed": 0.051865458488464355
+        }
+      ],
+      "feedback_last": [
+        60.4992,
+        54.423,
+        {
+          "distance_to_goal": 1.2957110404968262,
+          "speed": 0.4877185821533203
+        }
+      ],
+      "max_feedback_wall_gap": 0.10150000000000148,
+      "sampled_travel_m": 3.4290858028972293,
+      "command_speed_median": 0.40408210133842287,
+      "command_speed_max": 0.6324334853112008,
+      "lifecycle_states": [
+        [
+          "bt_navigator",
+          3,
+          "active"
+        ],
+        [
+          "controller_server",
+          3,
+          "active"
+        ],
+        [
+          "global_costmap/global_costmap",
+          3,
+          "active"
+        ],
+        [
+          "local_costmap/local_costmap",
+          3,
+          "active"
+        ],
+        [
+          "planner_server",
+          3,
+          "active"
+        ]
+      ],
+      "costmap_update_counts": {
+        "local_costmap": 74,
+        "global_costmap": 37
+      },
+      "clock_samples": [
+        [
+          43.7471,
+          38.0
+        ],
+        [
+          45.7862,
+          40.0
+        ],
+        [
+          47.8279,
+          42.001
+        ],
+        [
+          49.8695,
+          44.0
+        ],
+        [
+          51.9061,
+          46.0
+        ],
+        [
+          53.948,
+          48.0
+        ],
+        [
+          55.987,
+          50.0
+        ],
+        [
+          58.0272,
+          52.0
+        ],
+        [
+          60.0659,
+          54.0
+        ],
+        [
+          62.1071,
+          56.0
+        ],
+        [
+          64.1427,
+          58.0
+        ]
+      ],
+      "last_commands": [
+        [
+          61.1515,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          61.2016,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          61.251,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          61.3014,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          61.3511,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          61.4014,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          61.451,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          61.5012,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          61.551,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          61.6017,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ]
+    },
+    "controller_parameters": {
+      "progress_checker_plugins": [
+        "progress_checker"
+      ],
+      "progress_checker.plugin": "nav2_controller::SimpleProgressChecker",
+      "progress_checker.required_movement_radius": 0.1,
+      "progress_checker.movement_time_allowance": 3.0,
+      "failure_tolerance": 0.3,
+      "costmap_update_timeout": 0.3,
+      "FollowPath.regenerate_noises": false,
+      "controller_frequency": 10.0
+    }
+  }
+}
