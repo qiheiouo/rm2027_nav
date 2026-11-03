@@ -342,3 +342,22 @@ and AUD-003 prohibition are unchanged; see [stage freeze](../new_car_stage_freez
 `rebase.enabled`、Mission 子 action drain 和 map-frame `RebaseObstacleLayer`。
 仍只由 adapter/bridge 拥有两个 canonical TF edge；不运行真实后端或硬件。
 使用与限制见 [rebase 仿真操作](simulation.md#显式-map-only-rebase-定向验证)。
+
+## 2027 三来源 Target Arbitration 软件候选
+
+```bash
+ros2 launch rm_navigation_bringup competition_2027_navigation.launch.py \
+  enable_navigation_intents:=true
+```
+
+默认 `radar_target_input:=serial_intent`：只有 Mission，不启动 pursuit planner。
+Radar/Operator 由独立 V2 RADAR_TARGET/OPERATOR_TARGET 提供，Local 是本地决策 TargetIntent
+或内建巡逻。显式 `radar_target_input:=track` 恢复已有雷达 track/standoff 验证链，
+同时拒绝统一输入的 Radar，防止两个 producer 混用序号域。Operator/Local 仍可参与。
+Mission startup disabled、chassis/guard gate、无 safety mock 的组合策略不变。
+该入口不启动 Nav2、定位、referee 或 serial；默认没有地图任务点，不提供硬件授权。
+低弹量返航 `retreat_projectile_threshold=-1` 默认关闭；确认下位机 allowance 语义后方可配置。
+
+只给出 Software Go / Hardware Pending。硬件顺序保持：冻结 main 基线 → 已有软件候选/专项修复
+→ 三来源 Target Arbitration → Competition Mission → posture → Z-Localization 等定位候选
+→ 全系统联合验收。本次未合并 main，不改变现有实车流程。

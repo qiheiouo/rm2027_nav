@@ -60,6 +60,8 @@ a legacy profile after receiving malformed bytes.
 | `0x83` | lower -> upper | Referee/robot state | 17 |
 | `0x84` | lower -> upper | Operator navigation target | 25 |
 | `0x85` | lower -> upper | Chassis heading state | 19 |
+| `0x86` | lower -> upper | `RADAR_TARGET` | 35 |
+| `0x87` | lower -> upper | `OPERATOR_TARGET` | 35 |
 
 ### Chassis Command `0x01`
 
@@ -110,6 +112,8 @@ Capability bits are:
 | 3 | Referee/robot state |
 | 4 | Operator navigation target |
 | 5 | Chassis heading state |
+| 6 | RADAR_TARGET map-frame tactical input |
+| 7 | OPERATOR_TARGET map-frame tactical input |
 
 Both endpoints normally send heartbeat at 2 Hz. A changed `boot_id` means the
 peer restarted. The upper endpoint invalidates stale posture and gimbal state.
@@ -236,9 +240,52 @@ gimbal-home initialization; see `docs/chassis_heading_lio_fusion.md`.
 
 All six values are valid. No enum value means "hold" or "no command".
 
+## Tactical Targets `0x86` / `0x87`
+
+Software extension only, Hardware Pending. The two message types identify independent Radar and
+Operator sources; historical `0x84` and HPM raw coordinates remain diagnostic and are never promoted.
+The payload shape is shared, but source identity comes from the explicit type, never a guessed field.
+
+| Payload offset | Size | Type | Field |
+| ---: | ---: | --- | --- |
+| 0 | 8 | uint64 | per-source sample `sequence`, nonzero, strictly increasing |
+| 8 | 4 | uint32 | stable `target_id`, nonzero for valid targets |
+| 12 | 4 | uint32 | nonzero MCU `boot_id`, must equal the current heartbeat identity |
+| 16 | 4 | uint32 | original `sample_time_ms` in the same uptime clock as heartbeat |
+| 20 | 2 | uint16 | `ttl_ms`, 1..5000 |
+| 22 | 1 | flags | bit 0 valid, bit 1 clear; others zero; clear requires valid=false |
+| 23 | 4 | float32 | map x, metres |
+| 27 | 4 | float32 | map y, metres |
+| 31 | 4 | float32 | map yaw, radians in [-pi, pi) |
+
+Finite x/y/yaw are required for valid targets. Invalid/clear carry no executable pose. Coordinates
+are already in the reviewed navigation map; `target_map_frame` (default map) labels that agreed
+frame, it performs no conversion. There is no unknown/referee-field mode on these messages.
+The lower producer must confirm map origin, axes, alliance conversion and map bundle before use.
+If yaw is unavailable, the producer explicitly chooses map yaw=0; this is goal heading, not posture.
+
+Host acceptance requires a fresh ready heartbeat and the respective bit 6/7 capability. The existing
+heartbeat uptime offset maps original MCU sample time into ROS time; no receive-time fallback.
+Boot mismatch, expired sample or sample over 50 ms into the future is rejected before publication.
+The host converts to TargetIntent on `/mission/target_intent`, preserving sequence, logical ID and
+TTL; Mission independently checks sequence, original deadline and steady remaining lease.
+The envelope uint16 sequence is transport diagnostics, **not** tactical freshness ordering.
+
+A repeated packet retains sequence/sample time/TTL and does not renew availability. To periodically
+assert current validity, emit a new sample with increasing sequence and current sample_time_ms while
+keeping target_id stable. Recommended starting point: 100 ms period, 500 ms TTL. A lost packet needs
+no ACK, queue or handshake. Expiry/clear withdraw only that source and allow deterministic fallback.
+Clear is not an emergency stop. Motion safety and posture have independent contracts/lifetimes.
+
+The uint64 target sequence does not wrap/reset within a producer/arbiter process lifetime. MCU/producer
+restart, upper restart and uptime wrap require an explicit coordinated restart/reinitialization;
+there is no automatic source-session reset. Cached targets are bounded by their original TTL, and
+mandatory/safety recovery requires a post-veto sample. Heartbeat offset accuracy, packet replay across
+restarts, map agreement and actual firmware support remain hardware acceptance items.
+
 ## Counters And Wrap
 
-Frame sequence is `uint16` and command ID is `uint32`. For either width, a
+Frame sequence is `uint16` and legacy/posture command ID is `uint32`. Tactical payload sequence uses the separate strict uint64 rule above. For either width, a
 candidate is newer when modular subtraction is nonzero and less than half the
 number space. Equality means duplicate. The half-range case is ambiguous and
 must not be accepted as newer. Posture idempotence additionally uses

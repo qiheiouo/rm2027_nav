@@ -65,6 +65,7 @@ def _launch_mission(context, *args, **kwargs):
                 "radar_only": ParameterValue(
                     LaunchConfiguration("radar_only"), value_type=bool
                 ),
+                "radar_target_input": LaunchConfiguration("radar_target_input"),
                 "require_motion_guard": ParameterValue(
                     LaunchConfiguration("require_motion_guard"), value_type=bool
                 ),
@@ -98,6 +99,7 @@ def generate_launch_description():
         DeclareLaunchArgument("use_safety_mock", default_value="false"),
         DeclareLaunchArgument("require_chassis_mode", default_value="true"),
         DeclareLaunchArgument("radar_only", default_value="true"),
+        DeclareLaunchArgument("radar_target_input", default_value="track"),
         DeclareLaunchArgument("require_motion_guard", default_value="false"),
         DeclareLaunchArgument("use_sim_time", default_value="false"),
         DeclareLaunchArgument("mission_config", default_value=default_config),

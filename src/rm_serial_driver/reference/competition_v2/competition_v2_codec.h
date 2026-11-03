@@ -24,8 +24,10 @@ typedef enum {
   RMCV2_MSG_POSTURE_STATE = 0x81,
   RMCV2_MSG_GIMBAL_STATE = 0x82,
   RMCV2_MSG_REFEREE_STATE = 0x83,
-  RMCV2_MSG_OPERATOR_TARGET = 0x84,
-  RMCV2_MSG_CHASSIS_HEADING_STATE = 0x85
+  RMCV2_MSG_OPERATOR_TARGET = 0x84,  /* Historical raw diagnostic only. */
+  RMCV2_MSG_CHASSIS_HEADING_STATE = 0x85,
+  RMCV2_MSG_RADAR_TACTICAL_TARGET = 0x86,
+  RMCV2_MSG_OPERATOR_TACTICAL_TARGET = 0x87
 } rmcv2_message_type_t;
 
 typedef enum {
@@ -55,7 +57,9 @@ enum {
   RMCV2_CAP_GIMBAL_STATE = 1u << 2u,
   RMCV2_CAP_REFEREE_STATE = 1u << 3u,
   RMCV2_CAP_OPERATOR_TARGET = 1u << 4u,
-  RMCV2_CAP_CHASSIS_HEADING_STATE = 1u << 5u
+  RMCV2_CAP_CHASSIS_HEADING_STATE = 1u << 5u,
+  RMCV2_CAP_RADAR_TACTICAL_TARGET = 1u << 6u,
+  RMCV2_CAP_OPERATOR_TACTICAL_TARGET = 1u << 7u
 };
 
 typedef enum {
@@ -119,11 +123,23 @@ typedef struct {
   bool valid, has_yaw;
 } rmcv2_operator_target_t;
 typedef struct {
+  uint64_t sequence;
+  uint32_t target_id, boot_id, sample_time_ms;
+  uint16_t ttl_ms;
+  bool valid, clear;
+  float x_m, y_m, yaw_rad;
+} rmcv2_tactical_target_t;
+typedef struct {
   uint32_t uptime_ms, boot_id, capabilities;
   bool ready;
 } rmcv2_heartbeat_t;
 
 uint16_t rmcv2_crc16_modbus(const uint8_t *data, size_t size);
+rmcv2_result_t rmcv2_encode_tactical_target(
+  const rmcv2_tactical_target_t *message, uint8_t type, uint16_t frame_sequence,
+  uint8_t *output, size_t capacity, size_t *size);
+rmcv2_result_t rmcv2_decode_tactical_target(
+  const rmcv2_frame_t *frame, rmcv2_tactical_target_t *message);
 bool rmcv2_posture_is_valid(uint8_t posture);
 bool rmcv2_sequence_is_newer(uint16_t candidate, uint16_t reference);
 bool rmcv2_command_id_is_newer(uint32_t candidate, uint32_t reference);

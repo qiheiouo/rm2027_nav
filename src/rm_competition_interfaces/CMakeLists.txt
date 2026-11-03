@@ -28,6 +28,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/SystemReadiness.msg"
   "msg/TargetTrack.msg"
   "msg/PursuitCandidate.msg"
+  "msg/TargetIntent.msg"
   "srv/SetMissionMode.srv"
   "srv/BeginRebase.srv"
   DEPENDENCIES builtin_interfaces geometry_msgs nav_msgs std_msgs

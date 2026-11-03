@@ -93,7 +93,7 @@ if(BUILD_TESTING)
   ament_add_gtest(test_competition_v2_protocol test/test_competition_v2_protocol.cpp)
   target_link_libraries(test_competition_v2_protocol rm_serial_protocol)
   ament_add_gtest(test_competition_v2_reference test/test_competition_v2_reference.cpp)
-  target_link_libraries(test_competition_v2_reference rm_competition_v2_reference)
+  target_link_libraries(test_competition_v2_reference rm_competition_v2_reference rm_serial_protocol)
   ament_add_pytest_test(
     test_competition_v2_runtime
     test/test_competition_v2_runtime.py

@@ -8,7 +8,10 @@ The 2026 tree demonstrated useful strategic inputs but coupled them to a
 legacy robot message, byte-valued navigation results and serial-owned goals.
 The 2027 tree retains only the strategy concepts.
 
-BehaviorTree.CPP chooses one branch: `hold`, `home`, `pursuit` or `patrol`.
+Local/Radar/Operator provide high-level TargetIntent only. An in-process TargetArbiter
+selects Operator > Radar > Local after Safety/mandatory home. BehaviorTree.CPP
+selects `hold`, `home`, `operator`, `radar`, `local`, legacy `pursuit` or `patrol`;
+see the [target contract](../contracts/navigation_target_arbitration_2027.md).
 `competition_mission_node` then reconciles that choice with one standard
 `NavigateToPose` action client. Branch changes, invalid safety state and mission
 disable cancel the active Nav2 goal.
@@ -38,8 +41,9 @@ documenting which lower-controller authority remains outside ROS.
   the remote remains the external physical authority.
 - Retain the isolated three-point Nav2 `Spin` candidate as the reference
   implementation without allowing the mission node to publish final `/cmd_vel`.
-- Add a low-projectile return-home condition; stale competition state must
-  cancel and hold rather than trigger blind home motion.
+- Low-projectile home now has a default-disabled threshold on normalized allowance;
+  confirm firmware meaning/threshold before deployment. Stale referee evidence
+  cancels and holds under the default referee gate.
 - Validate action preemption, target loss, low-HP retreat and manual takeover
   in simulation before real competition speed.
 

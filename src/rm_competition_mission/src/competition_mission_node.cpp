@@ -33,6 +33,7 @@
 #include "rm_competition_interfaces/msg/pursuit_candidate.hpp"
 #include "rm_competition_interfaces/msg/v2_motion_guard_state.hpp"
 #include "rm_competition_interfaces/srv/set_mission_mode.hpp"
+#include "rm_competition_mission/target_arbiter.hpp"
 #include "std_msgs/msg/bool.hpp"
 
 namespace
@@ -69,6 +70,7 @@ public:
   using NavigateToPose = nav2_msgs::action::NavigateToPose;
   using GoalHandle = rclcpp_action::ClientGoalHandle<NavigateToPose>;
   using Candidate = rm_competition_interfaces::msg::PursuitCandidate;
+  using TargetIntent = rm_competition_interfaces::msg::TargetIntent;
   using GuardState = rm_competition_interfaces::msg::V2MotionGuardState;
   using Spin = nav2_msgs::action::Spin;
   using SpinGoalHandle = rclcpp_action::ClientGoalHandle<Spin>;
@@ -98,6 +100,12 @@ public:
     require_chassis_mode_ = declare_parameter<bool>("require_chassis_mode", true);
     allow_pursuit_ = declare_parameter<bool>("allow_pursuit", false);
     radar_only_ = declare_parameter<bool>("radar_only", true);
+    radar_target_input_ = declare_parameter<std::string>("radar_target_input", "track");
+    target_max_ttl_sec_ = declare_parameter<double>("target_max_ttl_sec", 5.0);
+    if ((radar_target_input_ != "track" && radar_target_input_ != "serial_intent") ||
+      !std::isfinite(target_max_ttl_sec_) || target_max_ttl_sec_ <= 0.0) {
+      throw std::invalid_argument("invalid radar_target_input or target_max_ttl_sec");
+    }
     require_motion_guard_ = declare_parameter<bool>("require_motion_guard", false);
     input_timeout_sec_ = declare_parameter<double>("input_timeout_sec", 0.5);
     if (!std::isfinite(input_timeout_sec_) || input_timeout_sec_ <= 0.0) {
@@ -105,6 +113,10 @@ public:
     }
     game_running_value_ = declare_parameter<int>("game_running_value", 4);
     retreat_hp_threshold_ = declare_parameter<int>("retreat_hp_threshold", 150);
+    retreat_projectile_threshold_ = declare_parameter<int>("retreat_projectile_threshold", -1);
+    if (retreat_projectile_threshold_ < -1 || retreat_projectile_threshold_ > 65535) {
+      throw std::invalid_argument("retreat_projectile_threshold must be -1 or uint16");
+    }
     goal_update_distance_ = declare_parameter<double>("goal_update_distance", 0.35);
     goal_update_yaw_ = declare_parameter<double>("goal_update_yaw", 0.35);
     minimum_goal_update_sec_ = declare_parameter<double>("minimum_goal_update_sec", 0.5);
@@ -152,6 +164,15 @@ public:
     auto latched = rclcpp::QoS(1).reliable().transient_local();
     mission_state_pub_ = create_publisher<rm_competition_interfaces::msg::MissionState>(
       "/mission/state", latched);
+    selected_target_pub_ = create_publisher<TargetIntent>("/mission/selected_target", 1);
+    target_intent_sub_ = create_subscription<TargetIntent>("/mission/target_intent", 10,
+      [this](const TargetIntent & intent) {
+        if (intent.source == TargetIntent::SOURCE_RADAR && radar_target_input_ != "serial_intent") {
+          return;
+        }
+        target_arbiter_.update(intent, now(), std::chrono::steady_clock::now(),
+          map_frame_, target_max_ttl_sec_);
+      });
     localization_sub_ = create_subscription<rm_competition_interfaces::msg::LocalizationStatus>(
       "/localization/status", rclcpp::QoS(1).reliable(),
       [this](rm_competition_interfaces::msg::LocalizationStatus::SharedPtr message) {
@@ -268,12 +289,15 @@ private:
     // Preserve intent/index, revoke execution immediately, and retain handles
     // until terminal. Do not increment goal_generation_ and lose that barrier.
     desired_goal_.reset();
+    selected_target_ = TargetIntent{};
+    target_arbiter_.revoke();
     active_branch_ = "hold";
     cancelNavigation(dead ? "referee dead" : "life generation changed");
     cancelSpin(dead ? "referee dead" : "life generation changed");
     failed_goal_.reset();
     consecutive_goal_failures_ = 0;
     pursuit_not_before_ = std::max(now(), rclcpp::Time(pursuit_candidate_.header.stamp));
+    target_not_before_ = std::max(target_not_before_, now());
     pursuit_candidate_.valid = false;
     publishState();
   }
@@ -319,13 +343,16 @@ private:
         const bool low_hp = referee_valid_ && referee_received_ &&
           inputFresh(referee_state_.header.stamp, referee_received_at_) &&
           referee_state_.current_hp > 0 && referee_state_.current_hp <= retreat_hp_threshold_;
-        return (requested_mode_ == "home" || low_hp) ?
+        const bool low_projectiles = retreat_projectile_threshold_ >= 0 &&
+          referee_valid_ && referee_received_ &&
+          inputFresh(referee_state_.header.stamp, referee_received_at_) &&
+          referee_state_.projectile_allowance_17mm <= retreat_projectile_threshold_;
+        return (requested_mode_ == "home" || low_hp || low_projectiles) ?
                BT::NodeStatus::SUCCESS : BT::NodeStatus::FAILURE;
       });
     factory_.registerSimpleCondition(
       "CanPursue", [this](BT::TreeNode &) {
-        const bool mode_allows = requested_mode_ == "pursuit" || requested_mode_ == "auto";
-        return (allow_pursuit_ && mode_allows && pursuitFresh()) ?
+        return tactical_target_.has_value() ?
                BT::NodeStatus::SUCCESS : BT::NodeStatus::FAILURE;
       });
     factory_.registerSimpleCondition(
@@ -387,6 +414,8 @@ private:
       failed_goal_.reset();
       consecutive_goal_failures_ = 0;
       pursuit_not_before_ = now();
+      target_arbiter_.revoke();
+      target_not_before_ = std::max(target_not_before_, now());
       RCLCPP_WARN(get_logger(), "localization session changed: old navigation invalidated");
     }
     rebase_phase_ = msg.transaction_phase;
@@ -474,6 +503,10 @@ private:
 
   BT::NodeStatus selectHome()
   {
+    // Mandatory recovery never resumes a cached tactical commitment. Sources
+    // must provide a new observation after the final mandatory/hold tick.
+    target_arbiter_.revoke();
+    target_not_before_ = std::max(target_not_before_, now());
     if (!home_pose_.has_value()) {
       active_branch_ = "hold_missing_home";
       desired_goal_.reset();
@@ -486,14 +519,19 @@ private:
 
   BT::NodeStatus selectPursuit()
   {
-    if (!pursuitFresh()) {
+    const auto & selected = tactical_target_;
+    if (!selected) {
       return BT::NodeStatus::FAILURE;
     }
+    selected_target_ = *selected;
     geometry_msgs::msg::PoseStamped pose;
-    pose.header = pursuit_candidate_.header;
-    pose.pose = pursuit_candidate_.pose;
-    desired_goal_ = GoalRequest{pose, "pursuit", pursuit_candidate_.track_id};
-    active_branch_ = "pursuit";
+    pose.header = selected->header;
+    pose.pose = selected->pose;
+    const std::string source = selected->source == TargetIntent::SOURCE_OPERATOR ? "operator" :
+      (selected->source == TargetIntent::SOURCE_LOCAL ? "local" :
+      (radar_target_input_ == "track" ? "pursuit" : "radar"));
+    desired_goal_ = GoalRequest{pose, source, selected->target_id};
+    active_branch_ = source;
     return BT::NodeStatus::SUCCESS;
   }
 
@@ -503,7 +541,11 @@ private:
       return BT::NodeStatus::FAILURE;
     }
     const auto index = patrol_index_ % patrol_poses_.size();
-    desired_goal_ = GoalRequest{patrol_poses_[index], "patrol"};
+    const auto selected = localPatrolTarget(index);
+    selected_target_ = selected;
+    auto pose = patrol_poses_[index];
+    pose.pose = selected.pose;
+    desired_goal_ = GoalRequest{pose, "patrol"};
     active_branch_ = "patrol";
     return BT::NodeStatus::SUCCESS;
   }
@@ -520,6 +562,7 @@ private:
       return BT::NodeStatus::SUCCESS;
     }
     const auto index = patrol_index_ % patrol_poses_.size();
+    selected_target_ = localPatrolTarget(index);
     desired_goal_ = GoalRequest{patrol_poses_[index], "patrol_spin"};
     active_branch_ = "patrol";
     return BT::NodeStatus::SUCCESS;
@@ -534,11 +577,17 @@ private:
     }
     localization_last_clock_ns_ = std::max(localization_last_clock_ns_, clock_ns);
     desired_goal_.reset();
+    selected_target_ = TargetIntent{};
+    selection_time_ = now();
+    selection_steady_ = std::chrono::steady_clock::now();
+    tactical_target_ = tacticalTarget();
     patrol_spin_selected_ = false;
     if (!operator_enabled_ || requested_mode_ == "hold" || !safetyReady()) {
       // A new target observation is required after a hold/revocation, even if
       // the previous candidate still has a short remaining lease.
       pursuit_not_before_ = std::max(pursuit_not_before_, now());
+      target_arbiter_.revoke();
+      target_not_before_ = std::max(target_not_before_, now());
       active_branch_ = "hold";
     } else {
 #ifdef MISSION_BT_V4
@@ -620,8 +669,8 @@ private:
         return;
       }
     }
-    if (completed_goal_.has_value() && desired_goal_->source == "pursuit" &&
-      completed_goal_->source == "pursuit" &&
+    if (completed_goal_.has_value() && desired_goal_->source != "home" &&
+      desired_goal_->source == completed_goal_->source &&
       desired_goal_->track_id == completed_goal_->track_id &&
       (now() - last_goal_send_time_).seconds() < minimum_goal_update_sec_)
     {
@@ -914,11 +963,57 @@ private:
       "; life_generation=" + std::to_string(life_generation_) +
       "; mission_generation=" + std::to_string(goal_generation_) +
       "; localization_session=" + std::to_string(localization_epoch_ns_) +
+      "; target_source=" + std::to_string(selected_target_.source) +
       "; navigation_authority=" + (operator_enabled_ && requested_mode_ != "hold" && safetyReady() &&
       ((navigationOutstanding() && !navigation_cancel_requested_) ||
       (spinOutstanding() && !spin_cancel_requested_)) ? "1" : "0");
     mission_state_pub_->publish(state);
+    selected_target_pub_->publish(selected_target_);
   }
+
+  std::optional<TargetIntent> tacticalTarget() const
+  {
+    std::optional<TargetIntent> radar;
+    const bool pursuit_mode = requested_mode_ == "auto" || requested_mode_ == "pursuit";
+    if (radar_target_input_ == "track" && allow_pursuit_ && pursuit_mode && pursuitFresh()) {
+      TargetIntent i;
+      i.header = pursuit_candidate_.header;
+      i.pose = pursuit_candidate_.pose;
+      i.sequence = rclcpp::Time(i.header.stamp).nanoseconds();
+      i.target_id = pursuit_candidate_.track_id;
+      i.source = TargetIntent::SOURCE_RADAR;
+      i.ttl = rclcpp::Time(pursuit_candidate_.valid_until) - rclcpp::Time(i.header.stamp);
+      i.valid = true;
+      if (rclcpp::Time(i.header.stamp) > target_not_before_) {radar = i;}
+    }
+    return target_arbiter_.select(selection_time_, selection_steady_, target_not_before_, radar);
+  }
+
+  TargetIntent localPatrolTarget(std::size_t index) const
+  {
+    TargetIntent i;
+    i.header = patrol_poses_[index].header;
+    i.header.stamp = now();
+    i.source = TargetIntent::SOURCE_LOCAL;
+    i.pose = patrol_poses_[index].pose;
+    i.sequence = index + 1;
+    i.target_id = "patrol:" + std::to_string(index);
+    i.ttl = rclcpp::Duration::from_seconds(input_timeout_sec_);
+    i.valid = true;
+    return *target_arbiter_.select(selection_time_, selection_steady_, target_not_before_, {}, i);
+  }
+
+  rm_competition_mission::TargetArbiter target_arbiter_;
+  TargetIntent selected_target_;
+  std::optional<TargetIntent> tactical_target_;
+  rclcpp::Time selection_time_{0, 0, RCL_ROS_TIME};
+  std::chrono::steady_clock::time_point selection_steady_;
+  std::string radar_target_input_;
+  double target_max_ttl_sec_;
+  rclcpp::Time target_not_before_{0, 0, RCL_ROS_TIME};
+  int retreat_projectile_threshold_;
+  rclcpp::Subscription<TargetIntent>::SharedPtr target_intent_sub_;
+  rclcpp::Publisher<TargetIntent>::SharedPtr selected_target_pub_;
 
   std::string tree_xml_;
   bool startup_enabled_;

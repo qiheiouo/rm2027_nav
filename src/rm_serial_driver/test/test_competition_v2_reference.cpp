@@ -1,10 +1,41 @@
 #include "competition_v2_codec.h"
+#include "rm_serial_driver/competition_v2_protocol.hpp"
 
 #include <array>
 #include <cstdint>
 #include <vector>
 
 #include "gtest/gtest.h"
+
+TEST(CompetitionV2Reference, TacticalBytesMatchCppForBothSources)
+{
+  rmcv2_tactical_target_t c{};
+  c.sequence = 0x0102030405060708ULL;
+  c.target_id = 42; c.boot_id = 123; c.sample_time_ms = 9000; c.ttl_ms = 500;
+  c.valid = true; c.x_m = 1.25F; c.y_m = -2.5F; c.yaw_rad = .5F;
+  namespace v2 = rm_serial_driver::competition_v2;
+  v2::TacticalTarget cpp;
+  cpp.sequence = c.sequence; cpp.target_id = c.target_id; cpp.boot_id = c.boot_id;
+  cpp.sample_time_ms = c.sample_time_ms; cpp.ttl_ms = c.ttl_ms;
+  cpp.valid = true; cpp.x_m = c.x_m; cpp.y_m = c.y_m; cpp.yaw_rad = c.yaw_rad;
+  for (const auto type : {v2::MessageType::RadarTarget, v2::MessageType::OperatorTarget}) {
+    std::array<uint8_t, RMCV2_MAX_FRAME_SIZE> output{};
+    size_t size = 0;
+    ASSERT_EQ(rmcv2_encode_tactical_target(&c, static_cast<uint8_t>(type), 77,
+      output.data(), output.size(), &size), RMCV2_OK);
+    const auto bytes = v2::encode_message(type, 77, cpp);
+    ASSERT_TRUE(bytes);
+    EXPECT_EQ(std::vector<uint8_t>(output.begin(), output.begin() + size), *bytes);
+    rmcv2_frame_t frame{}; size_t consumed = 0;
+    ASSERT_EQ(rmcv2_decode_frame(bytes->data(), bytes->size(), &frame, &consumed), RMCV2_OK);
+    rmcv2_tactical_target_t decoded{};
+    ASSERT_EQ(rmcv2_decode_tactical_target(&frame, &decoded), RMCV2_OK);
+    EXPECT_EQ(decoded.sequence, c.sequence);
+    EXPECT_FLOAT_EQ(decoded.x_m, c.x_m);
+    frame.payload[22] = 3;  // valid + clear is contradictory.
+    EXPECT_EQ(rmcv2_decode_tactical_target(&frame, &decoded), RMCV2_INVALID_PAYLOAD);
+  }
+}
 
 TEST(CompetitionV2Reference, MatchesCanonicalChassisGoldenVector)
 {

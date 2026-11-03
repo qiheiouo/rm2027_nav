@@ -33,6 +33,7 @@
 #include "rm_competition_interfaces/msg/v2_motion_guard_state.hpp"
 #include "rm_competition_interfaces/msg/gimbal_state.hpp"
 #include "rm_competition_interfaces/msg/operator_navigation_target.hpp"
+#include "rm_competition_interfaces/msg/target_intent.hpp"
 #include "rm_competition_interfaces/msg/posture_request.hpp"
 #include "rm_competition_interfaces/msg/posture_state.hpp"
 #include "rm_competition_interfaces/msg/referee_state.hpp"
@@ -239,6 +240,9 @@ public:
     operator_goal_pub_ = create_publisher<
       rm_competition_interfaces::msg::OperatorNavigationTarget>(
       operator_goal_raw_topic_, rclcpp::QoS(10));
+    target_map_frame_ = declare_parameter<std::string>("target_map_frame", "map");
+    target_intent_pub_ = create_publisher<rm_competition_interfaces::msg::TargetIntent>(
+      "/mission/target_intent", 10);
     connection_pub_ = create_publisher<
       rm_competition_interfaces::msg::SerialConnectionState>(connection_state_topic_, latched);
 
@@ -664,6 +668,8 @@ private:
         case v2::MessageType::ChassisHeadingState: handleChassisHeadingState(frame); break;
         case v2::MessageType::RefereeState: handleRefereeState(frame); break;
         case v2::MessageType::OperatorNavigationTarget: handleOperatorTarget(frame); break;
+        case v2::MessageType::RadarTarget:
+        case v2::MessageType::OperatorTarget: handleTacticalTarget(frame); break;
         case v2::MessageType::ChassisCommand:
         case v2::MessageType::PostureRequest:
           RCLCPP_DEBUG(get_logger(), "Ignoring upper-to-lower message echoed by peer");
@@ -830,6 +836,37 @@ private:
     return rclcpp::Time(nanoseconds, get_clock()->get_clock_type());
   }
 
+  void handleTacticalTarget(const v2::Frame & frame)
+  {
+    const auto target = v2::decode_tactical_target(frame);
+    const bool radar = frame.message_type == static_cast<std::uint8_t>(v2::MessageType::RadarTarget);
+    if (!target || !have_clock_sync_ || target->boot_id != remote_boot_id_ ||
+      !remoteSupports(radar ? v2::CapabilityRadarTarget : v2::CapabilityOperatorTarget)) {return;}
+    // No receive-time fallback: delayed packets retain their original MCU sample age.
+    const auto sample_ns = heartbeat_clock_offset_ns_ +
+      static_cast<std::int64_t>(target->sample_time_ms) * 1000000LL;
+    if (sample_ns <= 0) {return;}
+    const builtin_interfaces::msg::Time stamp =
+      rclcpp::Time(sample_ns, get_clock()->get_clock_type());
+    const auto age = (now() - rclcpp::Time(stamp)).seconds();
+    if (stamp.sec < 0 || age < -0.05 || age >= target->ttl_ms * 0.001) {return;}
+    using Intent = rm_competition_interfaces::msg::TargetIntent;
+    Intent message;
+    message.header.stamp = stamp;
+    message.header.frame_id = target_map_frame_;
+    message.source = radar ? Intent::SOURCE_RADAR : Intent::SOURCE_OPERATOR;
+    message.sequence = target->sequence;
+    message.target_id = std::to_string(target->target_id);
+    message.pose.position.x = target->x_m;
+    message.pose.position.y = target->y_m;
+    message.pose.orientation.z = std::sin(target->yaw_rad * 0.5);
+    message.pose.orientation.w = std::cos(target->yaw_rad * 0.5);
+    message.ttl = rclcpp::Duration::from_seconds(target->ttl_ms * 0.001);
+    message.valid = target->valid;
+    message.clear = target->clear;
+    target_intent_pub_->publish(message);
+  }
+
   bool connectionOnline() const
   {
     if (!have_remote_heartbeat_ || !remote_ready_) {
@@ -955,6 +992,8 @@ private:
   std::string chassis_heading_topic_;
   std::string referee_raw_topic_;
   std::string operator_goal_raw_topic_;
+  std::string target_map_frame_;
+  rclcpp::Publisher<rm_competition_interfaces::msg::TargetIntent>::SharedPtr target_intent_pub_;
   std::string connection_state_topic_;
   std::string mock_tx_topic_;
   std::string mock_rx_topic_;

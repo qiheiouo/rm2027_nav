@@ -223,6 +223,9 @@ private:
       case v2::MessageType::ChassisHeadingState: return chassis_heading_sequence_++;
       case v2::MessageType::RefereeState: return referee_sequence_++;
       case v2::MessageType::OperatorNavigationTarget: return operator_sequence_++;
+      case v2::MessageType::RadarTarget:
+      case v2::MessageType::OperatorTarget:
+        return 0;  // New tactical ingress is exercised by the byte-injection fixture.
       case v2::MessageType::ChassisCommand:
       case v2::MessageType::PostureRequest:
         return 0;

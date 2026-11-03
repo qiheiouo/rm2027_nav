@@ -24,6 +24,62 @@ v2::Frame decodeSingle(const std::vector<std::uint8_t> & bytes)
 
 }  // namespace
 
+TEST(CompetitionV2Protocol, DistinctTacticalTargetsPreserveSequenceAndLifetime)
+{
+  v2::TacticalTarget target;
+  target.sequence = 0x0102030405060708ULL;
+  target.target_id = 42;
+  target.boot_id = 123;
+  target.sample_time_ms = 9000;
+  target.ttl_ms = 500;
+  target.valid = true;
+  target.x_m = 1.25F;
+  target.y_m = -2.5F;
+  target.yaw_rad = 0.5F;
+  const auto payload = v2::encode_payload(target);
+  ASSERT_TRUE(payload);
+  ASSERT_EQ(payload->size(), 35U);
+  EXPECT_EQ((*payload)[0], 8U);
+  EXPECT_EQ((*payload)[7], 1U);
+  EXPECT_EQ((*payload)[8], 42U);
+  EXPECT_EQ((*payload)[12], 123U);
+  EXPECT_EQ((*payload)[20], 0xf4U);
+  EXPECT_EQ((*payload)[21], 1U);
+  EXPECT_EQ((*payload)[22], 1U);
+  for (const auto type : {v2::MessageType::RadarTarget, v2::MessageType::OperatorTarget}) {
+    const auto bytes = v2::encode_message(type, 65535, target);
+    ASSERT_TRUE(bytes);
+    auto frame = decodeSingle(*bytes);
+    EXPECT_TRUE(v2::is_known_message_type(frame.message_type));
+    const auto decoded = v2::decode_tactical_target(frame);
+    ASSERT_TRUE(decoded);
+    EXPECT_EQ(decoded->sequence, target.sequence);
+    EXPECT_EQ(decoded->target_id, 42U);
+    EXPECT_EQ(decoded->sample_time_ms, 9000U);
+    EXPECT_FLOAT_EQ(decoded->y_m, -2.5F);
+    frame.payload[22] = 0x81;
+    EXPECT_FALSE(v2::decode_tactical_target(frame));
+    frame.payload.pop_back();
+    EXPECT_FALSE(v2::decode_tactical_target(frame));
+  }
+  target.clear = true;
+  EXPECT_FALSE(v2::encode_payload(target));
+  target.valid = false;
+  EXPECT_TRUE(v2::encode_payload(target));
+  target.clear = false;
+  EXPECT_TRUE(v2::encode_payload(target));
+  target.ttl_ms = 0;
+  EXPECT_FALSE(v2::encode_payload(target));
+  target.ttl_ms = 5001;
+  EXPECT_FALSE(v2::encode_payload(target));
+  target.ttl_ms = 500;
+  target.boot_id = 0;
+  EXPECT_FALSE(v2::encode_payload(target));
+  target.boot_id = 123;
+  target.sequence = 0;
+  EXPECT_FALSE(v2::encode_payload(target));
+}
+
 TEST(CompetitionV2Protocol, ChassisCommandMatchesGoldenBytes)
 {
   v2::ChassisCommand command;

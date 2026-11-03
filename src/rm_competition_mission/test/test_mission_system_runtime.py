@@ -91,20 +91,23 @@ def system(request):
     executor = SingleThreadedExecutor(); executor.add_node(node)
     thread = threading.Thread(target=executor.spin, daemon=True); thread.start()
     config = output / 'mission.yaml'
+    overrides = getattr(request, 'param', {})
     config.write_text(yaml.safe_dump({'competition_mission_node': {'ros__parameters': {
         'default_mode': 'hold', 'allow_pursuit': True, 'home_pose': [0., 0., 0.],
         'patrol_waypoints': [1., 0., 0., 2., 0., 0.], 'tick_rate_hz': 20.,
-        'goal_failure_retry_sec': .1, 'max_consecutive_goal_failures': 2}}}))
+        'goal_failure_retry_sec': .1, 'max_consecutive_goal_failures': 2, **overrides}}}))
     source = Path(os.environ['RM_COMPETITION_MISSION_SOURCE_DIR'].lstrip(os.pathsep))
     launch = source.parent / 'rm_navigation_bringup/launch/competition_2027_navigation.launch.py'
     log = (output / 'launch.log').open('w')
     process = subprocess.Popen(['ros2', 'launch', str(launch), 'enable_navigation_intents:=true',
+        'radar_target_input:=' + overrides.get('radar_target_input', 'track'),
         'mission_config:=' + str(config)], stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
     try:
         wait(lambda: node.state is not None, 'Mission startup', 10)
-        wait(lambda: any(info.node_name == 'pursuit_goal_planner' for info in
-             node.get_publishers_info_by_topic('/mission/pursuit_candidate')),
-             'pursuit planner startup', 10)
+        if overrides.get('radar_target_input', 'track') == 'track':
+            wait(lambda: any(info.node_name == 'pursuit_goal_planner' for info in
+                 node.get_publishers_info_by_topic('/mission/pursuit_candidate')),
+                 'pursuit planner startup', 10)
         yield node
         assert node.max_active <= 1, node.trace
         for index, replacement in enumerate(node.requests[1:]):
@@ -259,3 +262,23 @@ def test_deterministic_long_sequence(system, seed):
     wait_goal(n, 3.5, before)
     n.localization_valid = False; wait(lambda: not n.active, 'invalid pursuit')
     n.checkpoint('L2')
+
+
+def test_operator_over_track_and_radar_producer_isolation(system):
+    from rm_competition_interfaces.msg import TargetIntent
+    n = system; n.mode('auto'); wait_goal(n, 1.)
+    n.track = ('track', 5., True); wait_goal(n, 3.5, 1)
+    pub = n.create_publisher(TargetIntent, '/mission/target_intent', 10)
+    def target(source, x, sequence):
+        m = TargetIntent(); m.header.frame_id = 'map'
+        m.header.stamp = n.get_clock().now().to_msg(); m.source = source
+        m.sequence = sequence; m.target_id = 'explicit_source'
+        m.pose.orientation.w = 1.; m.pose.position.x = x
+        m.ttl = Duration(seconds=1.).to_msg(); m.valid = True
+        return m
+    # The track profile must reject a second producer's Radar sequence domain.
+    pub.publish(target(TargetIntent.SOURCE_RADAR, 9., 1000)); stable_count(n, .2)
+    pub.publish(target(TargetIntent.SOURCE_OPERATOR, 6., 1)); wait_goal(n, 6., 2)
+    wait_goal(n, 3.5, 3)
+    assert not any(x == 9. for _, x in n.goals)
+    n.checkpoint('track_radar_isolation', 'operator_over_track', 'track_fallback')

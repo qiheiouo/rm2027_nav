@@ -29,6 +29,8 @@ enum class MessageType : std::uint8_t
   RefereeState = 0x83,
   OperatorNavigationTarget = 0x84,
   ChassisHeadingState = 0x85,
+  RadarTarget = 0x86,  // RADAR_TARGET, explicit map-frame tactical point
+  OperatorTarget = 0x87,  // OPERATOR_TARGET; independent of legacy raw 0x84
 };
 
 enum class Posture : std::uint8_t
@@ -63,6 +65,8 @@ enum Capability : std::uint32_t
   CapabilityRefereeState = 1U << 3U,
   CapabilityOperatorNavigationTarget = 1U << 4U,
   CapabilityChassisHeadingState = 1U << 5U,
+  CapabilityRadarTarget = 1U << 6U,
+  CapabilityOperatorTarget = 1U << 7U,
 };
 
 struct Frame
@@ -160,6 +164,20 @@ struct Heartbeat
   bool ready = false;
 };
 
+struct TacticalTarget
+{
+  std::uint64_t sequence = 0;
+  std::uint32_t target_id = 0;
+  std::uint32_t boot_id = 0;
+  std::uint32_t sample_time_ms = 0;
+  std::uint16_t ttl_ms = 0;
+  bool valid = false;
+  bool clear = false;
+  float x_m = 0.0F;
+  float y_m = 0.0F;
+  float yaw_rad = 0.0F;
+};
+
 bool is_known_message_type(std::uint8_t value);
 bool is_valid_posture(Posture value);
 bool is_valid_coordinate_frame(CoordinateFrame value);
@@ -179,6 +197,7 @@ std::optional<std::vector<std::uint8_t>> encode_payload(const RefereeState & mes
 std::optional<std::vector<std::uint8_t>> encode_payload(
   const OperatorNavigationTarget & message);
 std::optional<std::vector<std::uint8_t>> encode_payload(const Heartbeat & message);
+std::optional<std::vector<std::uint8_t>> encode_payload(const TacticalTarget & message);
 
 std::optional<ChassisCommand> decode_chassis_command(const Frame & frame);
 std::optional<PostureRequest> decode_posture_request(const Frame & frame);
@@ -188,6 +207,7 @@ std::optional<ChassisHeadingState> decode_chassis_heading_state(const Frame & fr
 std::optional<RefereeState> decode_referee_state(const Frame & frame);
 std::optional<OperatorNavigationTarget> decode_operator_navigation_target(const Frame & frame);
 std::optional<Heartbeat> decode_heartbeat(const Frame & frame);
+std::optional<TacticalTarget> decode_tactical_target(const Frame & frame);
 
 template<typename MessageT>
 std::optional<std::vector<std::uint8_t>> encode_message(

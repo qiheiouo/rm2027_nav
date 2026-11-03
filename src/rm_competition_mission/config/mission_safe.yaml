@@ -11,11 +11,16 @@ competition_mission_node:
     require_chassis_mode: true
     allow_pursuit: false
     radar_only: true
+    # Standalone legacy track profile; 2027 composition defaults to serial_intent.
+    radar_target_input: track
+    target_max_ttl_sec: 5.0
     # Legacy debug profiles have no V2 guard. The 2027 composition forces true.
     require_motion_guard: false
     input_timeout_sec: 0.5
     game_running_value: 4
     retreat_hp_threshold: 150
+    # Disabled until the lower-controller allowance semantics/threshold are reviewed.
+    retreat_projectile_threshold: -1
     goal_update_distance: 0.35
     goal_update_yaw: 0.35
     minimum_goal_update_sec: 0.5

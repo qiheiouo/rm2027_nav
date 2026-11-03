@@ -153,6 +153,7 @@ class ArbitrationFixture(Node):
         referee.valid = True
         referee.game_progress = 4
         referee.current_hp = self.hp
+        referee.projectile_allowance_17mm = 100
         if self.publish_referee:
             self.ref_pub.publish(referee)
         self.ref_valid.publish(Bool(data=True))
@@ -226,7 +227,7 @@ def test_s1_to_s10_and_action_handover():
         launch = str(source.parent / "rm_navigation_bringup" / "launch" /
                      "competition_2027_navigation.launch.py")
         process = subprocess.Popen([
-            "ros2", "launch", launch, "enable_navigation_intents:=true",
+            "ros2", "launch", launch, "enable_navigation_intents:=true", "radar_target_input:=track",
             f"mission_config:={config}",
         ], stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
         processes.append(process)
@@ -440,7 +441,7 @@ def test_s1_to_s10_and_action_handover():
             node.publish_chassis = True
             node.track = ("alpha", 5.0, True)
             process = subprocess.Popen([
-                "ros2", "launch", launch, "enable_navigation_intents:=true",
+                "ros2", "launch", launch, "enable_navigation_intents:=true", "radar_target_input:=track",
                 f"mission_config:={config}",
             ], stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
             processes.append(process)

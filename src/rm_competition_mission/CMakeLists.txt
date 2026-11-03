@@ -25,6 +25,7 @@ find_package(rm_competition_interfaces REQUIRED)
 find_package(std_msgs REQUIRED)
 
 add_executable(competition_mission_node src/competition_mission_node.cpp)
+target_include_directories(competition_mission_node PRIVATE include)
 ament_target_dependencies(competition_mission_node
   ${MISSION_BT_PACKAGE}
   action_msgs
@@ -53,6 +54,12 @@ install(DIRECTORY config launch trees DESTINATION share/${PROJECT_NAME})
 
 if(BUILD_TESTING)
   find_package(ament_cmake_pytest REQUIRED)
+  ament_add_pytest_test(
+    test_target_arbitration_runtime
+    test/test_target_arbitration_runtime.py
+    TIMEOUT 180
+    APPEND_ENV "RM_COMPETITION_MISSION_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}"
+  )
   ament_add_pytest_test(
     test_life_authority_runtime
     test/test_life_authority_runtime.py

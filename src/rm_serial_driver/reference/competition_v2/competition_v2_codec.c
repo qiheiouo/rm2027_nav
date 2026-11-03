@@ -463,6 +463,53 @@ rmcv2_result_t rmcv2_decode_operator_target(
          RMCV2_OK : RMCV2_INVALID_PAYLOAD;
 }
 
+static bool tactical_valid(const rmcv2_tactical_target_t * message)
+{
+  return message != NULL && message->sequence != 0 && message->boot_id != 0 &&
+         message->ttl_ms > 0 && message->ttl_ms <= 5000 &&
+         !(message->valid && (message->clear || message->target_id == 0 ||
+         !isfinite(message->x_m) || !isfinite(message->y_m) || !yaw_valid(message->yaw_rad)));
+}
+
+rmcv2_result_t rmcv2_encode_tactical_target(
+  const rmcv2_tactical_target_t * message, uint8_t type, uint16_t frame_sequence,
+  uint8_t * output, size_t capacity, size_t * size)
+{
+  uint8_t payload[35];
+  if (!tactical_valid(message) || (type != RMCV2_MSG_RADAR_TACTICAL_TARGET &&
+    type != RMCV2_MSG_OPERATOR_TACTICAL_TARGET)) {return RMCV2_INVALID_PAYLOAD;}
+  put_u32(payload, (uint32_t)message->sequence);
+  put_u32(payload + 4, (uint32_t)(message->sequence >> 32u));
+  put_u32(payload + 8, message->target_id);
+  put_u32(payload + 12, message->boot_id);
+  put_u32(payload + 16, message->sample_time_ms);
+  put_u16(payload + 20, message->ttl_ms);
+  payload[22] = (message->valid ? 1u : 0u) | (message->clear ? 2u : 0u);
+  put_f32(payload + 23, message->x_m);
+  put_f32(payload + 27, message->y_m);
+  put_f32(payload + 31, message->yaw_rad);
+  return rmcv2_encode_frame(type, frame_sequence, payload, 35, output, capacity, size);
+}
+
+rmcv2_result_t rmcv2_decode_tactical_target(
+  const rmcv2_frame_t * frame, rmcv2_tactical_target_t * message)
+{
+  if (message == NULL || (!type_and_size(frame, RMCV2_MSG_RADAR_TACTICAL_TARGET, 35) &&
+    !type_and_size(frame, RMCV2_MSG_OPERATOR_TACTICAL_TARGET, 35))) {return RMCV2_INVALID_PAYLOAD;}
+  if ((frame->payload[22] & ~3u) != 0) {return RMCV2_INVALID_PAYLOAD;}
+  message->sequence = get_u32(frame->payload) | ((uint64_t)get_u32(frame->payload + 4) << 32u);
+  message->target_id = get_u32(frame->payload + 8);
+  message->boot_id = get_u32(frame->payload + 12);
+  message->sample_time_ms = get_u32(frame->payload + 16);
+  message->ttl_ms = get_u16(frame->payload + 20);
+  message->valid = (frame->payload[22] & 1u) != 0;
+  message->clear = (frame->payload[22] & 2u) != 0;
+  message->x_m = get_f32(frame->payload + 23);
+  message->y_m = get_f32(frame->payload + 27);
+  message->yaw_rad = get_f32(frame->payload + 31);
+  return tactical_valid(message) ? RMCV2_OK : RMCV2_INVALID_PAYLOAD;
+}
+
 rmcv2_result_t rmcv2_encode_heartbeat(
   const rmcv2_heartbeat_t * message, uint16_t sequence,
   uint8_t * output, size_t capacity, size_t * size)

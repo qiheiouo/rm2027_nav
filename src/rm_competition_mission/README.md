@@ -5,13 +5,10 @@ owner allowed to convert mission choices into the standard Nav2
 `/navigate_to_pose` action. An opt-in test tree may also request Nav2's `/spin`
 action after a patrol arrival; it never publishes velocity commands directly.
 
-Priority in the default tree:
-
-1. close the safety gate and hold;
-2. return home when explicitly requested or HP is below threshold;
-3. pursue a fresh validated candidate when explicitly allowed;
-4. follow the configured patrol route;
-5. hold.
+Priority: Safety veto / mandatory home > Operator > Radar > Local. The in-process
+TargetArbiter selects high-level map targets only; Mission retains the sole Nav2
+client and cancellation-to-terminal handover. Local includes built-in patrol or
+external attack/defense decision points, without introducing new strategy logic.
 
 The safe config starts disabled and contains no home or patrol coordinates.
 Enabling the node is not the same as enabling motion: the operator must call
@@ -46,9 +43,9 @@ is fixed to disabled.
 The isolated three-point candidate now covers patrol, waypoint Spin actions
 and low-HP preemption to home. It has passed an initial field smoke test, while
 the exact achieved yaw rate, complete match-duration behavior and final field
-coordinates still require review. The home branch does not yet react to low
-projectile allowance, and real lower-controller competition-state serial RX is
-not implemented.
+coordinates still require review. Low-projectile home is now available through the default-disabled
+`retreat_projectile_threshold` on normalized referee allowance; hardware field
+semantics, real producer reliability and thresholds still require acceptance.
 
 The minimum field behavior, accepted candidate boundary and remaining work are
 specified in `docs/archive/old_car/old_car_competition_minimum_behavior.md`. Do not describe
@@ -62,11 +59,14 @@ This does not establish final serial authorization or physical stopping.
 
 ## 2027 arbitration candidate
 
-Mission now consumes `/mission/pursuit_candidate` (`PursuitCandidate`), carrying
-source, target ID and original source deadline together. The legacy pursuit
-pose/Bool remain diagnostic outputs only. `radar_only=true` rejects research
-candidates; set it false explicitly for research. `auto` enables pursuit over
-patrol, while explicit `patrol` continues to select only the route.
+`/mission/target_intent` is the common Local/Radar/Operator input.
+`/mission/selected_target` is a diagnostic snapshot, never an action command.
+The 2027 composition defaults to `radar_target_input:=serial_intent`; no pursuit
+planner runs. Explicit `track` mode retains the original PursuitCandidate path,
+normalizes it as Radar, and rejects Radar on the common input. Standalone Mission
+keeps `track` as its legacy default. `allow_pursuit` controls this old track path.
+Explicit patrol suppresses track pursuit but permits common TargetIntent inputs.
+Legacy pursuit pose/Bool and `/operator/navigation_target_raw` remain diagnostic.
 
 Explicit hold/disable and required safety gates stop both actions. Low-health
 or requested home beats pursuit; missing home holds. A changed branch/ID
@@ -77,7 +77,7 @@ sending a replacement. Same-ID updates retain the 0.35 m/rad thresholds and
 `require_motion_guard=true` requires fresh PERMITTED on `/motion/v2_guard/state`.
 Any observed denial or expired guard also closes the gate in legacy debug
 configuration. This is a read-only veto, not an AUD-003 owner/session producer.
-After hold/revocation, pursuit requires a new source observation.
+After mandatory/hold/revocation, all three tactical sources require a new original sample. Ordinary source expiry falls back to the still-fresh lower-priority source.
 
 See the [full contract](../../docs/contracts/navigation_target_arbitration_2027.md)
 and [software validation](../../docs/validation/event_replanning_port_20261027.md).

@@ -10,6 +10,9 @@ protocol.
   confidence and velocity.
 - `PursuitCandidate` carries an atomic map goal, original target timestamp/deadline,
   source policy, stable target identity and validity; it grants no Nav2 authority.
+- `TargetIntent` carries independent Local/Radar/Operator map targets with stable
+  identity, per-source sequence, original stamp/TTL and distinct valid/clear semantics;
+  see the [arbitration contract](../../docs/contracts/navigation_target_arbitration_2027.md).
 - `MissionState` reports decision execution without becoming a control topic.
 - `OperatorNavigationTarget` carries an untrusted raw target from the serial
   boundary. Its coordinate system and command semantics must be confirmed

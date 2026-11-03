@@ -6,6 +6,72 @@
 本文保留 `5f52d8e` 阶段结论；后续生命授权闭合见
 [Mission life authority](mission_life_authority_20261029.md)，不将本轮 D 组缺失记录改写成通过。
 
+## 2026-11-03 三来源 Target Arbitration 后续候选
+
+Integration；`codex/three-source-target-arbitration`，基线 `858071d`。
+只进行软件实现、编译与隔离 ROS/mock action/dry-run 串口验证，不合并 main、不访问真实设备。
+审计时远端 main 与本地 main 同为 `d37f8d6e5ebe53533b7fc62aca8bb84392bee31b`；
+main 没有 Navigation Arbitration 的 `7be5dc6` 实现。基线继承该仲裁及后续取消、定位会话、
+生命授权修复。`feature/competition-mission-layer-2027@f141eef` 是独立临时任务候选，
+不在此基线祖先中，本轮未迁入其 supply/recovery/special 服务或 HOME latch。
+
+审计确认 Mission 独占任务级 NavigateToPose/Spin；Local 已有 patrol，Radar 已有
+TargetTrack→standoff candidate，Operator 只有 raw 串口诊断，原代码没有独立 Radar 串口目标。
+复用 candidate 的原始 deadline、双时钟 lease 和 Mission cancel→terminal 屏障；新增
+TargetIntent 的 per-source uint64 sequence。实际字段、状态语义及串口布局只在
+[Target Arbitration 合同](../contracts/navigation_target_arbitration_2027.md) 和
+[V2 合同](../competition_v2_protocol.md#tactical-targets-0x86--0x87) 维护。
+
+修改范围：`rm_competition_interfaces` 的 TargetIntent；`rm_competition_mission` 的进程内
+TargetArbiter、Mission 输入/选择、低弹量可选条件、配置/launch/定向测试；
+`rm_serial_driver` 的两种独立目标 codec/transport、C 参考与协议测试；
+2027 组合入口和已有 contract/architecture/runtime/package 文档。没有改变 posture 消息或生命周期。
+
+| 检查 | 结果与适用边界 |
+| --- | --- |
+| 受影响编译 | interfaces、Mission、serial 成功；沿用现有 ROS2 Jazzy 工具链。当前缺少 Livox/MID360 安装产物，限定构建排除这两个无关硬件包，未安装/修改硬件依赖 |
+| 新增三来源定向用例 | 7 项：Local、Radar/Operator 抢占与回退；positive stale sequence、重复/冲突、TTL、invalid/clear；非法输入不污染水位；三来源各自被低 HP/ESTOP/DEAD 覆盖和恢复（含未来容差样本跨复活屏障）；低弹量 HOME；pending/迟到成功、取消中最新目标合并；字节→ROS→Mission |
+| track 兼容与隔离 | 1 项：统一 Radar 输入不能覆盖 track profile 的序号域；Operator 可抢占 track，过期后回到仍新鲜 track |
+| 既有 Mission 回归 | 31 项通过，覆盖原仲裁、生命状态、定位会话、失败预算、取消终态及 Spin/profile |
+| 协议单测 | 32 项通过（V2 15、C 参考 5、历史协议 12）；两来源保留原始时间/sequence，C 与 C++ 字节一致，旧格式及姿态编码回归通过 |
+| 串口既有 runtime | 2 项通过：dry-run posture/gimbal/heading 与 heading fusion |
+| owner/旧结果 | 新增 action 用例最大 active=1；夹具检查每个 replacement 请求晚于旧 terminal；迟到成功不能推进旧 patrol 或复活已撤销目标 |
+
+先遇到的 DDS socket 禁止是沙箱环境问题；隔离本机 socket 权限下复核。
+串口夹具先以 700 ms TTL 等两轮取消，Radar 在 drain 内正确过期而回 Local；改用 1500 ms
+才能单独断言 Operator→Radar。合并运行另暴露单次发布早于 DDS 反向发现，夹具改为在期限内
+重复**同一原样本**直到观测到，不改序号/时间、不续租。定向 8 项通过。
+最终生产构建的 39 项回归中 38 passed；新增复活测试随后在恢复后取计数快照，误等额外
+Local goal。轨迹实际已经恢复 Local 且没有旧目标；夹具改为触发复活前取快照，三来源对应
+3 项定向复核全部通过。39 个 Mission 用例因此按全量加定向复核分组通过（既有 31、新增 8），
+不把失败运行改写为单次全量成功。
+
+复现（工作区已有依赖，软件专用环境）：
+
+```bash
+source /opt/ros/jazzy/setup.bash
+colcon build --packages-select rm_competition_interfaces rm_serial_driver rm_competition_mission \
+  --packages-ignore livox_ros_driver2 rm_mid360_driver_bridge --symlink-install --executor sequential
+source install/setup.bash
+export RM_COMPETITION_MISSION_SOURCE_DIR="$PWD/src/rm_competition_mission"
+export ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST
+python3 -m pytest -q src/rm_competition_mission/test
+python3 -m pytest -q src/rm_serial_driver/test/test_competition_v2_runtime.py \
+  src/rm_serial_driver/test/test_chassis_heading_fusion_runtime.py
+build/rm_serial_driver/test_competition_v2_protocol
+build/rm_serial_driver/test_competition_v2_reference
+build/rm_serial_driver/test_protocol
+```
+
+**Go：Software Go / Hardware Pending。** 证明范围为选择逻辑、序列/时效、软件接口与
+fake Nav2 的 action 生命周期；未运行真实 Nav2 物理闭环，不证明定位精度、路径执行或机械停车。
+尚待 MCU 固件/抓包、map 坐标与联盟转换、采样/心跳时钟偏差、重启/uptime wrap、低弹量语义、
+真实串口丢包和实际底盘/guard 授权验收。producer/arbiter 重启按合同显式协调，不新增自动恢复。
+后续硬件顺序仍为 main 冻结基线 → 已有候选/专项修复 → 三来源 → Competition Mission → posture
+→ 定位候选 → 全系统；本轮没有推进这些硬件 gate。
+
+以下章节完整保留 2026-10-29 的原条件和结论，不覆盖为本轮实车接受。
+
 ## 架构与合同
 
 以本轮源码、默认 Mission BT、event BT 和实际 launch 为依据，正式 priority table、

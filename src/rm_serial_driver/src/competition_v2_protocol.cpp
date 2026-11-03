@@ -107,6 +107,8 @@ bool is_known_message_type(std::uint8_t value)
     case MessageType::RefereeState:
     case MessageType::OperatorNavigationTarget:
     case MessageType::ChassisHeadingState:
+    case MessageType::RadarTarget:
+    case MessageType::OperatorTarget:
       return true;
   }
   return false;
@@ -446,6 +448,49 @@ std::optional<OperatorNavigationTarget> decode_operator_navigation_target(const 
   {
     return std::nullopt;
   }
+  return message;
+}
+
+std::optional<std::vector<std::uint8_t>> encode_payload(const TacticalTarget & message)
+{
+  if (message.sequence == 0 || message.boot_id == 0 || message.ttl_ms == 0 || message.ttl_ms > 5000 ||
+    (message.valid && (message.clear || message.target_id == 0 ||
+    !finite(message.x_m) || !finite(message.y_m) || !valid_wrapped_yaw(message.yaw_rad))))
+  {
+    return std::nullopt;
+  }
+  std::vector<std::uint8_t> output;
+  append_u32(output, static_cast<std::uint32_t>(message.sequence));
+  append_u32(output, static_cast<std::uint32_t>(message.sequence >> 32U));
+  append_u32(output, message.target_id);
+  append_u32(output, message.boot_id);
+  append_u32(output, message.sample_time_ms);
+  append_u16(output, message.ttl_ms);
+  output.push_back((message.valid ? 1U : 0U) | (message.clear ? 2U : 0U));
+  append_float(output, message.x_m);
+  append_float(output, message.y_m);
+  append_float(output, message.yaw_rad);
+  return output;
+}
+
+std::optional<TacticalTarget> decode_tactical_target(const Frame & frame)
+{
+  if (!frame_matches(frame, MessageType::RadarTarget, 35) &&
+    !frame_matches(frame, MessageType::OperatorTarget, 35)) {return std::nullopt;}
+  if (frame.payload[22] & ~3U) {return std::nullopt;}
+  TacticalTarget message;
+  const auto * p = frame.payload.data();
+  message.sequence = read_u32(p) | (static_cast<std::uint64_t>(read_u32(p + 4)) << 32U);
+  message.target_id = read_u32(p + 8);
+  message.boot_id = read_u32(p + 12);
+  message.sample_time_ms = read_u32(p + 16);
+  message.ttl_ms = read_u16(p + 20);
+  message.valid = (p[22] & 1U) != 0;
+  message.clear = (p[22] & 2U) != 0;
+  message.x_m = read_float(p + 23);
+  message.y_m = read_float(p + 27);
+  message.yaw_rad = read_float(p + 31);
+  if (!encode_payload(message)) {return std::nullopt;}
   return message;
 }
 

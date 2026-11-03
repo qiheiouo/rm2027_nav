@@ -94,3 +94,10 @@ retain their existing `/cmd_vel` path.
 See `docs/contracts/aud003_final_motion_authority_20261018.md` and
 `tests/aud003_final_motion/README.md` for the exact Integration-only contract and
 the byte-boundary regression fixture.
+
+The V2 software extension `RADAR_TARGET=0x86` and `OPERATOR_TARGET=0x87`
+converts explicit map-frame samples into `/mission/target_intent`; source identity,
+uint64 sequence, original MCU sample time, TTL, valid and clear remain independent.
+Historical `0x84` stays diagnostic. No target message contains posture or motion
+commands. See the [byte contract](../../docs/competition_v2_protocol.md#tactical-targets-0x86--0x87).
+Actual firmware/map/timing acceptance is Hardware Pending.

@@ -14,15 +14,70 @@ Nav2 自己的 BT 调用 controller 的 `FollowPath`；本仓任务层不直接�
 
 | 优先级 | 选择条件 | 抢占与后续行为 |
 | --- | --- | --- |
-| 1 SAFETY_STOP | DEAD、复活尚未满足定位条件、disable、显式 hold、必需安全证据失效、底盘撤权/ESTOP，或已观察 V2 guard 非 PERMITTED/过期 | 否决 HOME/PURSUIT/PATROL，取消 Navigate/Spin，不发替代目标 |
-| 2 RETURN_HOME | 新鲜且 validity gate 有效的 referee 0 < HP ≤ retreat_hp_threshold，或显式 home | 高于 pursuit/patrol；无 home 坐标则 hold_missing_home，不降级 |
-| 3 PURSUIT | allow_pursuit，模式 auto/pursuit，候选有效 | 可抢占 auto 巡逻；不能抢占 HOME/Safety |
-| 4 PATROL | 模式 auto/patrol，已配置 waypoint | 保留 patrol_index，只有当前未撤销的成功才推进 |
-| 5 IDLE/HOLD | 没有合格目标 | 不发导航 action |
+| 1 SAFETY_STOP | DEAD、复活定位屏障、disable、hold、定位/裁判/底盘/guard 否决或过期 | 取消 Navigate/Spin，等待终态，不发替代目标 |
+| 2 MANDATORY_HOME | 新鲜有效 referee 的低 HP、配置启用的低弹量条件，或显式 home | 覆盖所有 tactical source；缺 home 时 hold_missing_home |
+| 3 OPERATOR | 最新有效 Operator TargetIntent | 高于 Radar / Local |
+| 4 RADAR | 最新有效 Radar TargetIntent，或显式 track profile 的 pursuit 候选 | 高于 Local |
+| 5 LOCAL | 最新有效 Local TargetIntent，否则 BT 本地巡逻点 | 本地 attack/defense 等只提供目标；巡逻保留 index |
+| 6 IDLE/HOLD | 没有合格目标 | 不发 action |
 
-没有现成的 SPECIAL_MISSION 坐标入口，本轮不新增占位 task planner。显式 home 已包含在
-RETURN_HOME；`SetMissionMode` 和 YAML 属于启动/调试配置，不是队友 tactical 输入。
-显式 `patrol` 继续禁止 pursuit；需要“平时巡逻、雷达出现就追踪”时使用 `auto`。
+`retreat_projectile_threshold=-1` 默认关闭低弹量返航；设为 0..65535 后，
+新鲜有效 `/referee/state.projectile_allowance_17mm <= threshold` 选择 HOME。
+单位是剩余 17 mm 可发弹量，不是自行推断的累计发弹数。未确认下位机字段语义与阈值前
+保持关闭。HP=0 仍为 DEAD，不能变成 HOME。
+`SetMissionMode` 是受信任的本地任务配置入口，不是串口 tactical source；显式 home/hold
+覆盖三来源。独立 Competition Mission 临时 supply/recovery/special 候选没有迁入本分支，
+本次不扩大其任务服务范围。
+
+## TargetIntent 与三来源 latest-value 合同
+
+数据流固定为 `Local / Radar / Operator -> TargetArbiter -> Selected Tactical Target ->
+Mission -> Nav2 -> planner / avoidance / controller / chassis`。Arbiter 是 Mission 进程内的
+小型 latest-value store/selector，不创建 ROS action client、不发路径、速度、底盘或姿态命令。
+Mission 仍是唯一 NavigateToPose/Spin owner。
+
+`/mission/target_intent` 使用 `rm_competition_interfaces/msg/TargetIntent`，volatile/reliable，depth 10。
+每个 source 只能有一个受信任 producer；ROS source 标签不是 DDS 身份认证。
+
+| 字段 | 合同 |
+| --- | --- |
+| `source` | LOCAL=1 / RADAR=2 / OPERATOR=3；NONE=0 仅用于未选择的输出 |
+| `header.stamp` | 原始样本的 ROS 时钟时间；不能用收到重发包的时间覆盖 |
+| `header.frame_id`, `pose` | 已确认的 map frame，米/弧度，有限 planar pose、单位四元数；不做未经确认的裁判坐标转换 |
+| `sequence` | 每 source 严格递增 uint64；同 sequence 的完整重复或冲突包均无操作、不续租；旧 sequence 不得覆盖新值 |
+| `target_id` | 有效目标的非空稳定逻辑身份；周期 fresh sample 可保持 ID；新 ID 即使同坐标也替换 |
+| `ttl` | 从原始 stamp 起的持续时间，0 < TTL <= target_max_ttl_sec（默认 5 s）；不是从 RX 起算 |
+| `valid` | false 表示源当前不可用，立即撤下该 source 的值并保留 sequence 水位 |
+| `clear` | true 必须搭配 valid=false，表示显式撤销该 source；不是 ESTOP，不清除其他 source |
+
+未收到目标没有状态更新；过期只使现有值不再 eligible；invalid 是源不可用通知；clear 是显式
+撤销。三者都允许回退，只有 Safety/明确 hold 才是停止任务。clear/invalid 自身也必须有更新
+sequence、合法 stamp 和非零 TTL，旧 clear 不能撤销新目标。它们的 pose/target_id 不参与执行。
+
+接收前先验证格式、frame/pose、源 stamp 的未来容差（50 ms）及原始期限，再推进水位。
+拒绝过期、畸形、非法未来数据，防止坏包占据排序水位。后续检查同时使用 ROS deadline 和
+接收时剩余 TTL 对应的 steady deadline，重复包不能延长任何一个。时间回退触发既有
+定位 hold；不在本轮新增自动 epoch 恢复。
+
+源失效按 `Operator -> Radar -> Local -> 内建巡逻/hold` 确定性回退。
+周期发送应区分两种行为：重传同一已生成样本保留 sequence/stamp/TTL；新的当前目标观测或
+明确继续有效的最新状态，才递增 sequence 并给出新样本时间。建议每 100 ms 发一个新状态，
+TTL 由 producer 明确给出（例如 500 ms），允许丢个别包；无 ACK/队列/握手。
+
+`/mission/selected_target` 是每 tick 的只读 TargetIntent 快照（volatile/reliable，depth 1）。
+没有 tactical selection（含 mandatory/hold）时 valid=false/source=NONE/clear=false；
+不能把它桥接回输入。内建巡逻在仲裁的 Local fallback 端生成 map 目标，`target_id=patrol:<index>`；
+其 sequence=index+1 是本地 waypoint 标识，不是可回灌到输入的传输序号。
+
+所有普通目标在非 hold/home 且安全有效时参与仲裁。`allow_pursuit` 只约束旧 track-to-standoff
+路径，不禁止已归一化的三来源高层目标。显式 patrol 仍禁止旧 track pursuit，但允许三来源
+TargetIntent，Operator/Radar 不再被本地巡逻挡住。pursuit 专用模式无有效目标时 hold。
+
+Mandatory/Home 或 Safety 结束后，**三来源缓存样本必须晚于最后一个 mandatory/hold tick**，
+生命或定位 session 换代也推进此屏障；同时撤销缓存有效性但保留 sequence 水位，防止未来容差内的旧样本跨权限边界。最新 fresh sample 可重新参与，旧 action/path 不恢复。
+无新外部观测则回到内建 Local 巡逻（或 hold）。普通 source TTL/clear 回退不推进此屏障，
+仍新鲜的低优先级目标可立即恢复。取消期间只合并最新选择，必须等旧终态后才发送。
+同 source/ID 的位置更新保留现有阈值及发送间隔，sequence 心跳本身不触发新 action。
 
 ## 两层状态与转换责任
 
@@ -35,7 +90,7 @@ stateDiagram-v2
     [*] --> HOLD
     HOLD --> SELECT: enable + 非 hold 请求 + 安全证据新鲜
     SELECT --> HOME: 显式 home 或低 HP
-    SELECT --> PURSUIT: auto/pursuit + 合格目标
+    SELECT --> PURSUIT: Operator/Radar/Local 合格目标
     SELECT --> PATROL: auto/patrol + 已配置路线
     SELECT --> HOLD: 无可选目标 / 缺 home
     HOME --> SELECT: set_mode / HP 条件变化
@@ -73,7 +128,7 @@ stateDiagram-v2
 PLANNING/FOLLOWING/REPLANNING 是 Nav2 action/BT 观测，非 Mission 新增内部状态。
 取消未被接受或未 terminal 时停留 CANCELLING；没有超时后并发发目标的 fallback。
 非定位 Safety 关闭时同样停止发目标，恢复只重新选择当前 intent。patrol 保留未完成
-索引，pursuit 需要撤权之后的新观测，旧 action 从不直接 resume。
+索引，三来源 target 需要撤权之后的新观测，旧 action 从不直接 resume。
 
 ## Cancellation Contract
 
@@ -90,7 +145,7 @@ PLANNING/FOLLOWING/REPLANNING 是 Nav2 action/BT 观测，非 Mission 新增内�
 
 patrol 被抢占后保留索引，只有未被撤销的成功到达才推进。恢复安全证据或新定位会话后，
 Mission 重新仲裁当前请求并建立新 action，不直接恢复旧 action/path。
-pursuit 要求原始采样时间晚于最后一个 hold/撤权 tick，不复活撤权前缓存的 tactical target。
+三来源 target 要求原始采样时间晚于最后一个 mandatory/hold/撤权 tick，不复活旧 tactical target。
 显式 set_mode、新 intent 或新定位 session 可重置对应失败预算；相同失败目标不会无限重发。
 
 ## 原子 pursuit 候选
@@ -126,18 +181,19 @@ Mission 独立检查 frame、有限值、单位四元数、来源、采样时间
 
 ## 比赛与研究输入边界
 
-- `pursuit_goal_planner radar_only=true` 只订阅固定 `/radar/target_track` (`TargetTrack`)，
-  忽略通用 `input_topic`，候选标记 RADAR。没有 generic teammate 订阅或 operator adapter。
-- `competition_2027_navigation.launch.py` 固定 planner/Mission 的 `radar_only=true`，
-  强制 `require_motion_guard=true`、chassis gate、无 mock、Mission 启动 disabled。
-  YAML 的 `radar_only=false` 或 `require_motion_guard=false` 不能覆盖组合策略。
-- 通用 `pursuit.launch.py` 保留 `radar_only=false` 的感知/研究输入。研究 Mission 必须显式
-  选择 `radar_only=false`。本次未迁移 legacy 组合入口的策略改动，使用它们前须独立核对参数。
-- `/operator/navigation_target_raw` 仍是无 consumer 的原始诊断数据，不进入比赛仲裁。
-- `/mission/set_mode` 由受信任的本地配置/调试工具调用。禁止桥接为队友战术命令。
-
-来源标签和 topic 隔离是受信任 ROS 图内的策略边界，不是 DDS 身份认证。实际雷达链路
-解码/坐标适配尚未实现；不得把任意队友数据桥接到 radar topic，部署时须限制 publisher。
+- `competition_2027_navigation.launch.py` 默认 `radar_target_input:=serial_intent`：不启动 pursuit
+  planner，Radar/Operator 从独立 V2 目标消息进入统一输入，Local 可由本地决策 producer 提供。
+- 显式 `radar_target_input:=track` 保留已有 `/radar/target_track -> pursuit_goal_planner ->
+  PursuitCandidate` 路径。Mission 把新鲜候选归一化为 Radar TargetIntent，再进入同一 selector；
+  此 profile 拒绝统一输入中的 Radar，避免两种 sequence domain 同时写一个 source。
+  Operator 和 Local 统一输入仍可用。RESEARCH 候选只在 radar_only=false 的独立研究组合接受。
+- 2027 组合继续强制 radar_only=true、require_motion_guard=true、chassis gate、无 mock、
+  Mission startup disabled。YAML 不得覆盖这些组合策略。它只启动 Mission 与可选 planner，
+  不启动 Nav2、serial、定位、referee 或物理设备。
+- `/operator/navigation_target_raw` 和历史 V2 0x84 仍只作诊断，无 Mission consumer。
+  新 RADAR_TARGET=0x86 / OPERATOR_TARGET=0x87 是明确 map-frame 合同的软件扩展，
+  不能声称现有 MCU 已支持；布局见 [V2 合同](../competition_v2_protocol.md#tactical-targets-0x86--0x87)。
+- 目标消息不携带姿态字段。`PostureRequest/PostureState` 及其生命周期保持独立。
 
 ## Safety Contract：证据与运行边界
 
@@ -166,7 +222,7 @@ Mission 保留既有 LocalizationStatus 合同；对 referee/chassis/V2 guard �
 
 - **DEAD**：在输入回调中撤销 Mission 导航授权，取消 Navigate/Spin，清除旧执行完成/
   失败记忆与 pursuit 候选有效性；保留请求模式和未完成巡逻索引。显式 HOME、低 HP、
-  pursuit、patrol、event replan 均不能绕过。取消中的 action 仍占 owner 直到 terminal，
+  Operator/Radar/Local、pursuit、patrol、event replan 均不能绕过。取消中的 action 仍占 owner 直到 terminal，
   但已无 Mission authority；不把“尚未终态”错误解释成继续授权。
 - **REVIVED**：增加 life generation，重新仲裁当前请求；每个新 Navigate 再取得新的
   goal generation。执行身份是 `(life_generation, goal_generation, localization session)`。
