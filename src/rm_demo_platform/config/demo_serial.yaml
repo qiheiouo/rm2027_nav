@@ -1,0 +1,27 @@
+# Phase 1 input manifest, NOT a ROS parameter file. null/false requires confirmation.
+profile: competition_v2
+firmware_repository: null
+firmware_revision: null
+wire_contract_confirmed: false
+physical_motion_inhibit_confirmed: false
+isolated_ros_domain_confirmed: false
+parameters:
+  device: null
+  baudrate: null
+  required_remote_capabilities: null
+  chassis_rate_hz: null
+  posture_rate_hz: null
+  heartbeat_rate_hz: null
+  read_poll_rate_hz: null
+  health_rate_hz: null
+  cmd_vel_timeout_sec: null
+  connection_timeout_sec: null
+  gimbal_timeout_sec: null
+  chassis_heading_timeout_sec: null
+  posture_timeout_sec: null
+  max_vx: null
+  max_vy: null
+  max_wz: null
+mcu_watchdog_sec: null
+max_measured_stop_sec: null
+gimbal_joint_publish_rate_hz: null

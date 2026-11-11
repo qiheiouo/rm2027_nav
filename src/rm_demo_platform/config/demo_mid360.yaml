@@ -1,0 +1,9 @@
+# Phase 1 input manifest, NOT a ROS parameter file. null/false requires confirmation.
+device_identity: null
+firmware_revision: null
+lidar_ip: null
+host_ip: null
+sdk_config_path: null
+sdk_config_reviewed: false
+publish_freq_hz: null
+raw_imu_frame_lineage_confirmed: false

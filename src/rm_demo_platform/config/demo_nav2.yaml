@@ -1,0 +1,12 @@
+# Phase 1 input manifest, NOT a ROS parameter file. null/false requires confirmation.
+enabled: false
+phase1_a_to_e_evidence: null
+map_bundle: null
+localization_backend: null
+nav2_parameter_file: null
+complete_footprint_xy_m: null
+robot_radius_m: null
+braking_distance_m: null
+local_costmap_resolution_m: null
+global_costmap_resolution_m: null
+physical_motion_authority_implementation: null

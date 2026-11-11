@@ -1,0 +1,19 @@
+# Phase 1 input manifest, NOT a ROS parameter file. null/false requires confirmation.
+revision: null
+measured: false
+base_to_yaw_axis:
+  xyz_m: null
+  rpy_rad: null
+gimbal_to_mid360:
+  xyz_m: null
+  rpy_rad: null
+mid360_to_imu:
+  xyz_m: null
+  rpy_rad: null
+chassis_imu_to_base:
+  xyz_m: null
+  rpy_rad: null
+drawing_center_disk_diameter_m: 0.25
+complete_footprint_xy_m: null
+wheel_radius_m: null
+wheel_positions_base_m: null

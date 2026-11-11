@@ -25,6 +25,8 @@ def setup(context):
              name="serial_transport_node", parameters=[{
                  "dry_run": True, "motion_test_mode": False,
                  "required_remote_capabilities": 5,
+                 "enable_timestamp_provenance": LaunchConfiguration("enable_timestamp_provenance").perform(context) == "true",
+                 "provenance_session_id": "demo-software-bench",
              }]),
         Node(package="rm_serial_driver", executable="competition_v2_mock_lower_node",
              name="competition_v2_mock_lower_node", parameters=[{
@@ -48,6 +50,7 @@ def setup(context):
 def generate_launch_description():
     return LaunchDescription([
         DeclareLaunchArgument("enable_test", default_value="false", choices=["false", "true"]),
+        DeclareLaunchArgument("enable_timestamp_provenance", default_value="false", choices=["false", "true"]),
         DeclareLaunchArgument("gimbal_duration_sec", default_value="-1.0",
                               description="Mock source dropout after this duration; negative keeps publishing."),
         OpaqueFunction(function=setup),

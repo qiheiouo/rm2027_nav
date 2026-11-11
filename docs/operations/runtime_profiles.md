@@ -13,6 +13,13 @@ See the [Demo package](../../src/rm_demo_platform/README.md) and
 
 > Current：适用于新主仓当前代码与明确标记的候选 profile。历史验收只代表原条件，不提升实车结论。
 
+`demo_hardware.launch.py`同样默认inventory零节点；serial/lidar/tf/fixed_lio仅在显式
+`enable_hardware_io:=true`和已准备session通过检查后启动。serial是发送heartbeat/zero-disabled的
+主动transport，posture订阅隔离、无生产运动授权；tf复用RSP与直接相对Yaw，fixed_lio隔离backend TF、
+只由lio_adapter发布canonical odometry。没有map stub、Nav2或任务节点。
+操作入口与缺失条件见[Phase 1检查表](demo_phase1_checklist.md)，固件约束见
+[STM共同合同](../contracts/stm_navigation_data_contract.md)。Nav2/MPPI输入清单保持disabled。
+
 ## Principle
 
 The project uses one top-level launch per operating mode. A ROS2 package is not

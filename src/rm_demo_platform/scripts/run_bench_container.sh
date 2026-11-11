@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 action=${1:-check}
-case "$action" in check|run) ;; *) echo 'Usage: run_bench_container.sh [check|run]' >&2; exit 2;; esac
+case "$action" in check|acq|run) ;; *) echo 'Usage: run_bench_container.sh [check|acq|run]' >&2; exit 2;; esac
 repo=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../../.." && pwd)
 results="$repo/build/demo_validation"
 mkdir -p "$results"
@@ -18,19 +18,32 @@ exec docker run --rm --pull never --network none --ipc private \
   --workdir /results rm2027_navigation:humble bash -c '
     set -eo pipefail
     source /opt/ros/humble/setup.bash
+    extra=()
+    if [ "$1" = acq ]; then extra+=(/source/src/livox_ros_driver2_humble/src); fi
     colcon --log-base /results/colcon_logs build \
       --base-paths /source/src/rm_competition_interfaces /source/src/rm_description \
-        /source/src/rm_localization_adapters /source/src/rm_serial_driver /source/src/rm_demo_platform \
+        /source/src/rm_localization_adapters /source/src/rm_serial_driver /source/src/rm_demo_platform "${extra[@]}" \
       --build-base /results/build --install-base /results/install \
       --executor sequential --cmake-args -DBUILD_TESTING=ON -DCMAKE_BUILD_TYPE=Debug
     source /results/install/setup.bash
-    if [ "$1" = check ]; then
+    if [ "$1" != run ]; then
       colcon --log-base /results/test_logs test --build-base /results/build \
-        --base-paths /source/src/rm_localization_adapters /source/src/rm_serial_driver \
-        --packages-select rm_localization_adapters rm_serial_driver \
-        --ctest-args -R "^test_(canonical_odometry|protocol|competition_v2_protocol|competition_v2_reference)$" --output-on-failure
+        --base-paths /source/src/rm_localization_adapters /source/src/rm_serial_driver /source/src/rm_demo_platform \
+        --packages-select rm_localization_adapters rm_serial_driver rm_demo_platform \
+        --ctest-args -R "^test_(canonical_odometry|protocol|competition_v2_protocol|competition_v2_reference|demo_phase1)$" --output-on-failure
       colcon test-result --test-result-base /results/build --verbose
-      ros2 run rm_demo_platform check_bench.py
+      if [ "$1" = acq ]; then
+        RM_DEMO_BENCH_PROVENANCE=1 ros2 run rm_demo_platform check_bench.py
+      else
+        ros2 run rm_demo_platform check_bench.py
+      fi
+      if [ "$1" = acq ]; then
+        colcon --log-base /results/acq_test_logs test --build-base /results/build \
+          --base-paths /source/src/rm_serial_driver /source/src/livox_ros_driver2_humble/src \
+          --packages-select rm_serial_driver livox_ros_driver2 \
+          --ctest-args -R "^(test_timestamp_provenance|livox_.*_fixture)$" --output-on-failure
+        colcon test-result --test-result-base /results/build --verbose
+      fi
     else
       exec ros2 launch rm_demo_platform demo_bench.launch.py enable_test:=true
     fi

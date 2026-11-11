@@ -1,0 +1,12 @@
+# Phase 1 input manifest, NOT a ROS parameter file. null/false requires confirmation.
+enabled: false
+parameter_file: null
+motion_model: Omni
+vx_max_mps: null
+vy_max_mps: null
+wz_max_rad_s: null
+ax_max_mps2: null
+ay_max_mps2: null
+az_max_rad_s2: null
+controller_frequency_hz: null
+prediction_horizon_sec: null

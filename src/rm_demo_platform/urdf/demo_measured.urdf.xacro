@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<!-- No mesh/footprint assumptions. Only measured transform chain, metres/radians. -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="rm2027_demo_measured">
+  <xacro:arg name="calibration_file" default="REQUIRED_MEASURED_CALIBRATION"/>
+  <xacro:property name="cal" value="${xacro.load_yaml('$(arg calibration_file)')}"/>
+  <xacro:macro name="measured_origin" params="edge">
+    <origin xyz="${edge['xyz_m'][0]} ${edge['xyz_m'][1]} ${edge['xyz_m'][2]}"
+            rpy="${edge['rpy_rad'][0]} ${edge['rpy_rad'][1]} ${edge['rpy_rad'][2]}"/>
+  </xacro:macro>
+  <link name="base_link"/>
+  <link name="gimbal_yaw_link"/>
+  <link name="mid360_left_frame"/>
+  <link name="lio_imu_link"/>
+  <joint name="gimbal_yaw_joint" type="continuous">
+    <parent link="base_link"/><child link="gimbal_yaw_link"/>
+    <xacro:measured_origin edge="${cal['base_to_yaw_axis']}"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+  <joint name="gimbal_to_mid360" type="fixed">
+    <parent link="gimbal_yaw_link"/><child link="mid360_left_frame"/>
+    <xacro:measured_origin edge="${cal['gimbal_to_mid360']}"/>
+  </joint>
+  <joint name="mid360_to_imu" type="fixed">
+    <parent link="mid360_left_frame"/><child link="lio_imu_link"/>
+    <xacro:measured_origin edge="${cal['mid360_to_imu']}"/>
+  </joint>
+</robot>

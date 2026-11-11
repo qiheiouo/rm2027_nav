@@ -279,3 +279,63 @@ Debug、2CPU/3GiB、构建并行上限2，不使用工作区原有Jazzy产物。
 最终裁决：**SOFTWARE_BENCH_PASS；真实FAST-LIO/STM/Nav2自主运动链路仍待硬件合同与标定，不授予Hardware Go。**
 当前包只准备软件基础，不声称20项候选已经集成或三阶段已验收。新增内容作为一个本地提交保留，未推送；
 来源仍为本节和第2节固定的main/候选快照。无需清理worktree，本轮未新建worktree；忽略的构建输出可按需保留。
+
+## 2026-11-12：ACQ 迁入与 Phase 1 准备增量
+
+本节更新本 Demo 分支事实；前文全分支审计及首轮结果保留为历史记录，不表示当前仍未迁入ACQ。
+开始时已验证local/remote Demo均为`44121c7957d97b88cf94cf792bb11f5783fc82a5`、工作区干净；
+main/origin main均为`d37f8d6e5ebe53533b7fc62aca8bb84392bee31b`。本轮不push、不修改main/其他候选。
+
+### 迁移来源与取舍
+
+| 来源 | 本分支提交 | 处理与理由 |
+| --- | --- | --- |
+| `78cc03e9db0574d519f457e1939015b25aa41c32` | `07b428b` | `cherry-pick -x`保留独立实现及来源：V2诊断、Livox gitlink、ACQ session/topics/QoS、测试和对应文档；与Demo无语义冲突 |
+| `952103506379c49962b8a0e4b86575113733ffd6` | `35b68b3` | 等价拆分，仅保留Livox已发布事实；省略与Demo无关的Task 1研究冻结说明，commit body记录来源 |
+| Livox `ffb5c721… → 24e989f43afd918f333ea20d526ed7ecc6615bb5` | 随`07b428b` gitlink | 已从真实远端取得并检查：原始timestamp/callback/publish/队列关联及fixture；未重新vendor/新增SDK依赖 |
+| FAST-LIO `9aa8c79ef064eafe0fae1308888248be7efa1d2e` | 不变 | ACQ无需改FAST gitlink；未迁入其他算法/任务/动态链 |
+
+重新读取两个提交及Livox实际diff后迁入，未直接merge候选分支。ACQ默认关闭，无新话题；
+开启时增加诊断发布及有限计算/内存开销，原测量数值、时间选择/offset公式、控制gate不变。
+trace能观察boot/reset/epoch相关信息，但不解决时钟同步、原包epoch身份缺口或旧队列问题。
+候选原来只有采集文档/配置，并没有通用采集脚本；本轮新增prepare/observe工具，复用其schema/whitelist/QoS。
+
+### 最低充分验证（无网络/无设备Humble容器）
+
+1. **迁入后立即**：原5包全部构建；原4个CTest入口/49项colcon统计全部通过。
+   Demo bench：392 canonical samples、404 joint samples、1343 zero-disabled frames；5条TF边、
+   publisher集合、完整倾斜SE(3)/杆臂、角度断流、CRC及正常退出通过。
+2. ACQ扩展：原5包加Livox共6包构建通过；V2 `test_timestamp_provenance`（off/on字段等价、
+   heartbeat映射、boot/reset、invalid payload）通过；Livox四个fixture全部通过：
+   `timestamp_provenance`、`lifecycle`、`publication`、`queue_concurrency`。
+   Livox新增fixture覆盖实际callback→queue→publish及PTP/GPS/host fallback、输出等价、诊断上限。
+3. Phase 1新增13个pytest case通过：缺失参数/绕过参数拒绝、显式IO门、SDK IP/重复外参拒绝、
+   完整RPY xacro、配置/dirty快照、seq wrap/reset/时间倒退、真实ROS话题到bag并正常关闭、
+   fixed LIO拒绝delayed-zero/yaw-only、hardware launch默认零节点并退出。
+4. 最终ACQ开启bench：365 canonical samples、374 joint samples、1743诊断记录、1343 zero-disabled frames，
+   其余TF/SE(3)/断流/CRC/生命周期检查全部通过。默认关闭另做定向bench，确认无诊断话题数据。
+5. hardware容器脚本inventory实际运行：禁网、无设备、零节点正常退出；未给IO开关的serial调用
+   在Docker/设备操作前以exit 2拒绝。shell语法、Python加载、文件链接及diff检查通过。
+
+统计说明：原49是项目既有colcon口径（含45个gtest case及CTest层计数）。反复选择不同CTest后
+聚合统计会改变，不能把打印的68/66累加成新的独立用例数。上方逐入口/新case数量是复核依据。
+生成日志在忽略的`build/`，不作为长期Git资产；重现命令：`run_bench_container.sh acq`。
+未连接STM/MID360，未构建/运行真实FAST-LIO/AMCL/GICP/Nav2整套实机链，未验证物理时延/制动/性能。
+
+### 交付与准入结论
+
+- [STM共同合同](../contracts/stm_navigation_data_contract.md)：既有V2支持relative yaw、yaw-only heading、
+  chassis command、heartbeat/capabilities/CRC；完整chassis quaternion/gyro/acc及样本epoch身份扩展待联签，
+  没有擅自分配wire type。修正旧文档中V2消费通用cmd_vel及“0.2s MCU watchdog”的误导。
+- [Phase 1执行入口](../operations/demo_phase1_checklist.md)：A–F顺序、逐项case/证据/停止条件；
+  `demo_hardware.launch.py`、7份`demo_*.yaml`、实测xacro、hardware容器脚本、prepare/observe工具。
+  C复用既有backend wrapper/adapter并要求实测配置；D–F为明确准入清单，未假称可直接运行。
+- 未知项：固件/profile、IP/时间配置、外参、整车footprint/轮几何、速度/加速度/制动、STM频率/watchdog、
+  地图与Nav2/MPPI参数，全部null/required/disabled；唯一图纸尺寸是中心圆盘0.25m，不用于避障。
+- Session自动/半自动覆盖branch/HEAD/dirty/submodule、固件、MiniPC/镜像/ROS、传感器、配置/标定、地图、
+  launch、operator/时间、boot/reset、safety、authority、case/result、bag和notes；未跟踪源码内容、
+  实际有效参数、物理方向/单位、停车结果必须现场补全。采集输出始终OBSERVATION_ONLY，不自动PASS。
+- **仍为SOFTWARE_BENCH_PASS；Hardware Go = NO；默认零节点、零真实授权。**
+  实物到位并确认固件/profile/物理禁能后，可按既定入口开始1A接线与部分采集，无需重选整体架构。
+  完整1A仍受chassis attitude扩展阻塞；E/F另受production运动授权实现、完整停车证据和前序验收阻塞。
+  本轮未实现/开启这些实车能力，也未把固定云台LIO或Nav2包装成已通过的系统。

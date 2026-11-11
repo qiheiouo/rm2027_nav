@@ -1,0 +1,8 @@
+# Phase 1 input manifest, NOT a ROS parameter file. null/false requires confirmation.
+enabled: false
+mechanically_locked_gimbal_confirmed: false
+phase1b_evidence: null
+backend_config_path: null
+adapter_config_path: null
+raw_epoch_and_frame_reviewed: false
+internal_imu_extrinsics_reviewed: false

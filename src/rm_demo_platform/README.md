@@ -1,6 +1,6 @@
 # RM2027 Demo 集成环境
 
-本包属于 `integration/demo-navigation-validation`。首轮只提供 **无硬件软件 bench**，
+本包属于 `integration/demo-navigation-validation`。提供 **无硬件软件 bench、ACQ与默认禁用的Phase 1采集入口**，
 用于组合现有 V2 codec/transport、直接相对 Yaw、RSP、LIO adapter；真实固件、机械外参、
 完整底盘姿态输入和运动授权尚待确认。[完整审计与分阶段准入](../../docs/validation/demo_navigation_integration_20261111.md)。
 
@@ -58,6 +58,12 @@ mock角度恒定，不将本检查称作“旋转云台验收”。
 
 依次确认固件/profile/CRC/独立停车、完整chassis attitude扩展、源时钟、实测机械链/单MID360配置，
 再按审计中的Phase1→2→3准入。复用既有GimbalState，不新增Demo串口协议。
-物理采集优先迁入已有ACQ时间溯源与bag配置；固定云台LIO需处理main已知delayed-zero-start/基准问题。
-独立Demo Nav2/MPPI参数与hardware launch在这些事实明确后添加，不能将本夹具切换为实车配置。
+ACQ已迁入，诊断默认关闭；hardware入口显式启用诊断并保持motion_test_mode=false。
+[Phase 1检查表与命令](../../docs/operations/demo_phase1_checklist.md)和
+[STM共同合同](../../docs/contracts/stm_navigation_data_contract.md)是实物接入入口。
+`run_bench_container.sh acq`还构建Livox并运行全部新增ACQ测试、驱动fixture和Phase 1定向测试。
+`run_phase1_container.sh inventory`默认零节点；其他stage需要显式硬件IO开关、真实manifest和新session。
+`demo_phase1.py`准备配置快照/metadata，`demo_observe.py`观察并可选择录制白名单bag。
+`demo_*.yaml`是带null的输入清单；Nav2/MPPI仍disabled，不能直接作为ROS参数加载。
+固定云台入口要求实测外参与独立配置，拒绝delayed zero-start和yaw-only转换；不导入高级候选链。
 main已有反应式导航功能，不因缺标定而重新写导航算法。

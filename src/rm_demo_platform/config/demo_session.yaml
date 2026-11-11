@@ -1,0 +1,22 @@
+# Phase 1 input manifest, NOT a ROS parameter file. null/false requires confirmation.
+schema: rm2027-demo-phase1-v1
+operator: null
+test_case: null
+minipc:
+  identity: null
+  host_os: null
+  kernel: null
+container_image: null
+container_image_id: null
+mechanical_calibration_revision: null
+map_bundle: null
+launch_commands: []
+boot_reset_events: []
+safety_test_results: {}
+motion_authorization: false
+result: NOT_RUN
+notes: null
+chassis_attitude:
+  topic: null
+  type: null
+  contract_revision: null

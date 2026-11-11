@@ -13,7 +13,8 @@ import time
 import rclpy
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
-from rclpy.qos import DurabilityPolicy, QoSProfile
+from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy
+from rm_competition_interfaces.msg import V2TimestampProvenance
 from sensor_msgs.msg import JointState
 from std_msgs.msg import UInt8MultiArray
 from tf2_msgs.msg import TFMessage
@@ -44,6 +45,8 @@ def main():
     node = rclpy.create_node("demo_bench_check")
     samples, joints, raw, frames, errors = [], [], [], [], []
     edges = set()
+    traces = []
+    trace_enabled = os.environ.get("RM_DEMO_BENCH_PROVENANCE") == "1"
     expected_q = quaternion(0.12, 0.22, 0.4)
 
     def odometry(msg):
@@ -81,6 +84,8 @@ def main():
         node.create_subscription(TFMessage, "/tf_static", transform,
                                  QoSProfile(depth=10, durability=DurabilityPolicy.TRANSIENT_LOCAL)),
         node.create_subscription(UInt8MultiArray, "/serial/v2/mock_tx", serial, 100),
+        node.create_subscription(V2TimestampProvenance, "/serial/v2/timestamp_provenance", traces.append,
+                                 QoSProfile(depth=128, reliability=ReliabilityPolicy.BEST_EFFORT)),
     ]
     command = node.create_publisher(Twist, "/cmd_vel", 10)
     process = None
@@ -104,6 +109,7 @@ def main():
             process = subprocess.Popen([
                 "ros2", "launch", "rm_demo_platform", "demo_bench.launch.py",
                 "enable_test:=true", "gimbal_duration_sec:=8.0",
+                "enable_timestamp_provenance:=" + str(trace_enabled).lower(),
             ], stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
             start = time.monotonic()
             # Nonzero generic commands must not obtain V2 authority.
@@ -118,6 +124,10 @@ def main():
             now = time.monotonic()
             if len(samples) < 20 or len(joints) < 20 or len(frames) < 20:
                 raise RuntimeError(f"missing positive chain: odom={len(samples)} joints={len(joints)} frames={len(frames)}")
+            if trace_enabled and (not traces or any(t.session_id != "demo-software-bench" for t in traces)):
+                raise RuntimeError("missing or wrong ACQ session trace")
+            if not trace_enabled and traces:
+                raise RuntimeError("default-disabled provenance unexpectedly published")
             if now - samples[-1] < 1.0 or now - joints[-1] < 1.0:
                 raise RuntimeError("gimbal dropout did not stop canonical/joint publication")
             if not raw or now - raw[-1] > 0.2 or now - frames[-1] > 0.2:
@@ -153,6 +163,7 @@ def main():
                       "tf_edges": len(edges), "expected_tf_publishers": "pass",
                       "tilted_se3_and_lever_arm": "pass",
                       "source_dropout": "pass", "default_zero_nodes": "pass",
+                      "provenance_enabled": trace_enabled, "provenance_records": len(traces),
                       "hardware_acceptance": False}
     finally:
         if process is not None and process.poll() is None:
