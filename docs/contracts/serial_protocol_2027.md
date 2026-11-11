@@ -132,7 +132,7 @@ Later revisions commented out the `C_odom` parsing while continuing to reference
 
 No inspected legacy packet contains four clearly identified wheel encoder counts or wheel angular velocities.
 
-## Required 2027 Wheel Feedback Extension
+## Optional Wheel Feedback Extension (not the Demo command path)
 
 If the upper computer is responsible for four-omni-wheel forward kinematics, the lower controller must upload new telemetry. At minimum the shared agreement must define:
 
@@ -159,7 +159,12 @@ Wheel-derived twist is optional feedback for diagnostics, slip detection, or fut
 
 ## Ownership Boundaries
 
-`rm_serial_driver` owns byte framing, serial IO in Phase 2, and protocol statistics. `rm_chassis_interface` owns command safety, chassis packet semantics, wheel kinematics, and public chassis feedback. `rm_referee_interface` owns referee-field interpretation.
+`rm_serial_driver` owns byte framing, serial IO and protocol statistics.
+For Demo / new-car V2, STM owns wheel command kinematics and motor control;
+`rm_chassis_interface` does not introduce a second wheel-level command protocol.
+Optional upper wheel-feedback kinematics are diagnostic only. The shared
+[STM data and stop contract](stm_navigation_data_contract.md) distinguishes
+implemented V2 fields from pending firmware extensions and physical acceptance. `rm_referee_interface` owns referee-field interpretation.
 
 No serial-related module may publish localization TF or call Nav2 directly.
 Publishing the untrusted raw operator target does not transfer navigation-goal

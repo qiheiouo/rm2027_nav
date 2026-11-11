@@ -6,6 +6,12 @@
 
 It consumes `/cmd_vel`, outputs chassis commands, and publishes chassis feedback. It does not perform localization and does not publish localization TF.
 
+For Demo / new-car V2, wheel command kinematics remain on STM. The current V2
+transport does not consume generic `/cmd_vel` or provide production positive
+motion admission; see the [shared STM contract](stm_navigation_data_contract.md).
+The input below describes the generic chassis interface, not an authorization
+path into the V2 transport.
+
 ## Input
 
 | Topic | Type | Frame |

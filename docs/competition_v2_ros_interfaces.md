@@ -10,7 +10,7 @@ or mission authority.
 
 | Node | Direction | Topic | Type |
 | --- | --- | --- | --- |
-| `competition_v2_transport_node` | subscribe | `/cmd_vel` | `geometry_msgs/Twist` |
+| `competition_v2_transport_node` | publish | `/motion/v2_guard/state` | `V2MotionGuardState` |
 | same | subscribe | `/robot/posture/request` | `PostureRequest` |
 | same | publish | `/robot/posture/state` | `PostureState` |
 | same | publish | `/gimbal/state` | `GimbalState` |
@@ -20,6 +20,10 @@ or mission authority.
 | same | publish | `/serial/connection_state` | `SerialConnectionState` |
 | `gimbal_state_adapter` | subscribe | `/gimbal/state` | `GimbalState` |
 | same | publish | `/joint_states` | `sensor_msgs/JointState` |
+
+Generic `/cmd_vel` is not subscribed by the current V2 transport. Production
+mode stays disabled; positive test admission exists only in isolated dry-run
+mode and cannot open a serial device. See the [shared STM contract](contracts/stm_navigation_data_contract.md).
 
 The transport uses independent chassis, posture, heartbeat, read, and health
 timers. A posture request is sent immediately and periodically even when no

@@ -70,10 +70,13 @@ a legacy profile after receiving malformed bytes.
 | 8 | 4 | `float32` | `wz_rad_s`, positive counterclockwise |
 | 12 | 1 | flags | bit 0 `enabled`; bits 1..7 reserved |
 
-The upper transport normally sends this at 100 Hz. It sends a disabled zero
-command when ROS `/cmd_vel` is older than 0.2 s. The lower controller must
-independently stop the chassis when valid chassis frames are stale; 0.2 s is
-the proposed watchdog and requires electrical-team acceptance.
+The host timer defaults to 100 Hz and command freshness defaults to 0.2 s;
+these are software defaults, not an accepted MCU watchdog. The current V2
+transport does not subscribe to generic `/cmd_vel`. Production mode has no
+positive motion admission and always sends disabled zero commands. The isolated
+motion-test lease requires `dry_run=true`. The lower controller must independently
+stop on stale valid chassis frames; its timeout, braking response and re-arm
+remain unconfirmed. See the [shared STM contract](contracts/stm_navigation_data_contract.md).
 
 ### Posture Request `0x02`
 
