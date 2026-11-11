@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!-- Synthetic test geometry, NOT the Demo's measured model or footprint. -->
+<robot name="rm_demo_software_fixture">
+  <link name="base_link"/>
+  <link name="gimbal_yaw_link"/>
+  <joint name="gimbal_yaw_joint" type="continuous">
+    <parent link="base_link"/><child link="gimbal_yaw_link"/>
+    <origin xyz="0 0 0.10" rpy="0 0 0"/><axis xyz="0 0 1"/>
+  </joint>
+  <link name="mid360_left_frame"/>
+  <joint name="fixture_lidar_mount" type="fixed">
+    <parent link="gimbal_yaw_link"/><child link="mid360_left_frame"/>
+    <origin xyz="0.12 0.02 0.08" rpy="0.08 -0.06 0.20"/>
+  </joint>
+  <link name="lio_imu_link"/>
+  <joint name="fixture_imu_mount" type="fixed">
+    <parent link="mid360_left_frame"/><child link="lio_imu_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+</robot>

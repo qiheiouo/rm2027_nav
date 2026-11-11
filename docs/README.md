@@ -63,6 +63,8 @@ docs/
 
 ## 运行与维护
 
+- Demo 集成准备：[全分支审计、集成顺序与验收门](validation/demo_navigation_integration_20261111.md)、[独立软件 bench](../src/rm_demo_platform/README.md)。仅本 Demo 集成分支适用，未获实机验收。
+
 - 环境：[Docker 用法](operations/docker_usage.md)。按实际修改范围选择验证，不默认执行其全部构建示例。
 - 总入口：[runtime profiles](operations/runtime_profiles.md)。每个 ROS domain 只选一个 operating mode。
 - 地图：[部署](operations/map_deployment.md)、[受控建图](operations/managed_mapping.md)。candidate 不等于 approved。

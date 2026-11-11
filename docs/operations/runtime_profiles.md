@@ -1,5 +1,16 @@
 # Runtime Profiles
 
+## Demo integration preparation
+
+`rm_demo_platform/demo_bench.launch.py` is an isolated software fixture on the
+Demo integration branch. Its default starts no nodes; `enable_test:=true`
+composes the existing V2 dry-run transport/mock, direct relative-yaw adapter,
+synthetic single-sensor model, fake raw odometry and canonical adapter. It does
+not start real serial, MID360, FAST-LIO, Nav2 or Mission. Use the package's
+isolated Humble container runner; never share its ROS domain with hardware.
+See the [Demo package](../../src/rm_demo_platform/README.md) and
+[audit, integration order and hardware gates](../validation/demo_navigation_integration_20261111.md).
+
 > Current：适用于新主仓当前代码与明确标记的候选 profile。历史验收只代表原条件，不提升实车结论。
 
 ## Principle

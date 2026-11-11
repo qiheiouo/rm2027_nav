@@ -1,0 +1,38 @@
+# Synthetic nonzero geometry and tilted base: NEVER use as hardware calibration.
+fake_lio_odom_publisher:
+  ros__parameters:
+    motion_mode: static
+    publish_rate_hz: 50.0
+    base_pose: {x: 1.0, y: 2.0, z: 0.3, roll: 0.12, pitch: 0.22, yaw: 0.4}
+    # F * Rz(0.25) * K from bench.urdf; fake raw has canonical odom parent.
+    sensor_offset:
+      x: 0.1113214114201869
+      y: 0.04906672354475565
+      z: 0.18
+      roll: 0.08
+      pitch: -0.06
+      yaw: 0.45
+lio_adapter:
+  ros__parameters:
+    raw_odom_topic: /odometry/fast_lio_raw
+    output_odom_topic: /odometry/lio
+    expected_input_odom_frame: odom
+    odom_frame: odom
+    base_frame: base_link
+    input_sensor_frame: lio_imu_link
+    pose_conversion_mode: sensor_tf
+    raw_odom_parent_frame_mode: canonical_odom
+    publish_tf: true
+    use_tf_sensor_to_base: true
+    use_latest_transform: false
+    allow_placeholder_fallback: false
+    backend_child_frame_alias_enabled: false
+    tf_lookup_timeout_sec: 0.0
+    tf_queue: {max_size: 100, max_wait_sec: 0.2, retry_rate_hz: 200.0}
+    twist_mode: finite_difference
+    twist_estimator:
+      min_dt_sec: 0.001
+      max_dt_sec: 0.5
+      smoothing_alpha: 0.3
+      max_linear_speed: 5.0
+      max_angular_speed: 20.0
