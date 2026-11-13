@@ -1,13 +1,15 @@
 # STM 与导航数据合同：Demo / 正式新车共用
 
-状态：**Integration，字段约定待 STM 联签，Hardware Go = NO**。适用于本 Demo 集成分支。
+状态：**Host chassis-attitude implementation ready，STM 联签/固件/实测 pending，Hardware Go = NO**。
+适用于本 Demo 集成分支。
 两车使用 RoboMaster 官方 STM 控制板，不代表板上固件已实现本协议。固件仓库、commit、
 实际 profile、带时间的原始抓包均未知；禁止从板型号、旧车资料或 bench 推断。
 
-本文件是共同确认清单；已有字节定义仍以 [V2 wire specification](../competition_v2_protocol.md)
-和 `rm_serial_driver/{src,reference/competition_v2}` 为准。未确认字段不占用 type、capability bit、
-payload offset 或新增 ROS 消息。每项确认须附固件 revision、上位机 revision、配置、抓包/session、
-STM/导航负责人和日期；更换固件或校准后重新核对受影响项。
+本文件是共同确认清单；统一 type/offset/lifecycle 定义以
+[STM V2 统一参考](stm_v2_protocol_reference.md) 和
+`rm_serial_driver/{src,reference/competition_v2}` 为准。`0x86` 已在 host 冻结并实现，但在 STM
+联签前仍是 host-frozen recommendation，不表示固件已接受。每项确认须附固件 revision、上位机
+revision、配置、抓包/session、STM/导航负责人和日期；更换固件或校准后重新核对受影响项。
 
 ## 当前实现与未完成边界
 
@@ -19,7 +21,7 @@ STM/导航负责人和日期；更换固件或校准后重新核对受影响项�
 | Chassis heading | `0x85` 19 bytes，world yaw/rate/seq/tick/reset_counter/flags | world参考、重置规则；**仅 yaw，不能代替完整姿态** |
 | Chassis command | `0x01` 13 bytes，vx/vy/wz/enabled | 执行符号、限幅、独立 watchdog、实测制动、re-arm |
 | Heartbeat | `0x03` 13 bytes，uptime_ms/boot_id/capabilities/ready | boot 唯一性、tick来源/回绕、ready及掉线定义 |
-| Chassis attitude/IMU | **无 wire payload、无本链路接收实现** | 下方字段级提案全部联签后另行实现 |
+| Chassis attitude/IMU | host 已实现 `0x86` 55-byte codec、C11 reference、`/chassis/imu`、status/ACQ、boot/reset/seq/tick fail-closed lifecycle | STM type/bit/语义联签、固件实现、抓包、方向/重力/频率/时延/TF 实测；完成前 Phase 1A 不能整体PASS |
 | Motion authority | production 模式始终 disabled；只存在隔离 dry-run test lease | 正式 task/session owner 与实车授权入口尚未实现；不得拿 test lease 上车 |
 
 ## 云台相对底盘 Yaw
@@ -42,28 +44,31 @@ Heartbeat boot 改变会令上位机旧状态失效；ACQ 记录的是当时最�
 TF只有 `gimbal_state_adapter(use_input=true)` → `/joint_states` → RSP；失效/断流停止joint发布，
 不回退假零角。TF关节为continuous只表示软件角度模型，不授权机械多圈旋转。
 
-## 完整底盘姿态 / IMU：待确认的字段级提案
+## 完整底盘姿态 / IMU：Host 冻结合同
 
-以下是拟定统一语义，**不是已经实现/双方接受的 wire 合同**。不分配新 type 或字节布局。
+host 已固定 `0x86 ChassisAttitudeState`、capability bit 6 和 55-byte payload；逐 offset 定义、
+golden vector 和生命周期规则见 [STM 单页实现说明](stm_v2_chassis_attitude_implementation_guide.md)。
 坡道场景必须保留 roll/pitch；禁止用 world yaw 或 `setRPY(0,0,yaw)` 代替。
 
-| 字段 | 提案（联签前不得作为运行输入） |
-| --- | --- |
-| orientation quaternion | 归一化四元数；建议字段顺序 **x,y,z,w**；表示 `R_reference_from_chassis_imu`，把IMU向量旋转到参考frame；不是逆旋转；q与-q等价，禁止靠符号判reset |
-| orientation reference | 明确命名 MCU 启动局部世界系或重力对齐局部系、yaw零点、是否磁北/启动朝向及reset行为；绝不自动等同ROS map/odom |
-| gravity | 参考系采用右手 +z向上时，重力加速度矢量为 `[0,0,-g] m/s²`；g取值/估计方法待确认；启动是否重力对齐及误差须有证据 |
-| angular velocity | 三轴rad/s，表达在 `chassis_imu_link`，右手；样本时刻、滤波延迟明确 |
-| linear acceleration | 三轴m/s²；建议传加速度计specific force（含重力响应），静止且+z朝上时约+g；必须确认是否已去重力，不能模糊写“加速度” |
-| 安装frame | `chassis_imu_link`的实际轴方向、安装位置、传感器ID；不是MID360内部IMU，不得混流 |
-| IMU → base_link | 给出 **T_base_from_chassis_imu** 固定SE(3)、平移m和旋转约定/校准revision；适配器将角速度与加速度旋转，存在杆臂时另确认补偿；不可只改frame_id |
-| valid / online | 分开表达姿态/gyro/acc是否有效（分量mask或明确的整体语义）；饱和、初始化、失锁、离线的规则 |
-| sequence / tick | 每样本seq、采样MCU tick及单位/位宽、与heartbeat对应时钟域；打包时间与采样时间区分 |
-| boot / reset | 每样本绑定boot_id与估计器reset_counter；重启、重新归零、时钟回绕及旧队列处理；跨epoch不得插值 |
-| 质量 | quaternion范数容差、漂移/协方差/饱和标志或明确缺失策略；禁止将缺失当高可信 |
-| 频率 / 时延 | 发布频率、允许间隔/抖动、端到端时延/同步误差、断流阈值全部待STM/实测确认，无默认数值 |
+| 字段 | Host 已冻结语义 | STM / 实机仍待确认 |
+| --- | --- | --- |
+| orientation quaternion | float32 `x,y,z,w`，`R_reference_from_chassis_imu`；q valid 时范数误差≤1e-3，host发布前归一化 | reference/yaw zero、重力对齐方法、误差/reset行为 |
+| angular velocity | 三轴rad/s，右手，表达在`chassis_imu_link` | 量程、滤波、bias、饱和与实际延迟 |
+| linear acceleration | 三轴m/s²，固定为specific force，静止+z向上约+g | 传感器型号、标定、g值、饱和/故障行为 |
+| sample identity | uint32 sample seq、uint32 `mcu_time_ms`、每样本非零 source boot、uint16 reset counter | 采样点定义、频率、tick来源/回绕、TX队列清空 |
+| validity | orientation/gyro/acc 独立valid + online；reserved flags必须0 | 初始化/失锁/故障/恢复的状态机 |
+| ROS output | 完整有效时发布`/chassis/imu` (`sensor_msgs/Imu`)，frame=`chassis_imu_link`；covariance全零=unknown | 质量/协方差如需新增必须另订，不得伪造 |
+| lifecycle output | `/chassis/attitude_status`给boot/reset/seq/tick/epoch/current_valid/stale/reason；异常不发布零值Imu | 真机cold boot/reset/re-zero/replay/dropout证据 |
+| IMU → base_link | transport不旋转、不发TF；由实测`T_base_from_chassis_imu`静态TF定义 | 安装轴/位置和校准revision；有杆臂时明确补偿owner |
 
-MID360内部IMU继续作为FAST-LIO输入；新增底盘IMU不自动成为第二个canonical odometry或TF owner。
-本轮只准备后续接口位置；完整姿态未定义前Phase 1A只能标为部分采集，不能整体PASS。
+同一 boot/reset 内 host 只接受模半范围严格更新的 sample sequence，拒绝 MCU time 倒退；新 reset
+须为更新 counter，新 boot 须先由 heartbeat 接受。断流默认软件阈值 0.2 s，但现场必须显式填写
+固件确认值。host heartbeat 现拒绝 zero boot、duplicate/out-of-order、uptime倒退和本进程已退役boot
+重放；它不是密码学认证，STM仍须确保新boot唯一并清空旧队列。
+
+MID360内部IMU继续作为FAST-LIO输入；底盘IMU不自动成为第二个canonical odometry或TF owner。
+Host software 状态为 Ready；STM firmware、物理语义和实机数据仍 Pending，因此 Phase 1A 只能
+Ready with Limitations，未完成联签/抓包/TF/方向/频率证据前不能整体PASS。
 
 ## 底盘速度与运动 owner
 
@@ -90,7 +95,8 @@ Posture request是独立执行器路径，不受底盘motion guard同等约束�
 当前MCU映射为 `offset = heartbeat_receive_ROS - uptime_ms`；样本header为
 `offset + mcu_time_ms`。ACQ保存映射版本、heartbeat basis、handler ROS/system/steady时间，
 真实串口另记一批read完成时间。它们不等于逐字节到达时间，不能证明USB时延或MCU时钟已同步。
-当前没有完整tick回绕、排队旧样本和host clock step补偿，必须记录并分段分析，不能跨异常拟合。
+`0x86` host 已实现boot/reset/seq/tick replay gate；gimbal/heading旧消息仍没有同等每样本boot绑定。
+当前没有完整host clock step补偿，必须记录并分段分析，不能跨异常拟合。
 
 Livox ACQ保留原始8字节timestamp、time_type、selected timestamp、host fallback、callback
 system/steady、包到输出point span、publish之后的ROS/steady观察时间。保留原cloud/IMU值和

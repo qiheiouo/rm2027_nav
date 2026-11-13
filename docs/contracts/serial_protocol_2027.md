@@ -180,11 +180,13 @@ and CRC16/Modbus over version through payload.
 
 Separate messages cover high-rate chassis velocity, desired posture requests,
 posture ACK/actual/fault state, relative mechanical gimbal yaw, optional
-chassis world heading with reset identity, normalized
+chassis world heading with reset identity, host-frozen full chassis attitude/IMU,
+normalized
 referee state, raw operator navigation targets and heartbeat/capabilities.
 Vision pursuit remains an upper-computer ROS path and has no serial message.
 
 The C++ codec, lower-controller C reference, mock lower controller and
 no-hardware ROS loop are implemented. The profile is not selected by old-car
 launches and is not new-car hardware-accepted. Full byte layouts, timeout and
-restart rules are in `docs/competition_v2_protocol.md`.
+restart rules and the source audit are in
+[`stm_v2_protocol_reference.md`](stm_v2_protocol_reference.md).

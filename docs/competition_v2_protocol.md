@@ -1,5 +1,11 @@
 # Competition V2 Serial Protocol
 
+> Current unified registry, source-audit findings, legacy comparison and the
+> host-frozen `0x86` contract are maintained in
+> [`contracts/stm_v2_protocol_reference.md`](contracts/stm_v2_protocol_reference.md).
+> This older path remains as a detailed V2 overview; where wording differs,
+> the contracts reference and current codec source take precedence.
+
 ## Status And Scope
 
 `competition_v2` is the proposed versioned protocol for the 2027 robot. It is
@@ -60,6 +66,7 @@ a legacy profile after receiving malformed bytes.
 | `0x83` | lower -> upper | Referee/robot state | 17 |
 | `0x84` | lower -> upper | Operator navigation target | 25 |
 | `0x85` | lower -> upper | Chassis heading state | 19 |
+| `0x86` | lower -> upper | Chassis attitude state | 55 |
 
 ### Chassis Command `0x01`
 
@@ -113,6 +120,7 @@ Capability bits are:
 | 3 | Referee/robot state |
 | 4 | Operator navigation target |
 | 5 | Chassis heading state |
+| 6 | Chassis attitude state |
 
 Both endpoints normally send heartbeat at 2 Hz. A changed `boot_id` means the
 peer restarted. The upper endpoint invalidates stale posture and gimbal state.
@@ -226,6 +234,17 @@ the current heartbeat `boot_id` to the ROS message. Firmware must increment
 The optional LIO heading-fusion profile uses only yaw deltas after a known
 gimbal-home initialization; see `docs/chassis_heading_lio_fusion.md`.
 
+### Chassis Attitude State `0x86`
+
+This host-frozen extension carries quaternion `x,y,z,w`, three-axis angular
+velocity, three-axis accelerometer specific force, sample sequence, MCU sample
+time, per-sample source boot ID, estimator reset counter, three component-valid
+bits, and online. Its exact 55-byte layout, lifecycle admission rules, ROS Imu
+adapter, C11 reference API and golden vector are normative in the
+[unified STM V2 reference](contracts/stm_v2_protocol_reference.md#5-chassisattitudestate-0x86host-frozen).
+STM firmware implementation and physical semantics remain pending; this is not
+hardware acceptance.
+
 ## Canonical Posture Enum
 
 | Value | Name |
@@ -241,11 +260,15 @@ All six values are valid. No enum value means "hold" or "no command".
 
 ## Counters And Wrap
 
-Frame sequence is `uint16` and command ID is `uint32`. For either width, a
+Frame sequence is `uint16` and command ID/sample sequence is `uint32`. For either width, a
 candidate is newer when modular subtraction is nonzero and less than half the
 number space. Equality means duplicate. The half-range case is ambiguous and
 must not be accepted as newer. Posture idempotence additionally uses
 `requester_boot_id`, so an upper restart cannot inherit an old ACK.
+
+The host validates heartbeat frame sequence and the `0x86` sample/reset/time
+lifecycle. Existing gimbal and heading handlers do not yet enforce an equivalent
+per-sample replay window; the sender convention alone is not receiver admission.
 
 ## Golden Vectors
 
@@ -272,6 +295,9 @@ referee state:
 
 operator target at (0,0):
 52 4d 02 84 19 00 06 00 09 00 00 00 02 01 03 00 00 00 00 00 00 00 00 00 00 80 3f 20 03 00 00 e8 03 e7 5a
+
+chassis attitude:
+52 4d 02 86 37 00 44 33 00 00 00 00 00 00 00 00 00 00 00 00 00 00 80 3f 00 00 00 3e 00 00 80 be 00 00 00 3f 00 00 00 00 00 00 00 00 0a e8 1c 41 04 03 02 01 e8 03 00 00 01 00 27 20 02 00 0f 9d 96
 ```
 
 ## Team Confirmation Items
@@ -285,3 +311,5 @@ operator target at (0,0):
 6. Operator field origin, axes, alliance mirroring owner, bounds, and yaw rule.
 7. New-car firmware repository/commit and packet captures used for acceptance.
 8. Chassis-heading sign, wrap, rate, sampling time, reset-counter and reboot behavior.
+9. Chassis-attitude type/capability signoff, reference frame, gravity/specific-force,
+   sensor frame, boot/reset lifecycle, rate/latency and golden vector.

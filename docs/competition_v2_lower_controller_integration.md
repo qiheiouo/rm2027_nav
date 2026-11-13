@@ -16,6 +16,11 @@ advertise capability bit 5 and populate yaw, yaw rate, sample sequence, MCU
 time and `reset_counter`. Increment `reset_counter` on every INS re-zero that
 does not reboot the MCU; heartbeat `boot_id` covers MCU restarts.
 
+The host-frozen full-attitude extension is `0x86`, capability bit 6. Its exact
+55-byte layout, per-sample boot/reset lifecycle and fixed golden vector are in
+[`contracts/stm_v2_chassis_attitude_implementation_guide.md`](contracts/stm_v2_chassis_attitude_implementation_guide.md).
+Do not advertise bit 6 until the STM implementation and validity behavior are ready.
+
 It is C11-compatible, uses explicit byte encoding, and has no packed-struct
 wire dependency. The canonical C++ and reference C codecs share golden-vector
 tests. This code is an integration reference, not a claim that the historical
@@ -102,10 +107,12 @@ causes posture/gimbal invalidation until fresh state arrives.
    failures through the actual DMA/ring parser.
 4. Verify heartbeat restart and sequence/command wrap behavior.
 5. Validate gimbal zero/sign/range by hand with chassis fixed.
-6. Validate posture ACK, transition, completion, fault, timeout, and reboot with
+6. Validate full attitude quaternion/gravity/axes and boot/reset/sequence/time
+   lifecycle with motors physically disabled.
+7. Validate posture ACK, transition, completion, fault, timeout, and reboot with
    mechanism power controlled.
-7. Validate chassis signs, limits, and watchdog with wheels off-ground.
-8. Capture bidirectional packets and freeze the firmware commit and protocol
+8. Validate chassis signs, limits, and watchdog with wheels off-ground.
+9. Capture bidirectional packets and freeze the firmware commit and protocol
    profile before allowing a full navigation launch.
 
 Until these steps pass, `competition_v2` remains software-complete at the
