@@ -26,6 +26,7 @@
 #include "builtin_interfaces/msg/time.hpp"
 #include "geometry_msgs/msg/twist.hpp"
 #include "rclcpp/rclcpp.hpp"
+#include "rm_competition_interfaces/msg/chassis_attitude_status.hpp"
 #include "rm_competition_interfaces/msg/chassis_heading_state.hpp"
 #include "rm_competition_interfaces/msg/chassis_mode.hpp"
 #include "rm_competition_interfaces/msg/localization_status.hpp"
@@ -40,6 +41,7 @@
 #include "rm_competition_interfaces/msg/serial_connection_state.hpp"
 #include "rm_competition_interfaces/msg/v2_timestamp_provenance.hpp"
 #include "rm_serial_driver/competition_v2_protocol.hpp"
+#include "sensor_msgs/msg/imu.hpp"
 #include "std_msgs/msg/u_int8_multi_array.hpp"
 
 namespace v2 = rm_serial_driver::competition_v2;
@@ -185,6 +187,10 @@ public:
       "gimbal_state_topic", "/gimbal/state");
     chassis_heading_topic_ = declare_parameter<std::string>(
       "chassis_heading_topic", "/chassis/heading");
+    chassis_imu_topic_ = declare_parameter<std::string>(
+      "chassis_imu_topic", "/chassis/imu");
+    chassis_attitude_status_topic_ = declare_parameter<std::string>(
+      "chassis_attitude_status_topic", "/chassis/attitude_status");
     referee_raw_topic_ = declare_parameter<std::string>(
       "referee_raw_topic", "/referee/state_raw");
     operator_goal_raw_topic_ = declare_parameter<std::string>(
@@ -203,6 +209,8 @@ public:
     gimbal_timeout_sec_ = declare_parameter<double>("gimbal_timeout_sec", 0.2);
     chassis_heading_timeout_sec_ = declare_parameter<double>(
       "chassis_heading_timeout_sec", 0.2);
+    chassis_attitude_timeout_sec_ = declare_parameter<double>(
+      "chassis_attitude_timeout_sec", 0.2);
     posture_timeout_sec_ = declare_parameter<double>("posture_timeout_sec", 0.5);
     max_vx_ = declare_parameter<double>("max_vx", 0.8);
     max_vy_ = declare_parameter<double>("max_vy", 0.5);
@@ -245,6 +253,11 @@ public:
     chassis_heading_pub_ = create_publisher<
       rm_competition_interfaces::msg::ChassisHeadingState>(
       chassis_heading_topic_, rclcpp::QoS(50));
+    chassis_imu_pub_ = create_publisher<sensor_msgs::msg::Imu>(
+      chassis_imu_topic_, rclcpp::SensorDataQoS());
+    chassis_attitude_status_pub_ = create_publisher<
+      rm_competition_interfaces::msg::ChassisAttitudeStatus>(
+      chassis_attitude_status_topic_, latched);
     referee_pub_ = create_publisher<rm_competition_interfaces::msg::RefereeState>(
       referee_raw_topic_, rclcpp::QoS(10));
     operator_goal_pub_ = create_publisher<
@@ -274,6 +287,7 @@ public:
     last_heartbeat_time_ = steadyNow() - std::chrono::hours(24);
     last_gimbal_time_ = steadyNow() - std::chrono::hours(24);
     last_chassis_heading_time_ = steadyNow() - std::chrono::hours(24);
+    last_chassis_attitude_time_ = steadyNow() - std::chrono::hours(24);
     last_posture_time_ = steadyNow() - std::chrono::hours(24);
     start_time_ = steadyNow();
 
@@ -307,10 +321,10 @@ private:
 
   void validateParameters() const
   {
-    const std::array<double, 11> positive_values{
+    const std::array<double, 12> positive_values{
       chassis_rate_hz_, posture_rate_hz_, heartbeat_rate_hz_, read_poll_rate_hz_,
       health_rate_hz_, connection_timeout_sec_, gimbal_timeout_sec_,
-      chassis_heading_timeout_sec_, posture_timeout_sec_,
+      chassis_heading_timeout_sec_, chassis_attitude_timeout_sec_, posture_timeout_sec_,
       max_vx_, max_vy_};
     for (const auto value : positive_values) {
       if (!std::isfinite(value) || value <= 0.0) {
@@ -602,7 +616,8 @@ private:
     heartbeat.capabilities =
       v2::CapabilityChassisCommand | v2::CapabilityPosture |
       v2::CapabilityGimbalState | v2::CapabilityRefereeState |
-      v2::CapabilityOperatorNavigationTarget | v2::CapabilityChassisHeadingState;
+      v2::CapabilityOperatorNavigationTarget | v2::CapabilityChassisHeadingState |
+      v2::CapabilityChassisAttitudeState;
     heartbeat.ready = true;
     sendMessage(v2::MessageType::Heartbeat, heartbeat_sequence_++, heartbeat);
   }
@@ -711,6 +726,8 @@ private:
     bindTimeOffset(t);
     t.has_output = true; t.output_topic = topic; t.output_sequence = sequence;
     t.output_header = header; t.output_online = online; t.output_valid = valid;
+    t.output_publish_ros_ns = now().nanoseconds();
+    t.output_publish_steady_ns = steadyNanoseconds();
     t.invalid_reason = valid ? "" : reason;
     publishTimeTrace(t);
   }
@@ -755,6 +772,7 @@ private:
         case v2::MessageType::PostureState: handlePostureState(frame); break;
         case v2::MessageType::GimbalState: handleGimbalState(frame); break;
         case v2::MessageType::ChassisHeadingState: handleChassisHeadingState(frame); break;
+        case v2::MessageType::ChassisAttitudeState: handleChassisAttitudeState(frame); break;
         case v2::MessageType::RefereeState: handleRefereeState(frame); break;
         case v2::MessageType::OperatorNavigationTarget: handleOperatorTarget(frame); break;
         case v2::MessageType::ChassisCommand:
@@ -773,16 +791,52 @@ private:
       publishDecodeFailure(trace);
       return;
     }
+    if (heartbeat->boot_id == 0U) {
+      if (trace) {
+        trace->payload_decoded = true;
+        trace->invalid_reason = "zero_boot_id";
+        publishTimeTrace(*trace);
+      }
+      return;
+    }
+    if (have_remote_heartbeat_ && heartbeat->boot_id == remote_boot_id_) {
+      const bool uptime_reversed = heartbeat->uptime_ms != remote_uptime_ms_ &&
+        !v2::is_newer_sequence32(heartbeat->uptime_ms, remote_uptime_ms_);
+      if (!v2::is_newer_sequence(frame.sequence, last_remote_heartbeat_sequence_) ||
+        uptime_reversed)
+      {
+        if (trace) {
+          trace->payload_decoded = true;
+          trace->invalid_reason = "heartbeat_duplicate_or_replay";
+          publishTimeTrace(*trace);
+        }
+        return;
+      }
+    } else if (have_remote_heartbeat_ &&
+      std::find(retired_remote_boot_ids_.begin(), retired_remote_boot_ids_.end(),
+        heartbeat->boot_id) != retired_remote_boot_ids_.end())
+    {
+      if (trace) {
+        trace->payload_decoded = true;
+        trace->invalid_reason = "retired_boot_id_replay";
+        publishTimeTrace(*trace);
+      }
+      return;
+    }
     if (guard_phase_ == GuardState::PERMITTED) {motionPermitted();}
     const auto receive_stamp = now();
-    if (have_remote_heartbeat_ && remote_boot_id_ != heartbeat->boot_id) {
+    const bool boot_changed = have_remote_heartbeat_ && remote_boot_id_ != heartbeat->boot_id;
+    if (boot_changed) {
       blockMotion("MCU boot changed");
-      publishInvalidPosture("lower-controller restart");
-      publishInvalidGimbal("lower-controller restart");
-      publishInvalidChassisHeading("lower-controller restart");
+      retired_remote_boot_ids_.push_back(remote_boot_id_);
+      if (retired_remote_boot_ids_.size() > 8U) {
+        retired_remote_boot_ids_.erase(retired_remote_boot_ids_.begin());
+      }
+      have_attitude_lifecycle_ = false;
     }
     remote_boot_id_ = heartbeat->boot_id;
     remote_uptime_ms_ = heartbeat->uptime_ms;
+    last_remote_heartbeat_sequence_ = frame.sequence;
     remote_capabilities_ = heartbeat->capabilities;
     remote_ready_ = heartbeat->ready;
     heartbeat_clock_offset_ns_ = receive_stamp.nanoseconds() -
@@ -796,6 +850,12 @@ private:
     have_clock_sync_ = true;
     have_remote_heartbeat_ = true;
     last_heartbeat_time_ = steadyNow();
+    if (boot_changed) {
+      publishInvalidPosture("lower-controller restart");
+      publishInvalidGimbal("lower-controller restart");
+      publishInvalidChassisHeading("lower-controller restart");
+      publishInvalidChassisAttitude("lower-controller restart", false);
+    }
     if (trace) {
       trace->payload_decoded = true;
       bindTimeOffset(*trace);
@@ -906,6 +966,153 @@ private:
     chassis_heading_invalid_published_ = false;
   }
 
+  bool acceptAttitudeLifecycle(
+    const v2::ChassisAttitudeState & state, std::string & reason)
+  {
+    if (!have_attitude_lifecycle_) {
+      have_attitude_lifecycle_ = true;
+      attitude_source_boot_id_ = state.source_boot_id;
+      attitude_reset_counter_ = state.reset_counter;
+      attitude_sample_sequence_ = state.sample_sequence;
+      attitude_mcu_time_ms_ = state.mcu_time_ms;
+      ++attitude_lifecycle_epoch_;
+      return true;
+    }
+    if (state.source_boot_id != attitude_source_boot_id_) {
+      reason = "unannounced_boot_epoch";
+      return false;
+    }
+    if (state.reset_counter != attitude_reset_counter_) {
+      if (!v2::is_newer_sequence(state.reset_counter, attitude_reset_counter_)) {
+        reason = "reset_counter_replay";
+        return false;
+      }
+      attitude_reset_counter_ = state.reset_counter;
+      attitude_sample_sequence_ = state.sample_sequence;
+      attitude_mcu_time_ms_ = state.mcu_time_ms;
+      ++attitude_lifecycle_epoch_;
+      return true;
+    }
+    if (!v2::is_newer_sequence32(state.sample_sequence, attitude_sample_sequence_)) {
+      reason = "sample_sequence_duplicate_or_replay";
+      return false;
+    }
+    if (state.mcu_time_ms != attitude_mcu_time_ms_ &&
+      !v2::is_newer_sequence32(state.mcu_time_ms, attitude_mcu_time_ms_))
+    {
+      reason = "mcu_time_regression";
+      return false;
+    }
+    attitude_sample_sequence_ = state.sample_sequence;
+    attitude_mcu_time_ms_ = state.mcu_time_ms;
+    return true;
+  }
+
+  void handleChassisAttitudeState(const v2::Frame & frame)
+  {
+    auto trace = beginTimeTrace(TimeTrace::ATTITUDE, &frame);
+    const auto state = v2::decode_chassis_attitude_state(frame);
+    if (!state.has_value()) {
+      publishDecodeFailure(trace);
+      return;
+    }
+    using Status = rm_competition_interfaces::msg::ChassisAttitudeStatus;
+    Status status;
+    status.header.stamp = estimateMcuStamp(state->mcu_time_ms);
+    status.header.frame_id = "chassis_imu_link";
+    status.frame_sequence = frame.sequence;
+    status.sample_sequence = state->sample_sequence;
+    status.mcu_time_ms = state->mcu_time_ms;
+    status.source_boot_id = state->source_boot_id;
+    status.reset_counter = state->reset_counter;
+    status.lifecycle_epoch = attitude_lifecycle_epoch_;
+    status.online = state->online &&
+      remoteSupports(v2::CapabilityChassisAttitudeState);
+    status.orientation_valid = state->orientation_valid;
+    status.angular_velocity_valid = state->angular_velocity_valid;
+    status.linear_acceleration_valid = state->linear_acceleration_valid;
+
+    std::string reason;
+    if (!have_clock_sync_) {
+      reason = "no_heartbeat_clock_basis";
+    } else if (!remoteSupports(v2::CapabilityChassisAttitudeState)) {
+      reason = "connection_or_capability_unavailable";
+    } else if (state->source_boot_id != remote_boot_id_) {
+      reason = "source_boot_id_mismatch";
+    } else if (!state->online) {
+      reason = "source_offline";
+    } else if (!state->orientation_valid || !state->angular_velocity_valid ||
+      !state->linear_acceleration_valid)
+    {
+      reason = "source_component_invalid";
+    } else if (!acceptAttitudeLifecycle(*state, reason)) {
+      // The lifecycle helper supplies a precise replay/reset/time reason.
+    }
+
+    status.current_valid = reason.empty();
+    status.stale = false;
+    status.lifecycle_epoch = attitude_lifecycle_epoch_;
+    status.reason = reason;
+
+    if (trace) {
+      trace->payload_decoded = true;
+      trace->sample_sequence = state->sample_sequence;
+      trace->mcu_time_ms = state->mcu_time_ms;
+      trace->attitude_reset_counter = state->reset_counter;
+      trace->raw_orientation.x = state->orientation_x;
+      trace->raw_orientation.y = state->orientation_y;
+      trace->raw_orientation.z = state->orientation_z;
+      trace->raw_orientation.w = state->orientation_w;
+      trace->raw_angular_velocity.x = state->angular_velocity_x_rad_s;
+      trace->raw_angular_velocity.y = state->angular_velocity_y_rad_s;
+      trace->raw_angular_velocity.z = state->angular_velocity_z_rad_s;
+      trace->raw_linear_acceleration.x = state->linear_acceleration_x_mps2;
+      trace->raw_linear_acceleration.y = state->linear_acceleration_y_mps2;
+      trace->raw_linear_acceleration.z = state->linear_acceleration_z_mps2;
+      trace->raw_orientation_valid = state->orientation_valid;
+      trace->raw_angular_velocity_valid = state->angular_velocity_valid;
+      trace->raw_linear_acceleration_valid = state->linear_acceleration_valid;
+      trace->raw_online = state->online;
+      trace->raw_valid = state->orientation_valid && state->angular_velocity_valid &&
+        state->linear_acceleration_valid;
+    }
+
+    if (status.current_valid) {
+      sensor_msgs::msg::Imu message;
+      message.header = status.header;
+      const double norm = std::sqrt(
+        static_cast<double>(state->orientation_x) * state->orientation_x +
+        static_cast<double>(state->orientation_y) * state->orientation_y +
+        static_cast<double>(state->orientation_z) * state->orientation_z +
+        static_cast<double>(state->orientation_w) * state->orientation_w);
+      message.orientation.x = state->orientation_x / norm;
+      message.orientation.y = state->orientation_y / norm;
+      message.orientation.z = state->orientation_z / norm;
+      message.orientation.w = state->orientation_w / norm;
+      message.angular_velocity.x = state->angular_velocity_x_rad_s;
+      message.angular_velocity.y = state->angular_velocity_y_rad_s;
+      message.angular_velocity.z = state->angular_velocity_z_rad_s;
+      message.linear_acceleration.x = state->linear_acceleration_x_mps2;
+      message.linear_acceleration.y = state->linear_acceleration_y_mps2;
+      message.linear_acceleration.z = state->linear_acceleration_z_mps2;
+      // All-zero covariance arrays deliberately mean "unknown" in this contract.
+      chassis_imu_pub_->publish(message);
+      chassis_attitude_status_pub_->publish(status);
+      if (trace) {
+        traceOutput(*trace, message.header, chassis_imu_pub_->get_topic_name(),
+          ++attitude_output_sequence_, true, true, "");
+      }
+      last_chassis_attitude_time_ = steadyNow();
+      chassis_attitude_invalid_published_ = false;
+    } else {
+      chassis_attitude_status_pub_->publish(status);
+      if (trace) {
+        traceOutput(*trace, status.header, chassis_attitude_status_pub_->get_topic_name(),
+          ++attitude_output_sequence_, status.online, false, reason);
+      }
+    }
+  }
+
   void handleRefereeState(const v2::Frame & frame)
   {
     const auto state = v2::decode_referee_state(frame);
@@ -1009,6 +1216,13 @@ private:
     {
       publishInvalidChassisHeading(state.online ? "stale" : "serial offline");
     }
+    if ((!state.online ||
+      ageSeconds(last_chassis_attitude_time_) > chassis_attitude_timeout_sec_) &&
+      !chassis_attitude_invalid_published_)
+    {
+      publishInvalidChassisAttitude(
+        state.online ? "stale" : "serial offline", state.online);
+    }
     if ((!state.online || ageSeconds(last_posture_time_) > posture_timeout_sec_) &&
       !posture_invalid_published_)
     {
@@ -1052,6 +1266,28 @@ private:
       get_logger(), *get_clock(), 2000, "Chassis heading invalidated: %s", reason);
   }
 
+  void publishInvalidChassisAttitude(const char * reason, bool stale)
+  {
+    auto trace = beginTimeTrace(TimeTrace::INVALID_ATTITUDE);
+    rm_competition_interfaces::msg::ChassisAttitudeStatus status;
+    status.header.stamp = now();
+    status.header.frame_id = "chassis_imu_link";
+    status.source_boot_id = remote_boot_id_;
+    status.lifecycle_epoch = attitude_lifecycle_epoch_;
+    status.online = remoteSupports(v2::CapabilityChassisAttitudeState);
+    status.current_valid = false;
+    status.stale = stale;
+    status.reason = reason;
+    chassis_attitude_status_pub_->publish(status);
+    if (trace) {
+      traceOutput(*trace, status.header, chassis_attitude_status_pub_->get_topic_name(),
+        ++attitude_output_sequence_, status.online, false, reason);
+    }
+    chassis_attitude_invalid_published_ = true;
+    RCLCPP_WARN_THROTTLE(
+      get_logger(), *get_clock(), 2000, "Chassis attitude invalidated: %s", reason);
+  }
+
   void publishInvalidPosture(const char * reason)
   {
     rm_competition_interfaces::msg::PostureState message;
@@ -1068,7 +1304,7 @@ private:
   std::string provenance_session_id_;
   rclcpp::Publisher<TimeTrace>::SharedPtr provenance_pub_;
   uint64_t provenance_sequence_{0}, offset_revision_{0};
-  uint64_t heading_output_sequence_{0}, gimbal_output_sequence_{0};
+  uint64_t heading_output_sequence_{0}, gimbal_output_sequence_{0}, attitude_output_sequence_{0};
   uint16_t offset_heartbeat_sequence_{0};
   int64_t offset_heartbeat_ros_ns_{0}, offset_heartbeat_steady_ns_{0};
   int64_t read_batch_ros_ns_{0}, read_batch_steady_ns_{0};
@@ -1099,6 +1335,8 @@ private:
   std::string posture_state_topic_;
   std::string gimbal_state_topic_;
   std::string chassis_heading_topic_;
+  std::string chassis_imu_topic_;
+  std::string chassis_attitude_status_topic_;
   std::string referee_raw_topic_;
   std::string operator_goal_raw_topic_;
   std::string connection_state_topic_;
@@ -1113,6 +1351,7 @@ private:
   double connection_timeout_sec_;
   double gimbal_timeout_sec_;
   double chassis_heading_timeout_sec_;
+  double chassis_attitude_timeout_sec_;
   double posture_timeout_sec_;
   double max_vx_;
   double max_vy_;
@@ -1128,6 +1367,7 @@ private:
   SteadyTime last_heartbeat_time_;
   SteadyTime last_gimbal_time_;
   SteadyTime last_chassis_heading_time_;
+  SteadyTime last_chassis_attitude_time_;
   SteadyTime last_posture_time_;
   SteadyTime start_time_;
   bool have_remote_heartbeat_ = false;
@@ -1135,13 +1375,22 @@ private:
   bool have_clock_sync_ = false;
   bool gimbal_invalid_published_ = false;
   bool chassis_heading_invalid_published_ = false;
+  bool chassis_attitude_invalid_published_ = false;
   bool posture_invalid_published_ = false;
+  bool have_attitude_lifecycle_ = false;
   std::int64_t heartbeat_clock_offset_ns_ = 0;
   std::uint32_t remote_capabilities_ = 0;
   std::uint32_t remote_boot_id_ = 0;
   std::uint32_t remote_uptime_ms_ = 0;
+  std::uint32_t attitude_source_boot_id_ = 0;
+  std::uint32_t attitude_sample_sequence_ = 0;
+  std::uint32_t attitude_mcu_time_ms_ = 0;
+  std::uint16_t attitude_reset_counter_ = 0;
+  std::uint64_t attitude_lifecycle_epoch_ = 0;
+  std::vector<std::uint32_t> retired_remote_boot_ids_;
   std::uint8_t latest_robot_id_ = 0;
   std::uint16_t last_rx_sequence_ = 0;
+  std::uint16_t last_remote_heartbeat_sequence_ = 0;
   std::uint16_t chassis_sequence_ = 0;
   std::uint16_t posture_sequence_ = 0;
   std::uint16_t heartbeat_sequence_ = 0;
@@ -1155,6 +1404,9 @@ private:
   rclcpp::Publisher<rm_competition_interfaces::msg::GimbalState>::SharedPtr gimbal_state_pub_;
   rclcpp::Publisher<rm_competition_interfaces::msg::ChassisHeadingState>::SharedPtr
     chassis_heading_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr chassis_imu_pub_;
+  rclcpp::Publisher<rm_competition_interfaces::msg::ChassisAttitudeStatus>::SharedPtr
+    chassis_attitude_status_pub_;
   rclcpp::Publisher<rm_competition_interfaces::msg::RefereeState>::SharedPtr referee_pub_;
   rclcpp::Publisher<rm_competition_interfaces::msg::OperatorNavigationTarget>::SharedPtr
     operator_goal_pub_;

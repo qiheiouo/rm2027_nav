@@ -88,6 +88,12 @@ bool rmcv2_sequence_is_newer(uint16_t candidate, uint16_t reference)
   return delta != 0u && delta < 0x8000u;
 }
 
+bool rmcv2_sequence32_is_newer(uint32_t candidate, uint32_t reference)
+{
+  const uint32_t delta = candidate - reference;
+  return delta != 0u && delta < UINT32_C(0x80000000);
+}
+
 bool rmcv2_command_id_is_newer(uint32_t candidate, uint32_t reference)
 {
   const uint32_t delta = candidate - reference;
@@ -374,6 +380,102 @@ rmcv2_result_t rmcv2_decode_chassis_heading_state(
   message->online = (frame->payload[18] & 2u) != 0u;
   return yaw_valid(message->yaw_rad) && isfinite(message->yaw_rate_rad_s) ?
          RMCV2_OK : RMCV2_INVALID_PAYLOAD;
+}
+
+static bool attitude_scalars_valid(const rmcv2_chassis_attitude_state_t * message)
+{
+  return message != NULL &&
+         isfinite(message->orientation_x) && isfinite(message->orientation_y) &&
+         isfinite(message->orientation_z) && isfinite(message->orientation_w) &&
+         isfinite(message->angular_velocity_x_rad_s) &&
+         isfinite(message->angular_velocity_y_rad_s) &&
+         isfinite(message->angular_velocity_z_rad_s) &&
+         isfinite(message->linear_acceleration_x_mps2) &&
+         isfinite(message->linear_acceleration_y_mps2) &&
+         isfinite(message->linear_acceleration_z_mps2);
+}
+
+static bool attitude_quaternion_valid(const rmcv2_chassis_attitude_state_t * message)
+{
+  double norm;
+  if (!message->orientation_valid) {
+    return true;
+  }
+  norm = sqrt(
+    (double)message->orientation_x * message->orientation_x +
+    (double)message->orientation_y * message->orientation_y +
+    (double)message->orientation_z * message->orientation_z +
+    (double)message->orientation_w * message->orientation_w);
+  return isfinite(norm) && fabs(norm - 1.0) <= 1.0e-3;
+}
+
+rmcv2_result_t rmcv2_encode_chassis_attitude_state(
+  const rmcv2_chassis_attitude_state_t * message, uint16_t sequence,
+  uint8_t * output, size_t capacity, size_t * size)
+{
+  uint8_t payload[55];
+  uint8_t flags = 0;
+  if (!attitude_scalars_valid(message) || !attitude_quaternion_valid(message) ||
+    message->source_boot_id == 0u)
+  {
+    return RMCV2_INVALID_PAYLOAD;
+  }
+  put_f32(payload, message->orientation_x);
+  put_f32(payload + 4, message->orientation_y);
+  put_f32(payload + 8, message->orientation_z);
+  put_f32(payload + 12, message->orientation_w);
+  put_f32(payload + 16, message->angular_velocity_x_rad_s);
+  put_f32(payload + 20, message->angular_velocity_y_rad_s);
+  put_f32(payload + 24, message->angular_velocity_z_rad_s);
+  put_f32(payload + 28, message->linear_acceleration_x_mps2);
+  put_f32(payload + 32, message->linear_acceleration_y_mps2);
+  put_f32(payload + 36, message->linear_acceleration_z_mps2);
+  put_u32(payload + 40, message->sample_sequence);
+  put_u32(payload + 44, message->mcu_time_ms);
+  put_u32(payload + 48, message->source_boot_id);
+  put_u16(payload + 52, message->reset_counter);
+  if (message->orientation_valid) flags |= 1u;
+  if (message->angular_velocity_valid) flags |= 2u;
+  if (message->linear_acceleration_valid) flags |= 4u;
+  if (message->online) flags |= 8u;
+  payload[54] = flags;
+  return rmcv2_encode_frame(
+    RMCV2_MSG_CHASSIS_ATTITUDE_STATE, sequence, payload, 55, output, capacity, size);
+}
+
+rmcv2_result_t rmcv2_decode_chassis_attitude_state(
+  const rmcv2_frame_t * frame, rmcv2_chassis_attitude_state_t * message)
+{
+  uint8_t flags;
+  if (message == NULL ||
+    !type_and_size(frame, RMCV2_MSG_CHASSIS_ATTITUDE_STATE, 55))
+  {
+    return RMCV2_INVALID_PAYLOAD;
+  }
+  flags = frame->payload[54];
+  if ((flags & 0xf0u) != 0u) {
+    return RMCV2_INVALID_PAYLOAD;
+  }
+  message->orientation_x = get_f32(frame->payload);
+  message->orientation_y = get_f32(frame->payload + 4);
+  message->orientation_z = get_f32(frame->payload + 8);
+  message->orientation_w = get_f32(frame->payload + 12);
+  message->angular_velocity_x_rad_s = get_f32(frame->payload + 16);
+  message->angular_velocity_y_rad_s = get_f32(frame->payload + 20);
+  message->angular_velocity_z_rad_s = get_f32(frame->payload + 24);
+  message->linear_acceleration_x_mps2 = get_f32(frame->payload + 28);
+  message->linear_acceleration_y_mps2 = get_f32(frame->payload + 32);
+  message->linear_acceleration_z_mps2 = get_f32(frame->payload + 36);
+  message->sample_sequence = get_u32(frame->payload + 40);
+  message->mcu_time_ms = get_u32(frame->payload + 44);
+  message->source_boot_id = get_u32(frame->payload + 48);
+  message->reset_counter = get_u16(frame->payload + 52);
+  message->orientation_valid = (flags & 1u) != 0u;
+  message->angular_velocity_valid = (flags & 2u) != 0u;
+  message->linear_acceleration_valid = (flags & 4u) != 0u;
+  message->online = (flags & 8u) != 0u;
+  return attitude_scalars_valid(message) && attitude_quaternion_valid(message) &&
+         message->source_boot_id != 0u ? RMCV2_OK : RMCV2_INVALID_PAYLOAD;
 }
 
 rmcv2_result_t rmcv2_encode_referee_state(

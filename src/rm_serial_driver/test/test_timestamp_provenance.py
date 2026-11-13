@@ -82,6 +82,8 @@ def exercise(enabled):
                 assert t.handler_ros_ns == 100 * 10**9
                 assert t.handler_steady_ns > 0 and t.handler_system_ns > 0
                 if t.has_output and t.payload_decoded:
+                    assert t.output_publish_ros_ns > 0
+                    assert t.output_publish_steady_ns > 0
                     outputs = heading if t.kind == t.HEADING else gimbal
                     matches = [m for m in outputs if m.sample_sequence == t.sample_sequence and
                                m.mcu_time_ms == t.mcu_time_ms and ns(m.header.stamp) == ns(t.output_header.stamp) and

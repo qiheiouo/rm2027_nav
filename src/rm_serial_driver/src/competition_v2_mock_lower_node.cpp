@@ -31,6 +31,8 @@ public:
       "gimbal_publish_duration_sec", -1.0);
     chassis_heading_publish_duration_sec_ = declare_parameter<double>(
       "chassis_heading_publish_duration_sec", -1.0);
+    chassis_attitude_publish_duration_sec_ = declare_parameter<double>(
+      "chassis_attitude_publish_duration_sec", -1.0);
     heartbeat_publish_duration_sec_ = declare_parameter<double>(
       "heartbeat_publish_duration_sec", -1.0);
     publish_operator_target_ = declare_parameter<bool>("publish_operator_target", false);
@@ -52,6 +54,8 @@ public:
       std::chrono::milliseconds(20), [this]() {publishGimbal();});
     chassis_heading_timer_ = create_wall_timer(
       std::chrono::milliseconds(10), [this]() {publishChassisHeading();});
+    chassis_attitude_timer_ = create_wall_timer(
+      std::chrono::milliseconds(10), [this]() {publishChassisAttitude();});
     referee_timer_ = create_wall_timer(
       std::chrono::milliseconds(200), [this]() {publishReferee();});
     if (publish_operator_target_) {
@@ -131,7 +135,8 @@ private:
     heartbeat.capabilities =
       v2::CapabilityChassisCommand | v2::CapabilityPosture |
       v2::CapabilityGimbalState | v2::CapabilityRefereeState |
-      v2::CapabilityOperatorNavigationTarget | v2::CapabilityChassisHeadingState;
+      v2::CapabilityOperatorNavigationTarget | v2::CapabilityChassisHeadingState |
+      v2::CapabilityChassisAttitudeState;
     heartbeat.ready = true;
     send(v2::MessageType::Heartbeat, heartbeat);
   }
@@ -169,6 +174,28 @@ private:
     state.valid = true;
     state.online = true;
     send(v2::MessageType::ChassisHeadingState, state);
+  }
+
+  void publishChassisAttitude()
+  {
+    if (chassis_attitude_publish_duration_sec_ >= 0.0 &&
+      uptimeMs() > static_cast<std::uint32_t>(chassis_attitude_publish_duration_sec_ * 1000.0))
+    {
+      return;
+    }
+    v2::ChassisAttitudeState state;
+    state.orientation_w = 1.0F;
+    state.angular_velocity_z_rad_s = static_cast<float>(chassis_yaw_rate_rad_s_);
+    state.linear_acceleration_z_mps2 = 9.80665F;
+    state.sample_sequence = chassis_attitude_sample_sequence_++;
+    state.mcu_time_ms = uptimeMs();
+    state.source_boot_id = boot_id_;
+    state.reset_counter = chassis_attitude_reset_counter_;
+    state.orientation_valid = true;
+    state.angular_velocity_valid = true;
+    state.linear_acceleration_valid = true;
+    state.online = true;
+    send(v2::MessageType::ChassisAttitudeState, state);
   }
 
   void publishReferee()
@@ -221,6 +248,7 @@ private:
       case v2::MessageType::PostureState: return posture_sequence_++;
       case v2::MessageType::GimbalState: return gimbal_sequence_++;
       case v2::MessageType::ChassisHeadingState: return chassis_heading_sequence_++;
+      case v2::MessageType::ChassisAttitudeState: return chassis_attitude_sequence_++;
       case v2::MessageType::RefereeState: return referee_sequence_++;
       case v2::MessageType::OperatorNavigationTarget: return operator_sequence_++;
       case v2::MessageType::ChassisCommand:
@@ -240,6 +268,7 @@ private:
   std::uint16_t chassis_heading_reset_counter_;
   double gimbal_publish_duration_sec_;
   double chassis_heading_publish_duration_sec_;
+  double chassis_attitude_publish_duration_sec_;
   double heartbeat_publish_duration_sec_;
   bool publish_operator_target_;
   int posture_transition_responses_;
@@ -253,10 +282,13 @@ private:
   std::uint16_t posture_sequence_ = 0;
   std::uint16_t gimbal_sequence_ = 0;
   std::uint16_t chassis_heading_sequence_ = 0;
+  std::uint16_t chassis_attitude_sequence_ = 0;
   std::uint16_t referee_sequence_ = 0;
   std::uint16_t operator_sequence_ = 0;
   std::uint32_t gimbal_sample_sequence_ = 0;
   std::uint32_t chassis_heading_sample_sequence_ = 0;
+  std::uint32_t chassis_attitude_sample_sequence_ = 0;
+  std::uint16_t chassis_attitude_reset_counter_ = 0;
   std::uint32_t operator_command_id_ = 1;
   v2::StreamDecoder decoder_;
   rclcpp::Publisher<std_msgs::msg::UInt8MultiArray>::SharedPtr tx_pub_;
@@ -264,6 +296,7 @@ private:
   rclcpp::TimerBase::SharedPtr heartbeat_timer_;
   rclcpp::TimerBase::SharedPtr gimbal_timer_;
   rclcpp::TimerBase::SharedPtr chassis_heading_timer_;
+  rclcpp::TimerBase::SharedPtr chassis_attitude_timer_;
   rclcpp::TimerBase::SharedPtr referee_timer_;
   rclcpp::TimerBase::SharedPtr operator_timer_;
 };

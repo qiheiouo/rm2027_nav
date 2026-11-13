@@ -10,7 +10,7 @@ This package currently provides only:
 - separate stream decoders for no-CRC and CRC-framed data;
 - an independent `competition_v2` envelope with version, message type, length,
   sequence, CRC, capability heartbeat, chassis, posture, gimbal, chassis
-  heading, referee and operator-target messages;
+  heading, full chassis attitude/IMU, referee and operator-target messages;
 - a compiler-layout-independent C reference codec for lower-controller teams;
 - `serial_dry_run_node`, which encodes `/cmd_vel` into `/serial/mock_tx`
   without touching `/dev/tty*`;
@@ -26,7 +26,7 @@ This package currently provides only:
   fragmentation, and resynchronization;
 - a no-hardware v2 transport/mock integration test covering independent
   posture scheduling, transition/completion ACK, relative gimbal state,
-  optional chassis heading, connection health and a valid `(0,0)` raw
+  optional chassis heading, full chassis Imu lifecycle, connection health and a valid `(0,0)` raw
   operator target.
 
 Normal launches intentionally do not open a serial device. Real serial IO starts
@@ -44,7 +44,9 @@ commands. It publishes only byte-adapter boundaries; range, freshness,
 coordinate conversion and mission authority remain outside the serial driver.
 
 See `docs/contracts/serial_protocol_2027.md` for the known legacy layout and the unresolved four-wheel feedback requirements.
-See `docs/competition_v2_protocol.md` for the proposed new-car protocol and
+See `docs/contracts/stm_v2_protocol_reference.md` for the source-audited registry,
+host-frozen `0x86` contract and known limitations; see
+`docs/competition_v2_protocol.md` for the older detailed V2 overview and
 `docs/competition_v2_lower_controller_integration.md` for firmware integration.
 
 Dry-run example:

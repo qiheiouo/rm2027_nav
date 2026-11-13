@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <iterator>
 #include <limits>
 #include <type_traits>
 
@@ -18,6 +19,7 @@ constexpr std::size_t kPostureRequestPayloadSize = 11;
 constexpr std::size_t kPostureStatePayloadSize = 13;
 constexpr std::size_t kGimbalStatePayloadSize = 17;
 constexpr std::size_t kChassisHeadingStatePayloadSize = 19;
+constexpr std::size_t kChassisAttitudeStatePayloadSize = 55;
 constexpr std::size_t kRefereeStatePayloadSize = 17;
 constexpr std::size_t kOperatorTargetPayloadSize = 25;
 constexpr std::size_t kHeartbeatPayloadSize = 13;
@@ -30,6 +32,13 @@ constexpr std::uint8_t kPostureTransitioningFlag = 1U << 2U;
 constexpr std::uint8_t kPostureFaultFlag = 1U << 3U;
 constexpr std::uint8_t kOperatorValidFlag = 1U << 0U;
 constexpr std::uint8_t kOperatorHasYawFlag = 1U << 1U;
+constexpr std::uint8_t kAttitudeOrientationValidFlag = 1U << 0U;
+constexpr std::uint8_t kAttitudeAngularVelocityValidFlag = 1U << 1U;
+constexpr std::uint8_t kAttitudeLinearAccelerationValidFlag = 1U << 2U;
+constexpr std::uint8_t kAttitudeOnlineFlag = 1U << 3U;
+constexpr std::uint8_t kAttitudeKnownFlags =
+  kAttitudeOrientationValidFlag | kAttitudeAngularVelocityValidFlag |
+  kAttitudeLinearAccelerationValidFlag | kAttitudeOnlineFlag;
 
 void append_u16(std::vector<std::uint8_t> & output, std::uint16_t value)
 {
@@ -87,6 +96,30 @@ bool valid_wrapped_yaw(float yaw)
   return finite(yaw) && yaw >= -kPi && yaw < kPi;
 }
 
+bool valid_attitude_scalars(const ChassisAttitudeState & message)
+{
+  const float values[]{
+    message.orientation_x, message.orientation_y, message.orientation_z,
+    message.orientation_w, message.angular_velocity_x_rad_s,
+    message.angular_velocity_y_rad_s, message.angular_velocity_z_rad_s,
+    message.linear_acceleration_x_mps2, message.linear_acceleration_y_mps2,
+    message.linear_acceleration_z_mps2};
+  return std::all_of(std::begin(values), std::end(values), finite);
+}
+
+bool valid_attitude_quaternion(const ChassisAttitudeState & message)
+{
+  if (!message.orientation_valid) {
+    return true;
+  }
+  const double norm = std::sqrt(
+    static_cast<double>(message.orientation_x) * message.orientation_x +
+    static_cast<double>(message.orientation_y) * message.orientation_y +
+    static_cast<double>(message.orientation_z) * message.orientation_z +
+    static_cast<double>(message.orientation_w) * message.orientation_w);
+  return std::isfinite(norm) && std::abs(norm - 1.0) <= 1.0e-3;
+}
+
 bool frame_matches(const Frame & frame, MessageType type, std::size_t payload_size)
 {
   return frame.version == kProtocolVersion &&
@@ -107,6 +140,7 @@ bool is_known_message_type(std::uint8_t value)
     case MessageType::RefereeState:
     case MessageType::OperatorNavigationTarget:
     case MessageType::ChassisHeadingState:
+    case MessageType::ChassisAttitudeState:
       return true;
   }
   return false;
@@ -132,6 +166,12 @@ bool is_newer_sequence(std::uint16_t candidate, std::uint16_t reference)
 {
   const auto delta = static_cast<std::uint16_t>(candidate - reference);
   return delta != 0U && delta < 0x8000U;
+}
+
+bool is_newer_sequence32(std::uint32_t candidate, std::uint32_t reference)
+{
+  const auto delta = static_cast<std::uint32_t>(candidate - reference);
+  return delta != 0U && delta < 0x80000000U;
 }
 
 bool is_newer_command_id(std::uint32_t candidate, std::uint32_t reference)
@@ -256,6 +296,38 @@ std::optional<std::vector<std::uint8_t>> encode_payload(
   output.push_back(
     (message.valid ? kPostureValidFlag : 0U) |
     (message.online ? kPostureOnlineFlag : 0U));
+  return output;
+}
+
+std::optional<std::vector<std::uint8_t>> encode_payload(
+  const ChassisAttitudeState & message)
+{
+  if (!valid_attitude_scalars(message) || !valid_attitude_quaternion(message) ||
+    message.source_boot_id == 0U)
+  {
+    return std::nullopt;
+  }
+  std::vector<std::uint8_t> output;
+  output.reserve(kChassisAttitudeStatePayloadSize);
+  append_float(output, message.orientation_x);
+  append_float(output, message.orientation_y);
+  append_float(output, message.orientation_z);
+  append_float(output, message.orientation_w);
+  append_float(output, message.angular_velocity_x_rad_s);
+  append_float(output, message.angular_velocity_y_rad_s);
+  append_float(output, message.angular_velocity_z_rad_s);
+  append_float(output, message.linear_acceleration_x_mps2);
+  append_float(output, message.linear_acceleration_y_mps2);
+  append_float(output, message.linear_acceleration_z_mps2);
+  append_u32(output, message.sample_sequence);
+  append_u32(output, message.mcu_time_ms);
+  append_u32(output, message.source_boot_id);
+  append_u16(output, message.reset_counter);
+  output.push_back(
+    (message.orientation_valid ? kAttitudeOrientationValidFlag : 0U) |
+    (message.angular_velocity_valid ? kAttitudeAngularVelocityValidFlag : 0U) |
+    (message.linear_acceleration_valid ? kAttitudeLinearAccelerationValidFlag : 0U) |
+    (message.online ? kAttitudeOnlineFlag : 0U));
   return output;
 }
 
@@ -399,6 +471,46 @@ std::optional<ChassisHeadingState> decode_chassis_heading_state(const Frame & fr
   message.valid = (frame.payload[18] & kPostureValidFlag) != 0U;
   message.online = (frame.payload[18] & kPostureOnlineFlag) != 0U;
   if (!valid_wrapped_yaw(message.yaw_rad) || !finite(message.yaw_rate_rad_s)) {
+    return std::nullopt;
+  }
+  return message;
+}
+
+std::optional<ChassisAttitudeState> decode_chassis_attitude_state(const Frame & frame)
+{
+  if (!frame_matches(
+      frame, MessageType::ChassisAttitudeState, kChassisAttitudeStatePayloadSize))
+  {
+    return std::nullopt;
+  }
+  ChassisAttitudeState message;
+  message.orientation_x = read_float(frame.payload.data());
+  message.orientation_y = read_float(frame.payload.data() + 4);
+  message.orientation_z = read_float(frame.payload.data() + 8);
+  message.orientation_w = read_float(frame.payload.data() + 12);
+  message.angular_velocity_x_rad_s = read_float(frame.payload.data() + 16);
+  message.angular_velocity_y_rad_s = read_float(frame.payload.data() + 20);
+  message.angular_velocity_z_rad_s = read_float(frame.payload.data() + 24);
+  message.linear_acceleration_x_mps2 = read_float(frame.payload.data() + 28);
+  message.linear_acceleration_y_mps2 = read_float(frame.payload.data() + 32);
+  message.linear_acceleration_z_mps2 = read_float(frame.payload.data() + 36);
+  message.sample_sequence = read_u32(frame.payload.data() + 40);
+  message.mcu_time_ms = read_u32(frame.payload.data() + 44);
+  message.source_boot_id = read_u32(frame.payload.data() + 48);
+  message.reset_counter = read_u16(frame.payload.data() + 52);
+  const auto flags = frame.payload[54];
+  if ((flags & static_cast<std::uint8_t>(~kAttitudeKnownFlags)) != 0U) {
+    return std::nullopt;
+  }
+  message.orientation_valid = (flags & kAttitudeOrientationValidFlag) != 0U;
+  message.angular_velocity_valid =
+    (flags & kAttitudeAngularVelocityValidFlag) != 0U;
+  message.linear_acceleration_valid =
+    (flags & kAttitudeLinearAccelerationValidFlag) != 0U;
+  message.online = (flags & kAttitudeOnlineFlag) != 0U;
+  if (!valid_attitude_scalars(message) || !valid_attitude_quaternion(message) ||
+    message.source_boot_id == 0U)
+  {
     return std::nullopt;
   }
   return message;

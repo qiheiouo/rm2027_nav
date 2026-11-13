@@ -29,6 +29,7 @@ enum class MessageType : std::uint8_t
   RefereeState = 0x83,
   OperatorNavigationTarget = 0x84,
   ChassisHeadingState = 0x85,
+  ChassisAttitudeState = 0x86,
 };
 
 enum class Posture : std::uint8_t
@@ -63,6 +64,7 @@ enum Capability : std::uint32_t
   CapabilityRefereeState = 1U << 3U,
   CapabilityOperatorNavigationTarget = 1U << 4U,
   CapabilityChassisHeadingState = 1U << 5U,
+  CapabilityChassisAttitudeState = 1U << 6U,
 };
 
 struct Frame
@@ -124,6 +126,28 @@ struct ChassisHeadingState
   bool online = false;
 };
 
+struct ChassisAttitudeState
+{
+  float orientation_x = 0.0F;
+  float orientation_y = 0.0F;
+  float orientation_z = 0.0F;
+  float orientation_w = 1.0F;
+  float angular_velocity_x_rad_s = 0.0F;
+  float angular_velocity_y_rad_s = 0.0F;
+  float angular_velocity_z_rad_s = 0.0F;
+  float linear_acceleration_x_mps2 = 0.0F;
+  float linear_acceleration_y_mps2 = 0.0F;
+  float linear_acceleration_z_mps2 = 0.0F;
+  std::uint32_t sample_sequence = 0;
+  std::uint32_t mcu_time_ms = 0;
+  std::uint32_t source_boot_id = 0;
+  std::uint16_t reset_counter = 0;
+  bool orientation_valid = false;
+  bool angular_velocity_valid = false;
+  bool linear_acceleration_valid = false;
+  bool online = false;
+};
+
 struct RefereeState
 {
   std::uint8_t game_progress = 0;
@@ -165,6 +189,7 @@ bool is_valid_posture(Posture value);
 bool is_valid_coordinate_frame(CoordinateFrame value);
 bool is_valid_alliance(Alliance value);
 bool is_newer_sequence(std::uint16_t candidate, std::uint16_t reference);
+bool is_newer_sequence32(std::uint32_t candidate, std::uint32_t reference);
 bool is_newer_command_id(std::uint32_t candidate, std::uint32_t reference);
 
 std::uint16_t crc16_modbus(const std::uint8_t * data, std::size_t size);
@@ -175,6 +200,7 @@ std::optional<std::vector<std::uint8_t>> encode_payload(const PostureRequest & m
 std::optional<std::vector<std::uint8_t>> encode_payload(const PostureState & message);
 std::optional<std::vector<std::uint8_t>> encode_payload(const GimbalState & message);
 std::optional<std::vector<std::uint8_t>> encode_payload(const ChassisHeadingState & message);
+std::optional<std::vector<std::uint8_t>> encode_payload(const ChassisAttitudeState & message);
 std::optional<std::vector<std::uint8_t>> encode_payload(const RefereeState & message);
 std::optional<std::vector<std::uint8_t>> encode_payload(
   const OperatorNavigationTarget & message);
@@ -185,6 +211,7 @@ std::optional<PostureRequest> decode_posture_request(const Frame & frame);
 std::optional<PostureState> decode_posture_state(const Frame & frame);
 std::optional<GimbalState> decode_gimbal_state(const Frame & frame);
 std::optional<ChassisHeadingState> decode_chassis_heading_state(const Frame & frame);
+std::optional<ChassisAttitudeState> decode_chassis_attitude_state(const Frame & frame);
 std::optional<RefereeState> decode_referee_state(const Frame & frame);
 std::optional<OperatorNavigationTarget> decode_operator_navigation_target(const Frame & frame);
 std::optional<Heartbeat> decode_heartbeat(const Frame & frame);

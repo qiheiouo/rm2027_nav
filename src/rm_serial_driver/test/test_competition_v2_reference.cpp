@@ -47,6 +47,53 @@ TEST(CompetitionV2Reference, SupportsAllPosturesAndSequenceWrap)
   EXPECT_FALSE(rmcv2_sequence_is_newer(0xffff, 0));
   EXPECT_TRUE(rmcv2_command_id_is_newer(0U, 0xffffffffU));
   EXPECT_FALSE(rmcv2_command_id_is_newer(0xffffffffU, 0U));
+  EXPECT_TRUE(rmcv2_sequence32_is_newer(0U, 0xffffffffU));
+  EXPECT_FALSE(rmcv2_sequence32_is_newer(0xffffffffU, 0U));
+}
+
+TEST(CompetitionV2Reference, MatchesCanonicalChassisAttitudeGoldenVector)
+{
+  rmcv2_chassis_attitude_state_t state{};
+  state.orientation_w = 1.0F;
+  state.angular_velocity_x_rad_s = 0.125F;
+  state.angular_velocity_y_rad_s = -0.25F;
+  state.angular_velocity_z_rad_s = 0.5F;
+  state.linear_acceleration_z_mps2 = 9.80665F;
+  state.sample_sequence = 0x01020304U;
+  state.mcu_time_ms = 1000U;
+  state.source_boot_id = 0x20270001U;
+  state.reset_counter = 2U;
+  state.orientation_valid = true;
+  state.angular_velocity_valid = true;
+  state.linear_acceleration_valid = true;
+  state.online = true;
+  std::array<std::uint8_t, RMCV2_MAX_FRAME_SIZE> output{};
+  std::size_t output_size = 0;
+  ASSERT_EQ(rmcv2_encode_chassis_attitude_state(
+    &state, 0x3344U, output.data(), output.size(), &output_size), RMCV2_OK);
+  const std::vector<std::uint8_t> expected{
+    0x52, 0x4d, 0x02, 0x86, 0x37, 0x00, 0x44, 0x33,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x3f,
+    0x00, 0x00, 0x00, 0x3e, 0x00, 0x00, 0x80, 0xbe,
+    0x00, 0x00, 0x00, 0x3f, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x0a, 0xe8, 0x1c, 0x41,
+    0x04, 0x03, 0x02, 0x01, 0xe8, 0x03, 0x00, 0x00,
+    0x01, 0x00, 0x27, 0x20, 0x02, 0x00, 0x0f, 0x9d, 0x96};
+  EXPECT_EQ(
+    std::vector<std::uint8_t>(output.begin(), output.begin() + output_size), expected);
+  rmcv2_frame_t frame{};
+  std::size_t consumed = 0;
+  ASSERT_EQ(rmcv2_decode_frame(output.data(), output_size, &frame, &consumed), RMCV2_OK);
+  rmcv2_chassis_attitude_state_t decoded{};
+  ASSERT_EQ(rmcv2_decode_chassis_attitude_state(&frame, &decoded), RMCV2_OK);
+  EXPECT_FLOAT_EQ(decoded.linear_acceleration_z_mps2, 9.80665F);
+  EXPECT_EQ(decoded.source_boot_id, 0x20270001U);
+  EXPECT_TRUE(decoded.online);
+
+  state.orientation_w = 0.5F;
+  EXPECT_EQ(rmcv2_encode_chassis_attitude_state(
+    &state, 0, output.data(), output.size(), &output_size), RMCV2_INVALID_PAYLOAD);
 }
 
 TEST(CompetitionV2Reference, RoundTripsEveryMessageType)

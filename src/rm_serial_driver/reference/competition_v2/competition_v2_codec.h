@@ -25,7 +25,8 @@ typedef enum {
   RMCV2_MSG_GIMBAL_STATE = 0x82,
   RMCV2_MSG_REFEREE_STATE = 0x83,
   RMCV2_MSG_OPERATOR_TARGET = 0x84,
-  RMCV2_MSG_CHASSIS_HEADING_STATE = 0x85
+  RMCV2_MSG_CHASSIS_HEADING_STATE = 0x85,
+  RMCV2_MSG_CHASSIS_ATTITUDE_STATE = 0x86
 } rmcv2_message_type_t;
 
 typedef enum {
@@ -55,7 +56,8 @@ enum {
   RMCV2_CAP_GIMBAL_STATE = 1u << 2u,
   RMCV2_CAP_REFEREE_STATE = 1u << 3u,
   RMCV2_CAP_OPERATOR_TARGET = 1u << 4u,
-  RMCV2_CAP_CHASSIS_HEADING_STATE = 1u << 5u
+  RMCV2_CAP_CHASSIS_HEADING_STATE = 1u << 5u,
+  RMCV2_CAP_CHASSIS_ATTITUDE_STATE = 1u << 6u
 };
 
 typedef enum {
@@ -103,6 +105,15 @@ typedef struct {
   bool valid, online;
 } rmcv2_chassis_heading_state_t;
 typedef struct {
+  float orientation_x, orientation_y, orientation_z, orientation_w;
+  float angular_velocity_x_rad_s, angular_velocity_y_rad_s, angular_velocity_z_rad_s;
+  float linear_acceleration_x_mps2, linear_acceleration_y_mps2,
+    linear_acceleration_z_mps2;
+  uint32_t sample_sequence, mcu_time_ms, source_boot_id;
+  uint16_t reset_counter;
+  bool orientation_valid, angular_velocity_valid, linear_acceleration_valid, online;
+} rmcv2_chassis_attitude_state_t;
+typedef struct {
   uint8_t game_progress;
   uint16_t stage_remain_time;
   uint8_t robot_id;
@@ -126,6 +137,7 @@ typedef struct {
 uint16_t rmcv2_crc16_modbus(const uint8_t *data, size_t size);
 bool rmcv2_posture_is_valid(uint8_t posture);
 bool rmcv2_sequence_is_newer(uint16_t candidate, uint16_t reference);
+bool rmcv2_sequence32_is_newer(uint32_t candidate, uint32_t reference);
 bool rmcv2_command_id_is_newer(uint32_t candidate, uint32_t reference);
 
 rmcv2_result_t rmcv2_encode_frame(
@@ -159,6 +171,11 @@ rmcv2_result_t rmcv2_encode_chassis_heading_state(
   uint8_t *output, size_t capacity, size_t *size);
 rmcv2_result_t rmcv2_decode_chassis_heading_state(
   const rmcv2_frame_t *frame, rmcv2_chassis_heading_state_t *message);
+rmcv2_result_t rmcv2_encode_chassis_attitude_state(
+  const rmcv2_chassis_attitude_state_t *message, uint16_t sequence,
+  uint8_t *output, size_t capacity, size_t *size);
+rmcv2_result_t rmcv2_decode_chassis_attitude_state(
+  const rmcv2_frame_t *frame, rmcv2_chassis_attitude_state_t *message);
 rmcv2_result_t rmcv2_encode_referee_state(
   const rmcv2_referee_state_t *message, uint16_t sequence,
   uint8_t *output, size_t capacity, size_t *size);

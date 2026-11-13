@@ -15,6 +15,7 @@ find_package(builtin_interfaces REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rm_competition_interfaces REQUIRED)
+find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 
 add_library(rm_serial_protocol
@@ -56,6 +57,7 @@ ament_target_dependencies(competition_v2_transport_node
   geometry_msgs
   rclcpp
   rm_competition_interfaces
+  sensor_msgs
   std_msgs
 )
 
@@ -107,6 +109,11 @@ if(BUILD_TESTING)
   ament_add_pytest_test(
     test_chassis_heading_fusion_runtime
     test/test_chassis_heading_fusion_runtime.py
+    TIMEOUT 30
+  )
+  ament_add_pytest_test(
+    test_chassis_attitude_runtime
+    test/test_chassis_attitude_runtime.py
     TIMEOUT 30
   )
 endif()

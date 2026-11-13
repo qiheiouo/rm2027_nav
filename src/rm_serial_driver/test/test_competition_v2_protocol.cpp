@@ -1,5 +1,6 @@
 #include "rm_serial_driver/competition_v2_protocol.hpp"
 
+#include <array>
 #include <cmath>
 #include <cstdint>
 #include <limits>
@@ -20,6 +21,21 @@ v2::Frame decodeSingle(const std::vector<std::uint8_t> & bytes)
   EXPECT_TRUE(decoder.pop(frame));
   EXPECT_EQ(decoder.buffered_size(), 0U);
   return frame;
+}
+
+std::array<float, 4> quaternionFromRpy(float roll, float pitch, float yaw)
+{
+  const float sr = std::sin(roll * 0.5F);
+  const float cr = std::cos(roll * 0.5F);
+  const float sp = std::sin(pitch * 0.5F);
+  const float cp = std::cos(pitch * 0.5F);
+  const float sy = std::sin(yaw * 0.5F);
+  const float cy = std::cos(yaw * 0.5F);
+  return {
+    sr * cp * cy - cr * sp * sy,
+    cr * sp * cy + sr * cp * sy,
+    cr * cp * sy - sr * sp * cy,
+    cr * cp * cy + sr * sp * sy};
 }
 
 }  // namespace
@@ -150,6 +166,147 @@ TEST(CompetitionV2Protocol, RoundTripsChassisHeadingAndResetCounter)
   EXPECT_TRUE(decoded->online);
 
   state.yaw_rad = std::numeric_limits<float>::infinity();
+  EXPECT_FALSE(v2::encode_payload(state).has_value());
+}
+
+TEST(CompetitionV2Protocol, ChassisAttitudeMatchesGoldenBytes)
+{
+  v2::ChassisAttitudeState state;
+  state.orientation_w = 1.0F;
+  state.angular_velocity_x_rad_s = 0.125F;
+  state.angular_velocity_y_rad_s = -0.25F;
+  state.angular_velocity_z_rad_s = 0.5F;
+  state.linear_acceleration_z_mps2 = 9.80665F;
+  state.sample_sequence = 0x01020304U;
+  state.mcu_time_ms = 1000U;
+  state.source_boot_id = 0x20270001U;
+  state.reset_counter = 2U;
+  state.orientation_valid = true;
+  state.angular_velocity_valid = true;
+  state.linear_acceleration_valid = true;
+  state.online = true;
+  const auto encoded = v2::encode_message(
+    v2::MessageType::ChassisAttitudeState, 0x3344U, state);
+  ASSERT_TRUE(encoded.has_value());
+  const std::vector<std::uint8_t> expected{
+    0x52, 0x4d, 0x02, 0x86, 0x37, 0x00, 0x44, 0x33,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x3f,
+    0x00, 0x00, 0x00, 0x3e, 0x00, 0x00, 0x80, 0xbe,
+    0x00, 0x00, 0x00, 0x3f, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x0a, 0xe8, 0x1c, 0x41,
+    0x04, 0x03, 0x02, 0x01, 0xe8, 0x03, 0x00, 0x00,
+    0x01, 0x00, 0x27, 0x20, 0x02, 0x00, 0x0f, 0x9d, 0x96};
+  EXPECT_EQ(*encoded, expected);
+  const auto decoded = v2::decode_chassis_attitude_state(decodeSingle(*encoded));
+  ASSERT_TRUE(decoded.has_value());
+  EXPECT_FLOAT_EQ(decoded->orientation_w, 1.0F);
+  EXPECT_FLOAT_EQ(decoded->angular_velocity_y_rad_s, -0.25F);
+  EXPECT_FLOAT_EQ(decoded->linear_acceleration_z_mps2, 9.80665F);
+  EXPECT_EQ(decoded->source_boot_id, 0x20270001U);
+  EXPECT_EQ(decoded->reset_counter, 2U);
+  EXPECT_TRUE(decoded->orientation_valid);
+  EXPECT_TRUE(decoded->angular_velocity_valid);
+  EXPECT_TRUE(decoded->linear_acceleration_valid);
+  EXPECT_TRUE(decoded->online);
+
+  state.orientation_w = 0.5F;
+  EXPECT_FALSE(v2::encode_payload(state).has_value());
+  state.orientation_valid = false;
+  EXPECT_TRUE(v2::encode_payload(state).has_value());
+  state.source_boot_id = 0U;
+  EXPECT_FALSE(v2::encode_payload(state).has_value());
+}
+
+TEST(CompetitionV2Protocol, ChassisAttitudePreservesFullOrientationFixtures)
+{
+  const std::array<std::array<float, 3>, 10> poses{{
+    {0.0F, 0.0F, 0.0F},
+    {0.35F, 0.0F, 0.0F},
+    {0.0F, -0.42F, 0.0F},
+    {0.0F, 0.0F, 1.2F},
+    {0.31F, -0.27F, 0.83F},
+    {0.0F, 0.45F, -0.6F},
+    {0.1F, 0.2F, -1.0F},
+    {0.1F, 0.2F, -0.5F},
+    {0.1F, 0.2F, 0.0F},
+    {0.1F, 0.2F, 0.5F},
+  }};
+  std::uint32_t sample_sequence = 100U;
+  for (const auto & pose : poses) {
+    const auto q = quaternionFromRpy(pose[0], pose[1], pose[2]);
+    v2::ChassisAttitudeState state;
+    state.orientation_x = q[0];
+    state.orientation_y = q[1];
+    state.orientation_z = q[2];
+    state.orientation_w = q[3];
+    state.angular_velocity_x_rad_s = 0.1F;
+    state.angular_velocity_y_rad_s = -0.2F;
+    state.angular_velocity_z_rad_s = 0.3F;
+    state.linear_acceleration_x_mps2 = 1.0F;
+    state.linear_acceleration_y_mps2 = -2.0F;
+    state.linear_acceleration_z_mps2 = 9.7F;
+    state.sample_sequence = sample_sequence;
+    state.mcu_time_ms = 2000U + sample_sequence;
+    state.source_boot_id = 0x20270001U;
+    state.orientation_valid = true;
+    state.angular_velocity_valid = true;
+    state.linear_acceleration_valid = true;
+    state.online = true;
+    const auto bytes = v2::encode_message(
+      v2::MessageType::ChassisAttitudeState,
+      static_cast<std::uint16_t>(sample_sequence), state);
+    ASSERT_TRUE(bytes.has_value());
+    const auto decoded = v2::decode_chassis_attitude_state(decodeSingle(*bytes));
+    ASSERT_TRUE(decoded.has_value());
+    EXPECT_NEAR(decoded->orientation_x, q[0], 1.0e-6F);
+    EXPECT_NEAR(decoded->orientation_y, q[1], 1.0e-6F);
+    EXPECT_NEAR(decoded->orientation_z, q[2], 1.0e-6F);
+    EXPECT_NEAR(decoded->orientation_w, q[3], 1.0e-6F);
+    EXPECT_EQ(decoded->sample_sequence, sample_sequence);
+    ++sample_sequence;
+  }
+}
+
+TEST(CompetitionV2Protocol, ChassisAttitudeRejectsMalformedAndInvalidFrames)
+{
+  v2::ChassisAttitudeState state;
+  state.orientation_w = 1.0F;
+  state.source_boot_id = 0x20270001U;
+  state.orientation_valid = true;
+  state.angular_velocity_valid = true;
+  state.linear_acceleration_valid = true;
+  state.online = true;
+  const auto valid = v2::encode_message(
+    v2::MessageType::ChassisAttitudeState, 9U, state);
+  ASSERT_TRUE(valid.has_value());
+
+  auto truncated = *valid;
+  truncated.pop_back();
+  v2::StreamDecoder truncated_decoder;
+  truncated_decoder.append(truncated);
+  v2::Frame output;
+  EXPECT_FALSE(truncated_decoder.pop(output));
+
+  auto corrupted = *valid;
+  corrupted[20] ^= 0x80U;
+  v2::StreamDecoder corrupted_decoder;
+  corrupted_decoder.append(corrupted);
+  EXPECT_FALSE(corrupted_decoder.pop(output));
+  EXPECT_EQ(corrupted_decoder.crc_error_count(), 1U);
+
+  auto wrong_length = decodeSingle(*valid);
+  wrong_length.payload.pop_back();
+  EXPECT_FALSE(v2::decode_chassis_attitude_state(wrong_length).has_value());
+
+  auto reserved_flag = decodeSingle(*valid);
+  reserved_flag.payload[54] |= 0x80U;
+  EXPECT_FALSE(v2::decode_chassis_attitude_state(reserved_flag).has_value());
+
+  state.angular_velocity_x_rad_s = std::numeric_limits<float>::quiet_NaN();
+  EXPECT_FALSE(v2::encode_payload(state).has_value());
+  state.angular_velocity_x_rad_s = 0.0F;
+  state.orientation_w = 0.25F;
   EXPECT_FALSE(v2::encode_payload(state).has_value());
 }
 
@@ -301,6 +458,8 @@ TEST(CompetitionV2Protocol, SequenceComparisonHandlesWrapAndDuplicates)
   EXPECT_TRUE(v2::is_newer_command_id(0U, 0xffffffffU));
   EXPECT_FALSE(v2::is_newer_command_id(0xffffffffU, 0U));
   EXPECT_FALSE(v2::is_newer_command_id(42U, 42U));
+  EXPECT_TRUE(v2::is_newer_sequence32(0U, 0xffffffffU));
+  EXPECT_FALSE(v2::is_newer_sequence32(0xffffffffU, 0U));
 }
 
 TEST(CompetitionV2Protocol, RejectsNonFiniteChassisVelocity)

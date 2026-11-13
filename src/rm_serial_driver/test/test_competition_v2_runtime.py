@@ -9,8 +9,14 @@ import rclpy
 from ament_index_python.packages import get_package_prefix
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
-from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy
+from rclpy.qos import (
+    DurabilityPolicy,
+    QoSProfile,
+    ReliabilityPolicy,
+    qos_profile_sensor_data,
+)
 from rm_competition_interfaces.msg import (
+    ChassisAttitudeStatus,
     ChassisHeadingState,
     GimbalState,
     OperatorNavigationTarget,
@@ -19,7 +25,7 @@ from rm_competition_interfaces.msg import (
     RobotPosture,
     SerialConnectionState,
 )
-from sensor_msgs.msg import JointState
+from sensor_msgs.msg import Imu, JointState
 
 
 class CompetitionV2Probe(Node):
@@ -33,6 +39,8 @@ class CompetitionV2Probe(Node):
         self.connection = None
         self.gimbal = None
         self.chassis_heading = None
+        self.chassis_imu = None
+        self.chassis_attitude_status = None
         self.operator_target = None
         self.joint_state = None
         self.posture_states = []
@@ -56,6 +64,15 @@ class CompetitionV2Probe(Node):
             "/chassis/heading",
             self._chassis_heading_callback,
             50,
+        )
+        self.create_subscription(
+            Imu, "/chassis/imu", self._chassis_imu_callback, qos_profile_sensor_data
+        )
+        self.create_subscription(
+            ChassisAttitudeStatus,
+            "/chassis/attitude_status",
+            self._chassis_attitude_status_callback,
+            latched,
         )
         self.create_subscription(
             OperatorNavigationTarget,
@@ -83,6 +100,12 @@ class CompetitionV2Probe(Node):
 
     def _chassis_heading_callback(self, message):
         self.chassis_heading = message
+
+    def _chassis_imu_callback(self, message):
+        self.chassis_imu = message
+
+    def _chassis_attitude_status_callback(self, message):
+        self.chassis_attitude_status = message
 
     def _operator_callback(self, message):
         self.operator_target = message
@@ -121,7 +144,7 @@ def test_competition_v2_no_hardware_flow():
             executable("rm_serial_driver", "competition_v2_transport_node"),
             "--ros-args",
             "-p", "dry_run:=true",
-            "-p", "required_remote_capabilities:=63",
+            "-p", "required_remote_capabilities:=127",
         ],
         [
             executable("rm_serial_driver", "competition_v2_mock_lower_node"),
@@ -130,6 +153,7 @@ def test_competition_v2_no_hardware_flow():
             "-p", "posture_transition_responses:=10",
             "-p", "gimbal_publish_duration_sec:=2.0",
             "-p", "chassis_heading_publish_duration_sec:=2.0",
+            "-p", "chassis_attitude_publish_duration_sec:=2.0",
             "-p", "heartbeat_publish_duration_sec:=3.0",
         ],
         [
@@ -174,6 +198,14 @@ def test_competition_v2_no_hardware_flow():
             processes,
         )
         wait_for(
+            lambda: node.chassis_imu is not None
+            and node.chassis_attitude_status is not None
+            and node.chassis_attitude_status.current_valid,
+            3.0,
+            "valid chassis attitude",
+            processes,
+        )
+        wait_for(
             lambda: node.joint_state is not None
             and "gimbal_yaw_joint" in node.joint_state.name,
             3.0,
@@ -215,6 +247,9 @@ def test_competition_v2_no_hardware_flow():
         assert math.isclose(node.chassis_heading.yaw_rad, 0.4, abs_tol=1e-6)
         assert node.chassis_heading.reset_counter == 0
         assert node.chassis_heading.source_boot_id == 0x20270001
+        assert node.chassis_imu.header.frame_id == "chassis_imu_link"
+        assert math.isclose(node.chassis_imu.orientation.w, 1.0, abs_tol=1e-6)
+        assert math.isclose(node.chassis_imu.linear_acceleration.z, 9.80665, abs_tol=1e-5)
         joint_index = node.joint_state.name.index("gimbal_yaw_joint")
         assert math.isclose(node.joint_state.position[joint_index], 0.25, abs_tol=1e-6)
         assert node.operator_target.transport_valid
@@ -232,6 +267,14 @@ def test_competition_v2_no_hardware_flow():
             and not node.chassis_heading.valid,
             4.0,
             "stale chassis heading invalidation",
+            processes,
+        )
+        wait_for(
+            lambda: node.chassis_attitude_status is not None
+            and not node.chassis_attitude_status.current_valid
+            and node.chassis_attitude_status.stale,
+            4.0,
+            "stale chassis attitude invalidation",
             processes,
         )
         wait_for(

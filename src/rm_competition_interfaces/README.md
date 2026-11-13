@@ -22,6 +22,11 @@ protocol.
 - `ChassisHeadingState` carries timestamped lower-controller world yaw,
   estimator reset identity and source boot identity. It is an optional input
   to the sensor/chassis heading-fusion candidate, not a TF owner.
+- `ChassisAttitudeStatus` is the lifecycle/validity companion for the standard
+  `/chassis/imu` stream. It carries boot/reset/sample/tick/epoch and stale reason,
+  never substitute quaternion or acceleration values.
+- `V2TimestampProvenance` records the diagnostic handler/heartbeat/output timing
+  chain and raw `0x86` values; it is not a clock correction or localization input.
 - `SerialConnectionState` reports protocol version, peer capabilities/restart,
   freshness and parser counters without granting mission authority.
 - `SetMissionMode` is the explicit enable/mode gate for competition mission
