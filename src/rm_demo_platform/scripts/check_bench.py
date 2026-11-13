@@ -13,9 +13,14 @@ import time
 import rclpy
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
-from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy
-from rm_competition_interfaces.msg import V2TimestampProvenance
-from sensor_msgs.msg import JointState
+from rclpy.qos import (
+    DurabilityPolicy,
+    QoSProfile,
+    ReliabilityPolicy,
+    qos_profile_sensor_data,
+)
+from rm_competition_interfaces.msg import ChassisAttitudeStatus, V2TimestampProvenance
+from sensor_msgs.msg import Imu, JointState
 from std_msgs.msg import UInt8MultiArray
 from tf2_msgs.msg import TFMessage
 
@@ -44,6 +49,7 @@ def main():
     rclpy.init()
     node = rclpy.create_node("demo_bench_check")
     samples, joints, raw, frames, errors = [], [], [], [], []
+    chassis_imus, attitude_statuses = [], []
     edges = set()
     traces = []
     trace_enabled = os.environ.get("RM_DEMO_BENCH_PROVENANCE") == "1"
@@ -80,6 +86,13 @@ def main():
         node.create_subscription(Odometry, "/odometry/lio", odometry, 50),
         node.create_subscription(Odometry, "/odometry/fast_lio_raw", lambda _: raw.append(time.monotonic()), 50),
         node.create_subscription(JointState, "/joint_states", lambda _: joints.append(time.monotonic()), 50),
+        node.create_subscription(Imu, "/chassis/imu",
+                                 lambda msg: chassis_imus.append((time.monotonic(), msg)),
+                                 qos_profile_sensor_data),
+        node.create_subscription(ChassisAttitudeStatus, "/chassis/attitude_status",
+                                 attitude_statuses.append,
+                                 QoSProfile(depth=10, reliability=ReliabilityPolicy.RELIABLE,
+                                            durability=DurabilityPolicy.TRANSIENT_LOCAL)),
         node.create_subscription(TFMessage, "/tf", transform, 100),
         node.create_subscription(TFMessage, "/tf_static", transform,
                                  QoSProfile(depth=10, durability=DurabilityPolicy.TRANSIENT_LOCAL)),
@@ -122,14 +135,27 @@ def main():
                 rclpy.spin_once(node, timeout_sec=0.02)
 
             now = time.monotonic()
-            if len(samples) < 20 or len(joints) < 20 or len(frames) < 20:
-                raise RuntimeError(f"missing positive chain: odom={len(samples)} joints={len(joints)} frames={len(frames)}")
+            if len(samples) < 20 or len(joints) < 20 or len(frames) < 20 or len(chassis_imus) < 20:
+                raise RuntimeError(
+                    f"missing positive chain: odom={len(samples)} joints={len(joints)} "
+                    f"frames={len(frames)} chassis_imu={len(chassis_imus)}")
+            if not any(s.current_valid and s.source_boot_id == 0x20270001
+                       for s in attitude_statuses):
+                errors.append("no valid chassis attitude lifecycle status")
+            if not attitude_statuses or attitude_statuses[-1].current_valid or not attitude_statuses[-1].stale:
+                errors.append("chassis attitude dropout did not publish stale status")
+            if chassis_imus[-1][1].header.frame_id != "chassis_imu_link":
+                errors.append("chassis IMU frame mismatch")
+            if abs(chassis_imus[-1][1].linear_acceleration.z - 9.80665) > 1e-5:
+                errors.append("chassis IMU acceleration mismatch")
             if trace_enabled and (not traces or any(t.session_id != "demo-software-bench" for t in traces)):
                 raise RuntimeError("missing or wrong ACQ session trace")
             if not trace_enabled and traces:
                 raise RuntimeError("default-disabled provenance unexpectedly published")
             if now - samples[-1] < 1.0 or now - joints[-1] < 1.0:
                 raise RuntimeError("gimbal dropout did not stop canonical/joint publication")
+            if now - chassis_imus[-1][0] < 1.0:
+                raise RuntimeError("attitude dropout did not stop standard Imu publication")
             if not raw or now - raw[-1] > 0.2 or now - frames[-1] > 0.2:
                 raise RuntimeError("dropout was not isolated: raw or zero-disabled serial also stopped")
             expected_edges = {
@@ -163,6 +189,8 @@ def main():
                       "tf_edges": len(edges), "expected_tf_publishers": "pass",
                       "tilted_se3_and_lever_arm": "pass",
                       "source_dropout": "pass", "default_zero_nodes": "pass",
+                      "chassis_attitude_adapter": "pass",
+                      "chassis_imu_samples": len(chassis_imus),
                       "provenance_enabled": trace_enabled, "provenance_records": len(traces),
                       "hardware_acceptance": False}
     finally:

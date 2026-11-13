@@ -18,6 +18,7 @@ parameters:
   connection_timeout_sec: null
   gimbal_timeout_sec: null
   chassis_heading_timeout_sec: null
+  chassis_attitude_timeout_sec: null
   posture_timeout_sec: null
   max_vx: null
   max_vy: null

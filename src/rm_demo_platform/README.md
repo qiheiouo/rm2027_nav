@@ -1,12 +1,14 @@
 # RM2027 Demo 集成环境
 
 本包属于 `integration/demo-navigation-validation`。提供 **无硬件软件 bench、ACQ与默认禁用的Phase 1采集入口**，
-用于组合现有 V2 codec/transport、直接相对 Yaw、RSP、LIO adapter；真实固件、机械外参、
-完整底盘姿态输入和运动授权尚待确认。[完整审计与分阶段准入](../../docs/validation/demo_navigation_integration_20261111.md)。
+用于组合现有 V2 codec/transport、直接相对 Yaw、host端完整底盘姿态adapter、RSP、LIO adapter；
+真实 STM `0x86` 固件、机械外参和运动授权仍待确认。
+[完整审计与分阶段准入](../../docs/validation/demo_navigation_integration_20261111.md)。
 
 ## 运行
 
-优先复用已有 `rm2027_navigation:humble` 镜像。从仓库根目录执行：
+默认复用固定的 Demo Pre-Hardware Runtime Baseline
+`rm2027_navigation:demo-validation-de05e085-20261112`，不构建或覆盖镜像。从仓库根目录执行：
 
 ```bash
 # 局部构建 + 既有数学/协议测试 + 集成检查；完成后退出
@@ -35,6 +37,7 @@ ros2 launch rm_demo_platform demo_bench.launch.py enable_test:=true
 
 ```text
 V2 mock lower → mock bytes → 原 V2 transport(dry_run, motion_test_mode=false)
+  → /chassis/imu + /chassis/attitude_status（合成姿态；标准Imu+生命周期）
   → /gimbal/state → 原 gimbal_state_adapter(use_input=true)
   → /joint_states → RSP → base_link → gimbal_yaw_link → MID360 → IMU
 原 fake_lio_odom_publisher → /odometry/fast_lio_raw
@@ -44,13 +47,14 @@ V2 mock lower → mock bytes → 原 V2 transport(dry_run, motion_test_mode=fals
 ```
 
 仅有一颗逻辑 MID360。使用原有 `mid360_left_frame` 命名是复用单雷达接口，不代表第二颗雷达。
-无 Livox driver、真实 FAST-LIO、Nav2、Mission 或真实串口；IMU frame adapter 等待输入，不伪造IMU。
+无 Livox driver、真实 FAST-LIO、Nav2、Mission 或真实串口；`/chassis/imu`仅来自明确的V2 mock，
+MID360 IMU frame adapter 仍等待自己的输入，不把两种IMU混流。
 `bench.urdf` 与 `bench.yaml` 是配对的合成测试资产：有非零安装RPY/杆臂、0.25rad相对Yaw，
 底盘姿态roll=0.12、pitch=0.22、yaw=0.4rad。**不是 Demo 图纸、footprint、标定或动力学参数。**
 250mm中心圆盘和突出的四个轮子待实测后另建模型；不从该圆盘直径推断导航安全包络。
 
-检查器验证默认零节点、完整base位姿恢复、5条TF边及期望发布者集合、CRC与零/disabled命令，
-并在mock角度停止后验证joint/canonical输出暂停、raw和串口仍运行，以及正常进程退出。
+检查器验证默认零节点、完整base位姿恢复、5条TF边及期望发布者集合、CRC与零/disabled命令、
+标准chassis Imu适配与status，并在mock角度/姿态停止后验证输出暂停、raw和串口仍运行，以及正常进程退出。
 这只证明软件时间/TF边界，不能证明真实同步精度、动态deskew、坡道LIO质量或物理停车。
 mock角度恒定，不将本检查称作“旋转云台验收”。
 

@@ -5,7 +5,7 @@ stage=${1:-inventory}
 case "$stage" in inventory|serial|lidar|tf|fixed_lio) ;; *) echo 'Stage: inventory|serial|lidar|tf|fixed_lio' >&2; exit 2;; esac
 repo=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../../.." && pwd)
 results="$repo/build/demo_validation"
-image=rm2027_navigation:humble
+image=${RM_DEMO_BASE_IMAGE:-rm2027_navigation:demo-validation-de05e085-20261112}
 options=(--network none)
 args=(stage:=inventory)
 if [ "$stage" != inventory ]; then

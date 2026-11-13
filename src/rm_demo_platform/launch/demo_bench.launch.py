@@ -24,7 +24,7 @@ def setup(context):
         Node(package="rm_serial_driver", executable="competition_v2_transport_node",
              name="serial_transport_node", parameters=[{
                  "dry_run": True, "motion_test_mode": False,
-                 "required_remote_capabilities": 5,
+                 "required_remote_capabilities": 69,
                  "enable_timestamp_provenance": LaunchConfiguration("enable_timestamp_provenance").perform(context) == "true",
                  "provenance_session_id": "demo-software-bench",
              }]),
@@ -32,6 +32,7 @@ def setup(context):
              name="competition_v2_mock_lower_node", parameters=[{
                  "gimbal_yaw_rad": 0.25, "gimbal_rate_rad_s": 0.0,
                  "gimbal_publish_duration_sec": duration,
+                 "chassis_attitude_publish_duration_sec": duration,
                  "publish_operator_target": False,
              }]),
         Node(package="rm_localization_adapters", executable="gimbal_state_adapter",

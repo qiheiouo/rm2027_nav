@@ -17,6 +17,9 @@ motion_authorization: false
 result: NOT_RUN
 notes: null
 chassis_attitude:
-  topic: null
-  type: null
-  contract_revision: null
+  topic: /chassis/imu
+  type: sensor_msgs/msg/Imu
+  status_topic: /chassis/attitude_status
+  status_type: rm_competition_interfaces/msg/ChassisAttitudeStatus
+  contract_revision: stm-v2-attitude-0x86-host-v1
+  firmware_status: PENDING_STM_IMPLEMENTATION_AND_SIGNOFF

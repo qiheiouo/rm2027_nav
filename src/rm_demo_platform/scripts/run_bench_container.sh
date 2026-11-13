@@ -4,6 +4,7 @@ action=${1:-check}
 case "$action" in check|acq|run) ;; *) echo 'Usage: run_bench_container.sh [check|acq|run]' >&2; exit 2;; esac
 repo=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../../.." && pwd)
 results="$repo/build/demo_validation"
+image=${RM_DEMO_BASE_IMAGE:-rm2027_navigation:demo-validation-de05e085-20261112}
 mkdir -p "$results"
 # Deliberately no host networking, shared IPC, devices, privileged mode or old overlay.
 exec docker run --rm --pull never --network none --ipc private \
@@ -11,11 +12,11 @@ exec docker run --rm --pull never --network none --ipc private \
   --cpus 2 --memory 3g \
   -e ROS_DOMAIN_ID=137 -e ROS_LOCALHOST_ONLY=1 \
   -e ROS_LOG_DIR=/results/ros_logs -e PYTHONDONTWRITEBYTECODE=1 \
-  -e CMAKE_BUILD_PARALLEL_LEVEL=2 \
+  -e CMAKE_BUILD_PARALLEL_LEVEL=1 -e MAKEFLAGS=-j1 \
   -e RM_DEMO_ISOLATED_BENCH=1 \
   --mount "type=bind,src=$repo,dst=/source,readonly" \
   --mount "type=bind,src=$results,dst=/results" \
-  --workdir /results rm2027_navigation:humble bash -c '
+  --workdir /results "$image" bash -c '
     set -eo pipefail
     source /opt/ros/humble/setup.bash
     extra=()
@@ -24,13 +25,13 @@ exec docker run --rm --pull never --network none --ipc private \
       --base-paths /source/src/rm_competition_interfaces /source/src/rm_description \
         /source/src/rm_localization_adapters /source/src/rm_serial_driver /source/src/rm_demo_platform "${extra[@]}" \
       --build-base /results/build --install-base /results/install \
-      --executor sequential --cmake-args -DBUILD_TESTING=ON -DCMAKE_BUILD_TYPE=Debug
+      --parallel-workers 1 --cmake-args -DBUILD_TESTING=ON -DCMAKE_BUILD_TYPE=Debug
     source /results/install/setup.bash
     if [ "$1" != run ]; then
       colcon --log-base /results/test_logs test --build-base /results/build \
         --base-paths /source/src/rm_localization_adapters /source/src/rm_serial_driver /source/src/rm_demo_platform \
         --packages-select rm_localization_adapters rm_serial_driver rm_demo_platform \
-        --ctest-args -R "^test_(canonical_odometry|protocol|competition_v2_protocol|competition_v2_reference|demo_phase1)$" --output-on-failure
+        --ctest-args -R "^test_(canonical_odometry|protocol|competition_v2_protocol|competition_v2_reference|competition_v2_runtime|chassis_heading_fusion_runtime|chassis_attitude_runtime|demo_phase1)$" --output-on-failure
       colcon test-result --test-result-base /results/build --verbose
       if [ "$1" = acq ]; then
         RM_DEMO_BENCH_PROVENANCE=1 ros2 run rm_demo_platform check_bench.py

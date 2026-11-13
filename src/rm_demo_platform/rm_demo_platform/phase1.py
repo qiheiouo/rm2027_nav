@@ -20,7 +20,8 @@ class NotReady(ValueError):
 SERIAL_PARAMETERS = ('device', 'baudrate', 'required_remote_capabilities',
     'chassis_rate_hz', 'posture_rate_hz', 'heartbeat_rate_hz', 'read_poll_rate_hz',
     'health_rate_hz', 'cmd_vel_timeout_sec', 'connection_timeout_sec', 'gimbal_timeout_sec',
-    'chassis_heading_timeout_sec', 'posture_timeout_sec', 'max_vx', 'max_vy', 'max_wz')
+    'chassis_heading_timeout_sec', 'chassis_attitude_timeout_sec', 'posture_timeout_sec',
+    'max_vx', 'max_vy', 'max_wz')
 
 
 def read(path):
@@ -90,8 +91,10 @@ def validate(config_dir, stage):
         if params.get('baudrate') not in (9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600):
             raise NotReady('baudrate: select a supported, firmware-confirmed baud rate')
         cap = required(params, 'required_remote_capabilities')
-        if type(cap) is not int or cap < 0 or cap > 0xffffffff or cap & 37 != 37:
-            raise NotReady('required capabilities must include chassis(1), relative gimbal(4), heading(32)')
+        if type(cap) is not int or cap < 0 or cap > 0xffffffff or cap & 101 != 101:
+            raise NotReady(
+                'required capabilities must include chassis(1), relative gimbal(4), '
+                'heading(32), chassis attitude(64)')
         for key in params:
             if key not in ('device', 'baudrate', 'required_remote_capabilities'):
                 params[key] = positive(params, key)
@@ -218,8 +221,11 @@ def prepare(repo, config_dir, output, operator, phase, acq_dir=None):
     if phase in 'CDEF':
         topics['required'].update({'/livox/lio_imu': 'sensor_msgs/msg/Imu', '/odometry/fast_lio_raw':'nav_msgs/msg/Odometry', '/odometry/lio':'nav_msgs/msg/Odometry'})
     attitude = demo['chassis_attitude']
-    if attitude.get('topic') and attitude.get('type') and attitude.get('contract_revision'):
+    if (attitude.get('topic') and attitude.get('type') and attitude.get('status_topic') and
+            attitude.get('status_type') and attitude.get('contract_revision')):
         topics['required'][attitude['topic']] = attitude['type']
+        topics['required'][attitude['status_topic']] = attitude['status_type']
+        demo['chassis_attitude_status'] = 'HOST_READY_STM_FIRMWARE_PENDING'
     else:
         demo['chassis_attitude_status'] = 'BLOCKED_PENDING_STM_CONTRACT'
     (output / 'session.yaml').write_text(yaml.safe_dump(metadata, sort_keys=False, allow_unicode=True))

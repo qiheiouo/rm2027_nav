@@ -34,7 +34,7 @@ def valid_serial(config):
                 physical_motion_inhibit_confirmed=True, isolated_ros_domain_confirmed=True,
                 gimbal_joint_publish_rate_hz=50.0)
     item['parameters'] = {k:1.0 for k in item['parameters']}
-    item['parameters'].update(device='/dev/NOT_A_REAL_DEVICE',baudrate=115200,required_remote_capabilities=37)
+    item['parameters'].update(device='/dev/NOT_A_REAL_DEVICE',baudrate=115200,required_remote_capabilities=101)
     save(path,item)
     return item
 
@@ -107,9 +107,12 @@ def test_session_snapshots_and_no_false_pass(config,tmp_path):
     assert meta['software']['rm_instrumentation_revision'] == subprocess.check_output(['git','-C',str(REPO),'rev-parse','HEAD'],text=True).strip()
     assert meta['demo']['motion_authorization'] is False
     assert meta['demo']['result'] == 'NOT_RUN'
-    assert meta['demo']['chassis_attitude_status'] == 'BLOCKED_PENDING_STM_CONTRACT'
+    assert meta['demo']['chassis_attitude_status'] == 'HOST_READY_STM_FIRMWARE_PENDING'
     assert (output / 'dirty.patch').is_file()
     assert '/motion/v2_guard/state' in read(output / 'topics.yaml')['required']
+    assert read(output / 'topics.yaml')['required']['/chassis/imu'] == 'sensor_msgs/msg/Imu'
+    assert read(output / 'topics.yaml')['required']['/chassis/attitude_status'] == \
+        'rm_competition_interfaces/msg/ChassisAttitudeStatus'
     original = (output / 'config/demo_serial.yaml').read_text()
     valid_serial(config)
     assert (output / 'config/demo_serial.yaml').read_text() == original
