@@ -8,7 +8,14 @@ from types import SimpleNamespace as NS
 import pytest
 import yaml
 
-from rm_demo_platform.phase1 import NotReady, prepare, read, validate
+from rm_demo_platform.phase1 import (
+    RADAR_ONLY_PROFILE,
+    NotReady,
+    locked_gimbal_transforms,
+    prepare,
+    read,
+    validate,
+)
 from rm_demo_platform.observe import StreamStats
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -58,7 +65,7 @@ def test_default_launch_and_hardware_opt_in():
         launch.setup(context)
 
 
-@pytest.mark.parametrize('stage', ['serial','lidar','tf','fixed_lio'])
+@pytest.mark.parametrize('stage', ['serial','lidar','tf','fixed_lio','radar_fixed_lio'])
 def test_missing_inputs_reject_before_io(config, stage):
     with pytest.raises(NotReady):
         validate(config, stage)
@@ -175,6 +182,39 @@ def valid_lidar(config, tmp_path):
     return item
 
 
+def valid_radar_only(config, tmp_path):
+    valid_lidar(config, tmp_path)
+    cal = read(config / 'demo_calibration.yaml')
+    cal['mid360_to_imu'] = dict(
+        xyz_m=[0.01, -0.02, 0.03], rpy_rad=[0.0, 0.0, 0.0],
+        source='synthetic-unit-fixture', confidence='MEASURED', confirmed_for_phase1=True)
+    save(config / 'demo_calibration.yaml', cal)
+    profile = read(config / 'demo_radar_only.yaml')
+    profile.update(mechanically_locked_gimbal_confirmed=True,
+                   locked_gimbal_angle_rad=0.25,
+                   lock_method='synthetic-unit-fixture',
+                   physical_installation='LEFT')
+    save(config / 'demo_radar_only.yaml', profile)
+    backend = read(REPO / 'src/rm_lio_bringup/config/fast_lio_multi_single_mid360.yaml')
+    backend['/**']['ros__parameters']['mapping'].update(
+        zero_start_pose=False,
+        extrinsic_T=[-0.01, 0.02, -0.03],
+        extrinsic_R=[1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0])
+    adapter = read(REPO / 'src/rm_lio_bringup/config/lio_adapter_fast_lio_multi.yaml')
+    adapter['lio_adapter']['ros__parameters']['raw_odom_parent_frame_mode'] = 'canonical_odom'
+    save(tmp_path / 'backend.yaml', backend)
+    save(tmp_path / 'adapter.yaml', adapter)
+    (tmp_path / 'evidence.txt').write_text('synthetic unit fixture; not hardware evidence')
+    lio = read(config / 'demo_lio.yaml')
+    lio.update(enabled=True, raw_epoch_and_frame_reviewed=True,
+               internal_imu_extrinsics_reviewed=True,
+               backend_config_path=str(tmp_path / 'backend.yaml'),
+               adapter_config_path=str(tmp_path / 'adapter.yaml'),
+               phase1b_evidence=str(tmp_path / 'evidence.txt'))
+    save(config / 'demo_lio.yaml', lio)
+    return backend
+
+
 def test_lidar_manifest_cannot_hide_ip_or_extra_transform(config,tmp_path):
     import json
     item = valid_lidar(config,tmp_path)
@@ -190,6 +230,14 @@ def test_lidar_manifest_cannot_hide_ip_or_extra_transform(config,tmp_path):
     sdk.write_text(json.dumps(data))
     with pytest.raises(NotReady,match='extrinsic'):
         validate(config,'lidar')
+    item = valid_lidar(config,tmp_path)
+    sdk = Path(item['sdk_config_path'])
+    data = json.loads(sdk.read_text())
+    data['lidar_configs'].append(dict(ip='192.0.2.4', extrinsic_parameter={
+        key: 0 for key in ('x','y','z','roll','pitch','yaw')}))
+    sdk.write_text(json.dumps(data))
+    with pytest.raises(NotReady, match='exactly the selected'):
+        validate(config, 'lidar')
 
 
 def test_fixed_lio_rejects_epoch_jump_and_yaw_only_conversion(config,tmp_path):
@@ -220,6 +268,132 @@ def test_fixed_lio_rejects_epoch_jump_and_yaw_only_conversion(config,tmp_path):
     save(tmp_path / 'adapter.yaml',adapter)
     with pytest.raises(NotReady,match='sensor_tf'):
         validate(config,'fixed_lio')
+
+
+def test_radar_only_needs_no_serial_and_rejects_second_sensor(config, tmp_path):
+    valid_radar_only(config, tmp_path)
+    (config / 'demo_serial.yaml').unlink()
+    result = validate(config, 'radar_fixed_lio')
+    assert 'serial' not in result
+    assert result['radar_only']['hardware_profile'] == RADAR_ONLY_PROFILE
+    assert result['lio']['enabled'] is True
+    profile = read(config / 'demo_radar_only.yaml')
+    profile['physical_mid360_count'] = 2
+    save(config / 'demo_radar_only.yaml', profile)
+    with pytest.raises(NotReady, match='exactly one'):
+        validate(config, 'radar_fixed_lio')
+
+
+def test_radar_only_requires_lock_and_internal_imu_confirmation(config, tmp_path):
+    valid_radar_only(config, tmp_path)
+    profile = read(config / 'demo_radar_only.yaml')
+    profile['mechanically_locked_gimbal_confirmed'] = False
+    save(config / 'demo_radar_only.yaml', profile)
+    with pytest.raises(NotReady, match='mechanically_locked'):
+        validate(config, 'radar_fixed_lio')
+    profile['mechanically_locked_gimbal_confirmed'] = True
+    save(config / 'demo_radar_only.yaml', profile)
+    cal = read(config / 'demo_calibration.yaml')
+    cal['mid360_to_imu'].update(xyz_m=None, rpy_rad=None,
+        confidence='PENDING_INTERNAL_IMU_EXTRINSIC_CONFIRMATION', confirmed_for_phase1=False)
+    save(config / 'demo_calibration.yaml', cal)
+    with pytest.raises(NotReady, match='PENDING_INTERNAL_IMU'):
+        validate(config, 'radar_fixed_lio')
+
+
+def test_radar_only_rejects_backend_internal_extrinsic_mismatch(config, tmp_path):
+    valid_radar_only(config, tmp_path)
+    backend_path = tmp_path / 'backend.yaml'
+    backend = read(backend_path)
+    backend['/**']['ros__parameters']['mapping']['extrinsic_T'] = [0.0, 0.0, 0.0]
+    save(backend_path, backend)
+    with pytest.raises(NotReady, match='inverse'):
+        validate(config, 'radar_fixed_lio')
+    valid_radar_only(config, tmp_path)
+    backend = read(backend_path)
+    backend['/**']['ros__parameters']['common']['multi_lidar'] = True
+    save(backend_path, backend)
+    with pytest.raises(NotReady, match='single physical'):
+        validate(config, 'radar_fixed_lio')
+
+
+def test_locked_gimbal_uses_se3_rotation_composition():
+    calibration = {
+        'base_to_yaw_axis': {'xyz_m':[0.0, 0.0, 0.1], 'rpy_rad':[1.5707963267948966, 0.0, 0.0]},
+        'gimbal_to_mid360_left_cad_nominal': {'xyz_m':[0.0, 0.1, 0.1], 'rpy_rad':[0.0, 0.0, 0.0]},
+        'gimbal_to_mid360_right_cad_nominal': {'xyz_m':[0.0, -0.1, 0.1], 'rpy_rad':[0.0, 0.0, 0.0]},
+        'mid360_to_imu': {'xyz_m':[0.0, 0.0, 0.0], 'rpy_rad':[0.0, 0.0, 0.0]},
+    }
+    transforms = locked_gimbal_transforms(calibration, 1.5707963267948966)
+    assert transforms[0]['parent'] == 'base_link'
+    assert transforms[0]['child'] == 'gimbal_yaw_link'
+    assert transforms[0]['quaternion'] == pytest.approx((0.5, -0.5, 0.5, 0.5))
+    assert locked_gimbal_transforms(calibration, 0.0, 'RIGHT')[1]['xyz'][1] == -0.1
+
+
+def test_repository_cad_nominal_values_match_user_geometry():
+    cal = read(ROOT / 'config/demo_calibration.yaml')
+    assert cal['ground_to_lowest_circular_plate_bottom_m'] == 0.043
+    assert cal['base_to_yaw_axis']['xyz_m'] == [0.0, 0.0, 0.103]
+    assert cal['gimbal_to_mid360_left_cad_nominal']['xyz_m'] == [0.0, 0.132028, 0.1]
+    assert cal['gimbal_to_mid360_left_cad_nominal']['rpy_rad'] == [0.0, 0.523599, 1.570796]
+    assert cal['gimbal_to_mid360_right_cad_nominal']['xyz_m'] == [0.0, -0.132028, 0.1]
+    assert cal['gimbal_to_mid360_right_cad_nominal']['rpy_rad'] == [0.0, -0.523599, 1.570796]
+    assert cal['mid360_to_imu']['confidence'] == 'PENDING_INTERNAL_IMU_EXTRINSIC_CONFIRMATION'
+
+
+def test_radar_only_session_has_no_serial_or_stm_requirements(config, tmp_path):
+    valid_radar_only(config, tmp_path)
+    (config / 'demo_serial.yaml').unlink()
+    output = tmp_path / 'radar_session'
+    prepare(REPO, config, output, 'fixture', 'C', hardware_profile=RADAR_ONLY_PROFILE)
+    meta = read(output / 'session.yaml')
+    topics = read(output / 'topics.yaml')['required']
+    assert meta['demo']['hardware_profile'] == RADAR_ONLY_PROFILE
+    assert meta['demo']['motion_authorization'] is False
+    assert meta['devices']['serial']['applicability'] == 'NOT_APPLICABLE'
+    assert meta['hardware']['mechanically_locked_gimbal_confirmed'] is True
+    assert not (output / 'config/demo_serial.yaml').exists()
+    assert '/gimbal/state' not in topics
+    assert '/chassis/imu' not in topics
+    assert '/chassis/attitude_status' not in topics
+    assert '/motion/v2_guard/state' not in topics
+    assert '/serial/connection_state' not in topics
+    assert topics['/odometry/lio'] == 'nav_msgs/msg/Odometry'
+
+
+def test_radar_only_launch_has_one_driver_static_tf_and_no_serial(config, tmp_path, monkeypatch):
+    valid_radar_only(config, tmp_path)
+    output = tmp_path / 'launch_session'
+    prepare(REPO, config, output, 'fixture', 'C', hardware_profile=RADAR_ONLY_PROFILE)
+    launch = load_launch()
+    created = []
+    def fake_node(**kwargs):
+        created.append(kwargs)
+        return NS(kind='node', kwargs=kwargs)
+    monkeypatch.setattr(launch, 'Node', fake_node)
+    monkeypatch.setattr(launch, 'IncludeLaunchDescription',
+                        lambda *args, **kwargs: NS(kind='include', args=args, kwargs=kwargs))
+    monkeypatch.setattr(launch, 'get_package_share_directory', lambda package: str(
+        ROOT if package == 'rm_demo_platform' else REPO / 'src' / package))
+    from launch import LaunchContext
+    context = LaunchContext()
+    context.launch_configurations.update(stage='radar_fixed_lio', enable_hardware_io='true',
+                                         session_dir=str(output))
+    actions = launch.setup(context)
+    packages = [item['package'] for item in created]
+    assert packages.count('livox_ros_driver2') == 1
+    assert packages.count('tf2_ros') == 3
+    assert 'rm_serial_driver' not in packages
+    assert 'robot_state_publisher' not in packages
+    assert all(item.get('executable') != 'gimbal_state_adapter' for item in created)
+    assert any(getattr(action, 'kind', None) == 'include' for action in actions)
+
+
+def test_container_runner_never_maps_serial_for_radar_only():
+    script = (ROOT / 'scripts/run_phase1_container.sh').read_text()
+    assert 'if [ "$stage" = serial ] || [ "$stage" = tf ] || [ "$stage" = fixed_lio ]' in script
+    assert '[ "$stage" != lidar ]' not in script
 
 
 def test_hardware_launch_real_default_exits_without_nodes():
