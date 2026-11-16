@@ -24,7 +24,7 @@ def setup(context):
         Node(package="rm_serial_driver", executable="competition_v2_transport_node",
              name="serial_transport_node", parameters=[{
                  "dry_run": True, "motion_test_mode": False,
-                 "required_remote_capabilities": 69,
+                 "required_remote_capabilities": 261,
                  "enable_timestamp_provenance": LaunchConfiguration("enable_timestamp_provenance").perform(context) == "true",
                  "provenance_session_id": "demo-software-bench",
              }]),

@@ -29,7 +29,7 @@ enum class MessageType : std::uint8_t
   RefereeState = 0x83,
   OperatorNavigationTarget = 0x84,
   ChassisHeadingState = 0x85,
-  ChassisAttitudeState = 0x86,
+  ChassisAttitudeState = 0x88,
 };
 
 enum class Posture : std::uint8_t
@@ -64,7 +64,7 @@ enum Capability : std::uint32_t
   CapabilityRefereeState = 1U << 3U,
   CapabilityOperatorNavigationTarget = 1U << 4U,
   CapabilityChassisHeadingState = 1U << 5U,
-  CapabilityChassisAttitudeState = 1U << 6U,
+  CapabilityChassisAttitudeState = 1U << 8U,
 };
 
 struct Frame

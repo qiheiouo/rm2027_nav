@@ -91,10 +91,10 @@ def validate(config_dir, stage):
         if params.get('baudrate') not in (9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600):
             raise NotReady('baudrate: select a supported, firmware-confirmed baud rate')
         cap = required(params, 'required_remote_capabilities')
-        if type(cap) is not int or cap < 0 or cap > 0xffffffff or cap & 101 != 101:
+        if type(cap) is not int or cap < 0 or cap > 0xffffffff or cap & 293 != 293:
             raise NotReady(
                 'required capabilities must include chassis(1), relative gimbal(4), '
-                'heading(32), chassis attitude(64)')
+                'heading(32), chassis attitude(256)')
         for key in params:
             if key not in ('device', 'baudrate', 'required_remote_capabilities'):
                 params[key] = positive(params, key)

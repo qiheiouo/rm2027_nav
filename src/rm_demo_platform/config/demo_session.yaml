@@ -21,5 +21,5 @@ chassis_attitude:
   type: sensor_msgs/msg/Imu
   status_topic: /chassis/attitude_status
   status_type: rm_competition_interfaces/msg/ChassisAttitudeStatus
-  contract_revision: stm-v2-attitude-0x86-host-v1
+  contract_revision: stm-v2-attitude-0x88-host-v1
   firmware_status: PENDING_STM_IMPLEMENTATION_AND_SIGNOFF

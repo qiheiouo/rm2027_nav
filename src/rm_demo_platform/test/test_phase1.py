@@ -34,7 +34,7 @@ def valid_serial(config):
                 physical_motion_inhibit_confirmed=True, isolated_ros_domain_confirmed=True,
                 gimbal_joint_publish_rate_hz=50.0)
     item['parameters'] = {k:1.0 for k in item['parameters']}
-    item['parameters'].update(device='/dev/NOT_A_REAL_DEVICE',baudrate=115200,required_remote_capabilities=101)
+    item['parameters'].update(device='/dev/NOT_A_REAL_DEVICE',baudrate=115200,required_remote_capabilities=293)
     save(path,item)
     return item
 

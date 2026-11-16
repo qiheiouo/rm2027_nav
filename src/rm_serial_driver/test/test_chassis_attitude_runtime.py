@@ -29,7 +29,7 @@ def frame(kind, sequence, payload):
 
 
 def heartbeat(sequence, uptime, boot):
-    return frame(0x03, sequence, struct.pack("<IIIB", uptime, boot, 1 << 6, 1))
+    return frame(0x03, sequence, struct.pack("<IIIB", uptime, boot, 1 << 8, 1))
 
 
 def attitude(frame_sequence, sample_sequence, tick, boot, reset, flags=0x0F):
@@ -40,7 +40,7 @@ def attitude(frame_sequence, sample_sequence, tick, boot, reset, flags=0x0F):
         0.0, 0.0, 9.80665,
         sample_sequence, tick, boot, reset, flags,
     )
-    return frame(0x86, frame_sequence, payload)
+    return frame(0x88, frame_sequence, payload)
 
 
 def test_chassis_attitude_lifecycle_and_fail_closed_output():
@@ -124,7 +124,8 @@ def test_chassis_attitude_lifecycle_and_fail_closed_output():
         assert len(imus) == 2
 
         send(attitude(3, 0xFFFFFFFF, 0xFFFFFFFE, 42, 1))
-        wait(lambda: len(imus) == 3)
+        wait(lambda: len(imus) == 3 and statuses[-1].current_valid and
+             statuses[-1].reset_counter == 1)
         assert statuses[-1].current_valid
         assert statuses[-1].lifecycle_epoch == first_epoch + 1
 
@@ -143,13 +144,15 @@ def test_chassis_attitude_lifecycle_and_fail_closed_output():
         assert len(imus) == 4
 
         send(attitude(1, 0, 10, 43, 0))
-        wait(lambda: len(imus) == 5)
+        wait(lambda: len(imus) == 5 and statuses[-1].current_valid and
+             statuses[-1].source_boot_id == 43)
         assert statuses[-1].source_boot_id == 43
         assert statuses[-1].lifecycle_epoch == first_epoch + 2
 
         # A delayed heartbeat from a retired boot must not re-authorize its samples.
         send(heartbeat(12, 2000, 42) + attitude(2, 1, 11, 43, 0))
-        wait(lambda: len(imus) == 6)
+        wait(lambda: len(imus) == 6 and statuses[-1].current_valid and
+             statuses[-1].source_boot_id == 43)
         assert statuses[-1].source_boot_id == 43
         wait(lambda: any(t.invalid_reason == "retired_boot_id_replay" for t in traces))
 

@@ -144,7 +144,7 @@ def test_competition_v2_no_hardware_flow():
             executable("rm_serial_driver", "competition_v2_transport_node"),
             "--ros-args",
             "-p", "dry_run:=true",
-            "-p", "required_remote_capabilities:=127",
+            "-p", "required_remote_capabilities:=319",
         ],
         [
             executable("rm_serial_driver", "competition_v2_mock_lower_node"),
