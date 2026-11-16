@@ -69,6 +69,37 @@ stale input in either mode must not be treated as validated base localization.
 
 Phase 1 skeletons may use a zero-yaw gimbal placeholder for Linux build, RViz, bag, or early adapter tests. That placeholder is not a real-robot acceptance condition and must be replaced before validating a rotating gimbal.
 
+### Demo radar-only fixed-gimbal profile
+
+When STM is unavailable and the Demo gimbal is physically locked, the explicit
+`radar_only_fixed_gimbal` profile owns this static subtree:
+
+```text
+base_link -> gimbal_yaw_link -> mid360_left_frame -> lio_imu_link
+```
+
+The retained `mid360_left_frame` name is a logical single-sensor interface and
+does not assert that the physical sensor is mounted on the left. The session
+must select the real LEFT/RIGHT CAD edge and record the device identity,
+installation, lock method, locked angle and calibration revision. The
+`base_link -> gimbal_yaw_link` static rotation is the full composition
+`R(base<-axis) * Rz(locked_angle)`; an RPY yaw addition is not equivalent when
+the axis mounting has roll or pitch.
+
+Exactly three static-transform publishers own the subtree in this profile.
+`robot_state_publisher`, `gimbal_state_adapter`, `/joint_states` and stale
+dynamic gimbal TF are absent. The normal real-robot profile remains dynamic and
+must replace this owner set when timestamped STM relative yaw is available;
+the two profiles may not run in one ROS domain.
+
+The user-supplied external values are CAD nominal, not final calibrated
+extrinsics. The MID360 internal LiDAR/IMU transform is a separate edge and
+cannot be inferred from the external STEP assembly. Until a vendor/device
+definition or calibration confirms it, the profile must remain blocked with
+`PENDING_INTERNAL_IMU_EXTRINSIC_CONFIRMATION`. Livox SDK mechanical extrinsics
+remain identity; FAST-LIO receives the confirmed inverse internal transform in
+its own required parameter convention.
+
 ## Phase 1 map_odom_stub
 
 Phase 1 uses exactly one `map_odom_stub` node to publish identity `map -> odom`.

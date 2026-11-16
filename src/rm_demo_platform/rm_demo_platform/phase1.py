@@ -23,6 +23,10 @@ SERIAL_PARAMETERS = ('device', 'baudrate', 'required_remote_capabilities',
     'chassis_heading_timeout_sec', 'chassis_attitude_timeout_sec', 'posture_timeout_sec',
     'max_vx', 'max_vy', 'max_wz')
 
+RADAR_ONLY_PROFILE = 'radar_only_fixed_gimbal'
+STM_PROFILE = 'competition_v2_dynamic_gimbal'
+SUPPORTED_STAGES = ('inventory', 'serial', 'lidar', 'tf', 'fixed_lio', 'radar_fixed_lio')
+
 
 def read(path):
     with Path(path).open() as stream:
@@ -65,13 +69,191 @@ def existing_file(data, key):
     return path
 
 
+def finite_vector(data, edge, key):
+    value = data[edge].get(key)
+    if (not isinstance(value, list) or len(value) != 3 or
+            any(type(item) not in (int, float) or not math.isfinite(item) for item in value)):
+        raise NotReady(f'{edge}.{key}: three finite SI values required')
+    return [float(item) for item in value]
+
+
+def rpy_to_matrix(rpy):
+    """REP-103 fixed-axis roll/pitch/yaw to a row-major rotation matrix."""
+    roll, pitch, yaw = rpy
+    cr, sr = math.cos(roll), math.sin(roll)
+    cp, sp = math.cos(pitch), math.sin(pitch)
+    cy, sy = math.cos(yaw), math.sin(yaw)
+    return [
+        cy * cp, cy * sp * sr - sy * cr, cy * sp * cr + sy * sr,
+        sy * cp, sy * sp * sr + cy * cr, sy * sp * cr - cy * sr,
+        -sp, cp * sr, cp * cr,
+    ]
+
+
+def quaternion_from_rpy(rpy):
+    roll, pitch, yaw = rpy
+    cr, sr = math.cos(roll / 2.0), math.sin(roll / 2.0)
+    cp, sp = math.cos(pitch / 2.0), math.sin(pitch / 2.0)
+    cy, sy = math.cos(yaw / 2.0), math.sin(yaw / 2.0)
+    return (
+        sr * cp * cy - cr * sp * sy,
+        cr * sp * cy + sr * cp * sy,
+        cr * cp * sy - sr * sp * cy,
+        cr * cp * cy + sr * sp * sy,
+    )
+
+
+def multiply_quaternions(left, right):
+    lx, ly, lz, lw = left
+    rx, ry, rz, rw = right
+    return (
+        lw * rx + lx * rw + ly * rz - lz * ry,
+        lw * ry - lx * rz + ly * rw + lz * rx,
+        lw * rz + lx * ry - ly * rx + lz * rw,
+        lw * rw - lx * rx - ly * ry - lz * rz,
+    )
+
+
+def locked_gimbal_transforms(calibration, locked_angle, physical_installation='LEFT'):
+    """Return the three static edges for the mechanically locked profile.
+
+    The first rotation is the real SE(3) composition
+    R(base<-axis) * Rz(locked_angle), not an RPY yaw addition.
+    """
+    base_q = multiply_quaternions(
+        quaternion_from_rpy(finite_vector(calibration, 'base_to_yaw_axis', 'rpy_rad')),
+        quaternion_from_rpy([0.0, 0.0, float(locked_angle)]),
+    )
+    result = [dict(parent='base_link', child='gimbal_yaw_link',
+                   xyz=finite_vector(calibration, 'base_to_yaw_axis', 'xyz_m'), quaternion=base_q)]
+    mount_edge = ('gimbal_to_mid360_left_cad_nominal'
+                  if physical_installation == 'LEFT' else
+                  'gimbal_to_mid360_right_cad_nominal')
+    for edge_name, parent, child in (
+            (mount_edge, 'gimbal_yaw_link', 'mid360_left_frame'),
+            ('mid360_to_imu', 'mid360_left_frame', 'lio_imu_link')):
+        result.append(dict(parent=parent, child=child,
+                           xyz=finite_vector(calibration, edge_name, 'xyz_m'),
+                           quaternion=quaternion_from_rpy(
+                               finite_vector(calibration, edge_name, 'rpy_rad'))))
+    return result
+
+
+def _validate_calibration(root, radar_only=False):
+    cal = read(root / 'demo_calibration.yaml')
+    required_text(cal, 'revision')
+    if radar_only:
+        for edge in ('base_to_yaw_axis', 'gimbal_to_mid360_left_cad_nominal',
+                     'gimbal_to_mid360_right_cad_nominal'):
+            finite_vector(cal, edge, 'xyz_m')
+            finite_vector(cal, edge, 'rpy_rad')
+            confirmed(cal[edge], 'confirmed_for_phase1')
+            if cal[edge].get('confidence') not in ('CAD_NOMINAL', 'MEASURED', 'CALIBRATED'):
+                raise NotReady(f'{edge}.confidence: explicit CAD/measured status required')
+        # The external CAD nominal does not define the MID360 internal IMU transform.
+        # Do not silently turn the driver's frame-id rewrite into an identity calibration.
+        edge = cal['mid360_to_imu']
+        if edge.get('confidence') == 'PENDING_INTERNAL_IMU_EXTRINSIC_CONFIRMATION':
+            raise NotReady('PENDING_INTERNAL_IMU_EXTRINSIC_CONFIRMATION')
+        confirmed(edge, 'confirmed_for_phase1')
+        if edge.get('confidence') not in ('VENDOR_CONFIRMED', 'MEASURED', 'CALIBRATED'):
+            raise NotReady('mid360_to_imu.confidence: vendor or measured confirmation required')
+        finite_vector(cal, 'mid360_to_imu', 'xyz_m')
+        finite_vector(cal, 'mid360_to_imu', 'rpy_rad')
+    else:
+        confirmed(cal, 'measured')
+        for edge in ('base_to_yaw_axis', 'gimbal_to_mid360', 'mid360_to_imu'):
+            finite_vector(cal, edge, 'xyz_m')
+            finite_vector(cal, edge, 'rpy_rad')
+    return cal
+
+
+def _validate_radar_only_profile(root, calibration):
+    profile = read(root / 'demo_radar_only.yaml')
+    if profile.get('hardware_profile') != RADAR_ONLY_PROFILE:
+        raise NotReady(f'hardware_profile must be {RADAR_ONLY_PROFILE}')
+    if profile.get('physical_mid360_count') != 1:
+        raise NotReady('radar-only profile requires exactly one physical MID360')
+    if profile.get('selected_logical_role') != 'left' or profile.get('selected_frame') != 'mid360_left_frame':
+        raise NotReady('radar-only profile must select the existing single-left interface')
+    if profile.get('physical_installation') not in ('LEFT', 'RIGHT'):
+        raise NotReady('physical_installation must explicitly select LEFT or RIGHT')
+    excluded = profile.get('excluded_second_mid360', {})
+    if excluded.get('enabled') is not False or excluded.get('status') != 'DAMAGED_EXCLUDED':
+        raise NotReady('second MID360 must remain explicitly damaged/excluded')
+    if profile.get('serial_applicability') != 'NOT_APPLICABLE':
+        raise NotReady('serial must be NOT_APPLICABLE in radar-only profile')
+    if profile.get('motion_authorization') is not False:
+        raise NotReady('motion authorization must remain false')
+    confirmed(profile, 'mechanically_locked_gimbal_confirmed')
+    angle = profile.get('locked_gimbal_angle_rad')
+    if isinstance(angle, bool) or not isinstance(angle, (int, float)) or not math.isfinite(angle):
+        raise NotReady('locked_gimbal_angle_rad: finite measured radians required')
+    required_text(profile, 'lock_method')
+    if required_text(profile, 'calibration_revision') != calibration['revision']:
+        raise NotReady('radar-only calibration_revision disagrees with demo_calibration.yaml')
+    return profile
+
+
+def _validate_lio(root, calibration=None, radar_only=False):
+    lio = read(root / 'demo_lio.yaml')
+    required_flags = ['enabled', 'raw_epoch_and_frame_reviewed', 'internal_imu_extrinsics_reviewed']
+    if not radar_only:
+        required_flags.append('mechanically_locked_gimbal_confirmed')
+    for key in required_flags:
+        confirmed(lio, key)
+    existing_file(lio, 'phase1b_evidence')
+    backend = read(existing_file(lio, 'backend_config_path'))['/**']['ros__parameters']
+    if backend['mapping'].get('zero_start_pose') is not False:
+        raise NotReady('disable delayed backend zero-start; do not introduce a hidden raw epoch jump')
+    if backend['common'].get('multi_lidar') is not False:
+        raise NotReady('single physical MID360 required')
+    if backend['common'].get('lid_topic') != '/livox/left/lidar':
+        raise NotReady('radar-only FAST-LIO must use the selected single MID360 topic')
+    for key in ('extrinsic_T', 'extrinsic_R'):
+        values = backend['mapping'].get(key)
+        expected_size = 3 if key.endswith('T') else 9
+        if (not isinstance(values, list) or len(values) != expected_size or
+                any(type(x) not in (int, float) or not math.isfinite(x) for x in values)):
+            raise NotReady(f'measured backend mapping.{key} required')
+    if radar_only:
+        # calibration stores parent lidar -> child IMU. FAST-LIO expects the
+        # inverse: lidar pose with respect to IMU (T_imu_lidar).
+        edge_t = finite_vector(calibration, 'mid360_to_imu', 'xyz_m')
+        edge_r = rpy_to_matrix(finite_vector(calibration, 'mid360_to_imu', 'rpy_rad'))
+        inverse_r = [edge_r[row + 3 * col] for row in range(3) for col in range(3)]
+        inverse_t = [-sum(inverse_r[3 * row + col] * edge_t[col] for col in range(3))
+                     for row in range(3)]
+        for actual, expected in zip(backend['mapping']['extrinsic_T'], inverse_t):
+            if not math.isclose(actual, expected, rel_tol=0.0, abs_tol=1e-6):
+                raise NotReady('FAST-LIO extrinsic_T must match inverse(mid360_to_imu)')
+        for actual, expected in zip(backend['mapping']['extrinsic_R'], inverse_r):
+            if not math.isclose(actual, expected, rel_tol=0.0, abs_tol=1e-6):
+                raise NotReady('FAST-LIO extrinsic_R must match inverse(mid360_to_imu)')
+    adapter = read(existing_file(lio, 'adapter_config_path'))['lio_adapter']['ros__parameters']
+    expected = dict(pose_conversion_mode='sensor_tf', use_tf_sensor_to_base=True,
+                    use_latest_transform=False, allow_placeholder_fallback=False,
+                    input_sensor_frame='lio_imu_link', base_frame='base_link',
+                    odom_frame='odom', publish_tf=True, raw_odom_topic='/odometry/fast_lio_raw',
+                    output_odom_topic='/odometry/lio', backend_child_frame_alias_enabled=True,
+                    backend_child_frame_alias_source='body', backend_child_frame_alias_target='lio_imu_link')
+    for key, value in expected.items():
+        if adapter.get(key) != value:
+            raise NotReady(f'lio_adapter.{key} must be {value!r}')
+    if adapter.get('raw_odom_parent_frame_mode') not in ('canonical_odom', 'sensor_initial'):
+        raise NotReady('explicit raw_odom_parent_frame_mode required; review tilted startup frame evidence')
+    if adapter['raw_odom_parent_frame_mode'] == 'sensor_initial' and adapter.get('sensor_initial_reference_mode') != 'first_source_sample':
+        raise NotReady('sensor_initial requires first_source_sample; no implicit fixed mount')
+    return lio
+
+
 def validate(config_dir, stage):
     """Validate only a requested acquisition stage, before creating any ROS nodes."""
     root = Path(config_dir)
     if stage == 'inventory':
         return {}
-    if stage not in ('serial', 'lidar', 'tf', 'fixed_lio'):
-        raise NotReady('supported stages: inventory, serial, lidar, tf, fixed_lio; no motion stage')
+    if stage not in SUPPORTED_STAGES:
+        raise NotReady(f'supported stages: {", ".join(SUPPORTED_STAGES)}; no motion stage')
     result = {}
     if stage in ('serial', 'tf', 'fixed_lio'):
         serial = read(root / 'demo_serial.yaml')
@@ -100,7 +282,7 @@ def validate(config_dir, stage):
                 params[key] = positive(params, key)
         result['serial'] = serial
         result['serial_params'] = params
-    if stage in ('lidar', 'fixed_lio'):
+    if stage in ('lidar', 'fixed_lio', 'radar_fixed_lio'):
         lidar = read(root / 'demo_mid360.yaml')
         for key in ('device_identity', 'firmware_revision'):
             required_text(lidar, key)
@@ -122,47 +304,18 @@ def validate(config_dir, stage):
         if any(extrinsic.get(k) != 0 for k in ('x', 'y', 'z', 'roll', 'pitch', 'yaw')):
             raise NotReady('SDK extrinsic must explicitly be identity; mechanical extrinsics belong to TF')
         result['lidar'] = lidar
-    if stage in ('tf', 'fixed_lio'):
-        cal = read(root / 'demo_calibration.yaml')
-        confirmed(cal, 'measured')
-        required(cal, 'revision')
-        for edge in ('base_to_yaw_axis', 'gimbal_to_mid360', 'mid360_to_imu'):
-            for key in ('xyz_m', 'rpy_rad'):
-                vec = cal[edge].get(key)
-                if not isinstance(vec, list) or len(vec) != 3 or any(type(x) not in (int, float) or not math.isfinite(x) for x in vec):
-                    raise NotReady(f'{edge}.{key}: three measured finite values required')
-        positive(result['serial'], 'gimbal_joint_publish_rate_hz')
+    if stage in ('tf', 'fixed_lio', 'radar_fixed_lio'):
+        radar_only = stage == 'radar_fixed_lio'
+        cal = _validate_calibration(root, radar_only=radar_only)
+        if radar_only:
+            result['radar_only'] = _validate_radar_only_profile(root, cal)
+        else:
+            positive(result['serial'], 'gimbal_joint_publish_rate_hz')
         result['calibration'] = cal
-    if stage == 'fixed_lio':
-        lio = read(root / 'demo_lio.yaml')
-        for key in ('enabled', 'mechanically_locked_gimbal_confirmed', 'raw_epoch_and_frame_reviewed', 'internal_imu_extrinsics_reviewed'):
-            confirmed(lio, key)
-        existing_file(lio, 'phase1b_evidence')
+    if stage in ('fixed_lio', 'radar_fixed_lio'):
+        radar_only = stage == 'radar_fixed_lio'
         confirmed(result['lidar'], 'raw_imu_frame_lineage_confirmed')
-        backend = read(existing_file(lio, 'backend_config_path'))['/**']['ros__parameters']
-        if backend['mapping'].get('zero_start_pose') is not False:
-            raise NotReady('disable delayed backend zero-start; do not introduce a hidden raw epoch jump')
-        if backend['common'].get('multi_lidar') is not False:
-            raise NotReady('single physical MID360 required')
-        for key in ('extrinsic_T', 'extrinsic_R'):
-            values = backend['mapping'].get(key)
-            if not isinstance(values, list) or len(values) != (3 if key.endswith('T') else 9) or any(type(x) not in (int, float) or not math.isfinite(x) for x in values):
-                raise NotReady(f'measured backend mapping.{key} required')
-        adapter = read(existing_file(lio, 'adapter_config_path'))['lio_adapter']['ros__parameters']
-        expected = dict(pose_conversion_mode='sensor_tf', use_tf_sensor_to_base=True,
-                        use_latest_transform=False, allow_placeholder_fallback=False,
-                        input_sensor_frame='lio_imu_link', base_frame='base_link',
-                        odom_frame='odom', publish_tf=True, raw_odom_topic='/odometry/fast_lio_raw',
-                        output_odom_topic='/odometry/lio', backend_child_frame_alias_enabled=True,
-                        backend_child_frame_alias_source='body', backend_child_frame_alias_target='lio_imu_link')
-        for key, value in expected.items():
-            if adapter.get(key) != value:
-                raise NotReady(f'lio_adapter.{key} must be {value!r}')
-        if adapter.get('raw_odom_parent_frame_mode') not in ('canonical_odom', 'sensor_initial'):
-            raise NotReady('explicit raw_odom_parent_frame_mode required; review tilted startup frame evidence')
-        if adapter['raw_odom_parent_frame_mode'] == 'sensor_initial' and adapter.get('sensor_initial_reference_mode') != 'first_source_sample':
-            raise NotReady('sensor_initial requires first_source_sample; no implicit fixed mount')
-        result['lio'] = lio
+        result['lio'] = _validate_lio(root, result['calibration'], radar_only=radar_only)
     return result
 
 
@@ -170,7 +323,7 @@ def git(repo, *args):
     return subprocess.check_output(['git', '-C', str(repo), *args], text=True).strip()
 
 
-def prepare(repo, config_dir, output, operator, phase, acq_dir=None):
+def prepare(repo, config_dir, output, operator, phase, acq_dir=None, hardware_profile=STM_PROFILE):
     repo, config_dir, output = Path(repo).resolve(), Path(config_dir).resolve(), Path(output).resolve()
     acq = Path(acq_dir) if acq_dir else repo / 'src/rm_navigation_bringup/config/localization_acquisition'
     # Reuse the ACQ schema, topic/type whitelist and QoS; Demo adds its own section.
@@ -181,7 +334,16 @@ def prepare(repo, config_dir, output, operator, phase, acq_dir=None):
     output.mkdir(parents=True, exist_ok=False)
     snapshot = output / 'config'
     snapshot.mkdir()
+    if hardware_profile not in (STM_PROFILE, RADAR_ONLY_PROFILE):
+        raise NotReady(f'unsupported hardware_profile: {hardware_profile}')
+    selected_configs = {'demo_session.yaml', 'demo_mid360.yaml', 'demo_calibration.yaml', 'demo_lio.yaml'}
+    if hardware_profile == STM_PROFILE:
+        selected_configs.add('demo_serial.yaml')
+    else:
+        selected_configs.add('demo_radar_only.yaml')
     for path in config_dir.glob('demo_*.yaml'):
+        if path.name not in selected_configs:
+            continue
         shutil.copy2(path, snapshot / path.name)
     # Freeze external configuration inputs alongside the manifest, not just a path.
     for name, keys in [('demo_mid360.yaml', ['sdk_config_path']), ('demo_lio.yaml', ['backend_config_path', 'adapter_config_path', 'phase1b_evidence'])]:
@@ -204,30 +366,58 @@ def prepare(repo, config_dir, output, operator, phase, acq_dir=None):
     (output / 'dirty.patch').write_text(git(repo, 'diff', '--binary', 'HEAD') + '\n')
     subdiff = git(repo, 'submodule', 'foreach', '--quiet', 'git diff --binary HEAD')
     (output / 'submodule-dirty.patch').write_text(subdiff + '\n')
-    serial, lidar, cal = (read(snapshot / name) for name in ('demo_serial.yaml', 'demo_mid360.yaml', 'demo_calibration.yaml'))
-    metadata['devices']['serial'].update(profile=serial['profile'], device=serial['parameters']['device'],
-        baudrate=serial['parameters']['baudrate'], mcu_firmware=serial['firmware_revision'],
-        required_capabilities=serial['parameters']['required_remote_capabilities'])
-    metadata['devices']['primary_mid360'].update(identity=lidar['device_identity'], firmware=lidar['firmware_revision'])
+    lidar, cal = (read(snapshot / name) for name in ('demo_mid360.yaml', 'demo_calibration.yaml'))
+    if hardware_profile == STM_PROFILE:
+        serial = read(snapshot / 'demo_serial.yaml')
+        metadata['devices']['serial'].update(profile=serial['profile'], device=serial['parameters']['device'],
+            baudrate=serial['parameters']['baudrate'], mcu_firmware=serial['firmware_revision'],
+            required_capabilities=serial['parameters']['required_remote_capabilities'])
+    else:
+        radar = read(snapshot / 'demo_radar_only.yaml')
+        metadata['devices']['serial'] = dict(applicability='NOT_APPLICABLE',
+                                            reason=RADAR_ONLY_PROFILE)
+        metadata['hardware'].update(
+            actual_mechanical_dof='FIXED_GIMBAL_FOR_SESSION',
+            mechanically_locked_gimbal_confirmed=radar.get('mechanically_locked_gimbal_confirmed'),
+            locked_gimbal_angle_rad=radar.get('locked_gimbal_angle_rad'),
+            lock_method=radar.get('lock_method'),
+            calibration_revision=radar.get('calibration_revision'),
+            dynamic_tf_status='PREPARED / BLOCKED_BY_STM')
+    metadata['devices']['primary_mid360'].update(
+        role='left_logical_single_physical_sensor', identity=lidar['device_identity'],
+        firmware=lidar['firmware_revision'],
+        physical_installation=(radar.get('physical_installation')
+                               if hardware_profile == RADAR_ONLY_PROFILE else
+                               lidar.get('physical_installation')),
+        calibration_revision=cal['revision'])
     demo.update(operator=operator, phase=phase, created_utc=datetime.now(timezone.utc).isoformat(),
-                mechanical_calibration_revision=cal['revision'], result='NOT_RUN')
+                hardware_profile=hardware_profile, mechanical_calibration_revision=cal['revision'],
+                motion_authorization=False, result='NOT_RUN')
     demo['capture_environment'] = dict(hostname=platform.node(), platform=platform.platform(), kernel=platform.release())
     metadata['demo'] = demo
     metadata['runtime']['config_snapshots'] = sorted(str(p) for p in snapshot.iterdir())
     metadata['runtime']['actual_launch_commands'] = demo['launch_commands']
     metadata['runtime']['effective_parameters'] = 'PENDING: record ros2 param dump for every started node'
     topics = read(acq / 'topics.yaml')
-    topics['required']['/motion/v2_guard/state'] = 'rm_competition_interfaces/msg/V2MotionGuardState'
-    if phase in 'CDEF':
-        topics['required'].update({'/livox/lio_imu': 'sensor_msgs/msg/Imu', '/odometry/fast_lio_raw':'nav_msgs/msg/Odometry', '/odometry/lio':'nav_msgs/msg/Odometry'})
-    attitude = demo['chassis_attitude']
-    if (attitude.get('topic') and attitude.get('type') and attitude.get('status_topic') and
-            attitude.get('status_type') and attitude.get('contract_revision')):
-        topics['required'][attitude['topic']] = attitude['type']
-        topics['required'][attitude['status_topic']] = attitude['status_type']
-        demo['chassis_attitude_status'] = 'HOST_READY_STM_FIRMWARE_PENDING'
+    if hardware_profile == STM_PROFILE:
+        topics['required']['/motion/v2_guard/state'] = 'rm_competition_interfaces/msg/V2MotionGuardState'
     else:
-        demo['chassis_attitude_status'] = 'BLOCKED_PENDING_STM_CONTRACT'
+        for topic in ('/gimbal/state', '/chassis/heading', '/serial/connection_state',
+                      '/joint_states', '/serial/v2/timestamp_provenance'):
+            topics['required'].pop(topic, None)
+    if phase in 'CDEF' or hardware_profile == RADAR_ONLY_PROFILE:
+        topics['required'].update({'/livox/lio_imu': 'sensor_msgs/msg/Imu', '/odometry/fast_lio_raw':'nav_msgs/msg/Odometry', '/odometry/lio':'nav_msgs/msg/Odometry'})
+    if hardware_profile == STM_PROFILE:
+        attitude = demo['chassis_attitude']
+        if (attitude.get('topic') and attitude.get('type') and attitude.get('status_topic') and
+                attitude.get('status_type') and attitude.get('contract_revision')):
+            topics['required'][attitude['topic']] = attitude['type']
+            topics['required'][attitude['status_topic']] = attitude['status_type']
+            demo['chassis_attitude_status'] = 'HOST_READY_STM_FIRMWARE_PENDING'
+        else:
+            demo['chassis_attitude_status'] = 'BLOCKED_PENDING_STM_CONTRACT'
+    else:
+        demo['chassis_attitude_status'] = 'NOT_APPLICABLE_RADAR_ONLY'
     (output / 'session.yaml').write_text(yaml.safe_dump(metadata, sort_keys=False, allow_unicode=True))
     (output / 'topics.yaml').write_text(yaml.safe_dump(topics, sort_keys=False))
     shutil.copy2(acq / 'qos.yaml', output / 'qos.yaml')
@@ -239,18 +429,20 @@ def main():
     sub = parser.add_subparsers(dest='command', required=True)
     check = sub.add_parser('preflight')
     check.add_argument('--config-dir', required=True)
-    check.add_argument('--stage', default='inventory', choices=['inventory', 'serial', 'lidar', 'tf', 'fixed_lio'])
+    check.add_argument('--stage', default='inventory', choices=SUPPORTED_STAGES)
     new = sub.add_parser('prepare')
     for name in ('repo', 'config-dir', 'output', 'operator'):
         new.add_argument('--' + name, required=True)
     new.add_argument('--phase', choices=list('ABCDEF'), default='A')
     new.add_argument('--acq-dir')
+    new.add_argument('--hardware-profile', choices=[STM_PROFILE, RADAR_ONLY_PROFILE], default=STM_PROFILE)
     args = parser.parse_args()
     try:
         if args.command == 'preflight':
             validate(args.config_dir, args.stage)
             print(f'CONFIG_READY: {args.stage}; NOT hardware acceptance')
         else:
-            print(prepare(args.repo, args.config_dir, args.output, args.operator, args.phase, args.acq_dir))
+            print(prepare(args.repo, args.config_dir, args.output, args.operator, args.phase,
+                          args.acq_dir, args.hardware_profile))
     except (NotReady, KeyError, ValueError, OSError, yaml.YAMLError) as error:
         parser.exit(2, f'NOT_READY: {error}\n')

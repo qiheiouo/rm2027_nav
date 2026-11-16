@@ -2,7 +2,8 @@
 
 本包属于 `integration/demo-navigation-validation`。提供 **无硬件软件 bench、ACQ与默认禁用的Phase 1采集入口**，
 用于组合现有 V2 codec/transport、直接相对 Yaw、host端完整底盘姿态adapter、RSP、LIO adapter；
-真实 STM `0x88` 固件、机械外参和运动授权仍待确认。
+另有独立 `radar_fixed_lio` 单 MID360 固定云台入口，它不读取STM、不启动串口且不具备运动授权。
+真实 STM `0x88` 固件、MID360内部LiDAR/IMU外参和运动授权仍待确认。
 [完整审计与分阶段准入](../../docs/validation/demo_navigation_integration_20261111.md)。
 
 ## 运行
@@ -71,3 +72,41 @@ ACQ已迁入，诊断默认关闭；hardware入口显式启用诊断并保持mot
 `demo_*.yaml`是带null的输入清单；Nav2/MPPI仍disabled，不能直接作为ROS参数加载。
 固定云台入口要求实测外参与独立配置，拒绝delayed zero-start和yaw-only转换；不导入高级候选链。
 main已有反应式导航功能，不因缺标定而重新写导航算法。
+
+## 单雷达固定云台入口
+
+`radar_fixed_lio`固定为一个物理MID360、`multi_lidar=false`，不加载第二雷达、synthetic fallback、
+serial、Competition V2、`GimbalState`、chassis attitude、Nav2、Mission或controller。历史逻辑名
+`mid360_left_frame`只表示既有单雷达软件接口；每个session必须另记真实device identity和物理安装侧。
+
+当前外部CAD nominal（REP-103，m/rad）为：
+
+| Edge | Translation | RPY | 来源/状态 |
+| --- | --- | --- | --- |
+| `base_link -> yaw axis` | `[0, 0, 0.103]` | `[0, 0, 0]` | 用户STEP几何 + 圆盘底面离地0.043 m；CAD nominal |
+| `yaw axis -> MID360` 左装 | `[0, +0.132028, 0.100000]` | `[0, +0.523599, +1.570796]` | 用户STEP；CAD nominal |
+| `yaw axis -> MID360` 右装 | `[0, -0.132028, 0.100000]` | `[0, -0.523599, +1.570796]` | 用户STEP；CAD nominal |
+| `MID360 -> internal IMU` | 未填写 | 未填写 | `PENDING_INTERNAL_IMU_EXTRINSIC_CONFIRMATION` |
+
+`demo_radar_only.yaml`必须选择实际 `LEFT`/`RIGHT` 安装侧、确认机械锁止、填写锁止角和方法。
+固定模式用三个唯一static TF owner发布
+`base_link -> gimbal_yaw_link -> mid360_left_frame -> lio_imu_link`；第一条边按
+`T_base_axis * Rz(locked_angle)`做完整SE(3)组合，不使用简单的RPY yaw相加。
+SDK JSON机械外参必须保持identity；FAST-LIO的`extrinsic_T/R`必须等于
+`MID360 -> IMU`的逆变换，避免猜测或方向误用。内部外参未确认时入口按设计拒绝启动。
+
+准备方式：
+
+```bash
+ros2 run rm_demo_platform demo_phase1.py prepare \
+  --repo "$REPO" --config-dir "$CONFIG_DIR" --output "$SESSION_DIR" \
+  --operator "$OPERATOR" --phase C --hardware-profile radar_only_fixed_gimbal
+ros2 run rm_demo_platform demo_phase1.py preflight \
+  --config-dir "$SESSION_DIR/config" --stage radar_fixed_lio
+RM_DEMO_ENABLE_HARDWARE_IO=1 ROS_DOMAIN_ID="$DEMO_DOMAIN" \
+  src/rm_demo_platform/scripts/run_phase1_container.sh radar_fixed_lio "$SESSION_DIR"
+```
+
+容器脚本对该stage不读取或映射任何`/dev/tty*`。动态
+`base_link -> gimbal_yaw_link`仍保留给未来STM profile；当前状态是
+`DYNAMIC_TF: PREPARED / BLOCKED_BY_STM`，不是Hardware Go。

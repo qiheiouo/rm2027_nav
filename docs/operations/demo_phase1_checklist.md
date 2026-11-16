@@ -141,6 +141,28 @@ raw frame选择必须显式：`canonical_odom`要求输入已在声明的odom参
 验证zero-start只发生在明确的新session边界；backend重启后不可让旧adapter悄悄沿用旧epoch，
 出现坐标跳变立即结束该case，分段录包并重新建立session。当前不宣称自动重启恢复已通过。
 
+### 1C-R. 无STM单雷达固定云台
+
+STM不可用时不得复用上面的`fixed_lio`，因为该stage有意保留serial与动态云台输入门槛。
+复制配置后，保留SDK机械外参identity，填写唯一MID360 identity/网络、实际物理安装侧、机械锁止角和方法、
+内部LiDAR/IMU外参及其来源，并使FAST-LIO `extrinsic_T/R`与该内部边的逆变换一致：
+
+```bash
+ros2 run rm_demo_platform demo_phase1.py prepare \
+  --repo "$REPO" --config-dir "$CONFIG_DIR" --output "$SESSION_DIR" \
+  --operator "$OPERATOR" --phase C --hardware-profile radar_only_fixed_gimbal
+ros2 run rm_demo_platform demo_phase1.py preflight \
+  --config-dir "$SESSION_DIR/config" --stage radar_fixed_lio
+RM_DEMO_ENABLE_HARDWARE_IO=1 ROS_DOMAIN_ID="$DEMO_DOMAIN" \
+  src/rm_demo_platform/scripts/run_phase1_container.sh radar_fixed_lio "$SESSION_DIR"
+```
+
+此profile的manifest必须记录`mechanically_locked_gimbal_confirmed`、`locked_gimbal_angle_rad`、
+`lock_method`和`calibration_revision`。实际装在右侧时仍可保留历史逻辑frame名，但必须选择`RIGHT`
+CAD边并在session中记录物理安装；不得同时启动或伪造第二颗雷达。其TF owner是三个static publisher，
+不存在RSP/gimbal adapter的重复边；无`/joint_states`和stale dynamic TF。内部外参仍处于
+`PENDING_INTERNAL_IMU_EXTRINSIC_CONFIRMATION`时preflight必定失败，这是准入阻塞而不是identity默认值。
+
 ## 1D. 重定位（无运动授权）
 
 依次单独评估AMCL、GICP，复用`rm_relocalization_bridge`与已有backend/gate；不启动旧车整套launch，

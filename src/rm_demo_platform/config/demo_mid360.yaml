@@ -1,6 +1,7 @@
 # Phase 1 input manifest, NOT a ROS parameter file. null/false requires confirmation.
 device_identity: null
 firmware_revision: null
+physical_installation: null
 lidar_ip: null
 host_ip: null
 sdk_config_path: null

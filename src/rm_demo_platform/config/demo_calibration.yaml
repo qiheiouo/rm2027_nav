@@ -1,15 +1,43 @@
-# Phase 1 input manifest, NOT a ROS parameter file. null/false requires confirmation.
-revision: null
+# Phase 1 input manifest, NOT a ROS parameter file.
+# External values are the user-approved CAD nominal extrinsic, not final calibration.
+revision: demo-mid360-cad-nominal-v1
 measured: false
+status: CAD_NOMINAL
+coordinate_convention: REP-103_x_forward_y_left_z_up_m_rad
+base_link_origin: ground_projected_vehicle_yaw_center
+ground_to_lowest_circular_plate_bottom_m: 0.043
 base_to_yaw_axis:
-  xyz_m: null
-  rpy_rad: null
+  xyz_m: [0.0, 0.0, 0.103]
+  rpy_rad: [0.0, 0.0, 0.0]
+  source: user_STEP_geometry_plus_measured_0.043m_ground_clearance
+  confidence: CAD_NOMINAL
+  confirmed_for_phase1: true
 gimbal_to_mid360:
+  # Dynamic-STM profile field. Fill with the selected measured installation;
+  # radar-only selects one of the two explicit CAD nominal references below.
   xyz_m: null
   rpy_rad: null
+  source: pending_selected_physical_installation_measurement
+  confidence: PENDING
+  confirmed_for_phase1: false
+gimbal_to_mid360_left_cad_nominal:
+  xyz_m: [0.0, 0.132028, 0.100000]
+  rpy_rad: [0.0, 0.523599, 1.570796]
+  source: user_STEP_geometry_left_installation
+  confidence: CAD_NOMINAL
+  confirmed_for_phase1: true
+gimbal_to_mid360_right_cad_nominal:
+  xyz_m: [0.0, -0.132028, 0.100000]
+  rpy_rad: [0.0, -0.523599, 1.570796]
+  source: user_STEP_geometry_right_installation
+  confidence: CAD_NOMINAL
+  confirmed_for_phase1: true
 mid360_to_imu:
   xyz_m: null
   rpy_rad: null
+  source: pending_vendor_definition_or_device_specific_calibration
+  confidence: PENDING_INTERNAL_IMU_EXTRINSIC_CONFIRMATION
+  confirmed_for_phase1: false
 chassis_imu_to_base:
   xyz_m: null
   rpy_rad: null

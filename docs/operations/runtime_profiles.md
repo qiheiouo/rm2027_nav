@@ -17,6 +17,10 @@ See the [Demo package](../../src/rm_demo_platform/README.md) and
 `enable_hardware_io:=true`和已准备session通过检查后启动。serial是发送heartbeat/zero-disabled的
 主动transport，posture订阅隔离、无生产运动授权；tf复用RSP与直接相对Yaw，fixed_lio隔离backend TF、
 只由lio_adapter发布canonical odometry。没有map stub、Nav2或任务节点。
+`radar_fixed_lio`是并列的`radar_only_fixed_gimbal` profile：只启动一个Livox driver、MID360 IMU、
+三个固定机械TF边、FAST-LIO与lio_adapter。它不读取`demo_serial.yaml`，不映射`/dev/tty*`，不要求
+`/gimbal/state`、`/chassis/imu`或motion guard。真实安装侧、机械锁止、锁止角、外参revision与
+MID360内部LiDAR/IMU外参缺一即拒绝启动；第二颗损坏雷达在此profile中是明确排除项，不是health failure。
 操作入口与缺失条件见[Phase 1检查表](demo_phase1_checklist.md)，固件约束见
 [STM共同合同](../contracts/stm_navigation_data_contract.md)。Nav2/MPPI输入清单保持disabled。
 

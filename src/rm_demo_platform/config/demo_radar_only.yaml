@@ -1,0 +1,23 @@
+# Explicit one-sensor, no-STM fixed-gimbal hardware profile.
+# Copy outside the repository for each real session and fill only observed facts.
+hardware_profile: radar_only_fixed_gimbal
+physical_mid360_count: 1
+selected_logical_role: left
+selected_frame: mid360_left_frame
+# LEFT or RIGHT; this is independent of the retained logical frame name.
+physical_installation: null
+excluded_second_mid360:
+  enabled: false
+  status: DAMAGED_EXCLUDED
+  synthetic_fallback: false
+serial_applicability: NOT_APPLICABLE
+motion_authorization: false
+
+# All three values are mandatory before radar_fixed_lio may start.
+mechanically_locked_gimbal_confirmed: false
+locked_gimbal_angle_rad: null
+lock_method: null
+calibration_revision: demo-mid360-cad-nominal-v1
+
+dynamic_tf_status: PREPARED / BLOCKED_BY_STM
+notes: null

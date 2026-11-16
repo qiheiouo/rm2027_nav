@@ -2,7 +2,7 @@
 # Explicit hardware acquisition in the existing locally built Humble environment.
 set -euo pipefail
 stage=${1:-inventory}
-case "$stage" in inventory|serial|lidar|tf|fixed_lio) ;; *) echo 'Stage: inventory|serial|lidar|tf|fixed_lio' >&2; exit 2;; esac
+case "$stage" in inventory|serial|lidar|tf|fixed_lio|radar_fixed_lio) ;; *) echo 'Stage: inventory|serial|lidar|tf|fixed_lio|radar_fixed_lio' >&2; exit 2;; esac
 repo=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../../.." && pwd)
 results="$repo/build/demo_validation"
 image=${RM_DEMO_BASE_IMAGE:-rm2027_navigation:demo-validation-de05e085-20261112}
@@ -21,7 +21,7 @@ if [ "$stage" != inventory ]; then
   if [ -z "$image" ]; then echo 'session.demo.container_image required' >&2; exit 2; fi
   if [ -z "${ROS_DOMAIN_ID:-}" ]; then echo 'Explicit isolated ROS_DOMAIN_ID required' >&2; exit 2; fi
   options=(--network host --mount "type=bind,src=$session,dst=$session")
-  if [ "$stage" != lidar ]; then
+  if [ "$stage" = serial ] || [ "$stage" = tf ] || [ "$stage" = fixed_lio ]; then
     device=$(python3 -c 'import sys,yaml; print(yaml.safe_load(open(sys.argv[1]))["parameters"]["device"])' "$session/config/demo_serial.yaml")
     if [ ! -c "$device" ]; then echo 'Confirmed serial device must be present' >&2; exit 2; fi
     options+=(--device "$device:$device" --group-add "$(stat -c %g "$device")")

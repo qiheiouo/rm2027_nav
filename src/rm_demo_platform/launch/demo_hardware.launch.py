@@ -12,7 +12,29 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
-from rm_demo_platform.phase1 import NotReady, read, required, validate
+from rm_demo_platform.phase1 import (
+    RADAR_ONLY_PROFILE,
+    NotReady,
+    locked_gimbal_transforms,
+    read,
+    required,
+    validate,
+)
+
+
+def static_transform_node(edge, index):
+    xyz = [format(value, '.12g') for value in edge['xyz']]
+    quaternion = [format(value, '.15g') for value in edge['quaternion']]
+    return Node(
+        package='tf2_ros', executable='static_transform_publisher',
+        name=f'measured_locked_tf_{index}',
+        arguments=[
+            '--x', xyz[0], '--y', xyz[1], '--z', xyz[2],
+            '--qx', quaternion[0], '--qy', quaternion[1],
+            '--qz', quaternion[2], '--qw', quaternion[3],
+            '--frame-id', edge['parent'], '--child-frame-id', edge['child'],
+        ],
+    )
 
 
 def setup(context):
@@ -35,7 +57,14 @@ def setup(context):
     share = Path(get_package_share_directory('rm_demo_platform'))
     actions = []
     # Expand measured geometry BEFORE returning any device-start actions.
-    if 'calibration' in cfg:
+    if stage == 'radar_fixed_lio':
+        if meta['demo'].get('hardware_profile') != RADAR_ONLY_PROFILE:
+            raise NotReady(f'prepared session hardware_profile must be {RADAR_ONLY_PROFILE}')
+        transforms = locked_gimbal_transforms(
+            cfg['calibration'], cfg['radar_only']['locked_gimbal_angle_rad'],
+            cfg['radar_only']['physical_installation'])
+        actions += [static_transform_node(edge, index) for index, edge in enumerate(transforms)]
+    elif 'calibration' in cfg:
         import xacro
         model = xacro.process_file(str(share / 'urdf/demo_measured.urdf.xacro'),
             mappings={'calibration_file': str(session / 'config/demo_calibration.yaml')}).toxml()
@@ -78,17 +107,32 @@ def setup(context):
     # Separate files avoid races when serial/TF and LiDAR start in different containers.
     record = dict(stage=stage, started_utc=datetime.now(timezone.utc).isoformat(),
                   session_id=session_id, motion_authorization=False,
+                  hardware_profile=meta['demo'].get('hardware_profile'),
+                  physical_mid360_count=1 if 'lidar' in cfg else 0,
+                  serial_device_opened='serial' in cfg,
+                  mechanical_tf_owner=('three_static_transform_publishers'
+                                       if stage == 'radar_fixed_lio' else
+                                       'robot_state_publisher' if 'calibration' in cfg else None),
                   container_image=os.environ.get('RM_DEMO_CONTAINER_IMAGE'),
                   container_image_id=os.environ.get('RM_DEMO_CONTAINER_IMAGE_ID'),
                   ros_distro=os.environ.get('ROS_DISTRO'), domain_id=os.environ.get('ROS_DOMAIN_ID'),
                   launch_arguments=dict(stage=stage, enable_hardware_io=True, session_dir=str(session)))
     (session / f'launch_{stage}_{uuid.uuid4().hex[:8]}.json').write_text(json.dumps(record, indent=2))
-    return [LogInfo(msg=f'Phase 1 acquisition: {stage}. Serial sends heartbeat and disabled zero commands; no Nav2 or motion grant.')] + actions
+    if stage == 'radar_fixed_lio':
+        message = ('Radar-only fixed-gimbal LIO: one MID360, three measured/CAD static TF edges, '
+                   'no serial, STM, GimbalState, chassis attitude, Nav2, Mission, controller or motion grant.')
+    elif 'serial' not in cfg:
+        message = f'Phase 1 acquisition: {stage}. No serial, Nav2 or motion grant.'
+    else:
+        message = (f'Phase 1 acquisition: {stage}. Serial sends heartbeat and disabled zero commands; '
+                   'no Nav2 or motion grant.')
+    return [LogInfo(msg=message)] + actions
 
 
 def generate_launch_description():
     return LaunchDescription([
-        DeclareLaunchArgument('stage', default_value='inventory', choices=['inventory','serial','lidar','tf','fixed_lio']),
+        DeclareLaunchArgument('stage', default_value='inventory',
+                              choices=['inventory','serial','lidar','tf','fixed_lio','radar_fixed_lio']),
         DeclareLaunchArgument('enable_hardware_io', default_value='false', choices=['false','true']),
         DeclareLaunchArgument('session_dir', default_value=''),
         OpaqueFunction(function=setup),
