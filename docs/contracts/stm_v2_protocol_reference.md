@@ -1,4 +1,6 @@
-# RM2027 STM ↔ Host 协议统一参考（源码审计版）
+# RM2027 STM V2 Host Protocol Freeze v1
+
+副标题：STM ↔ Host 协议统一参考（全仓库、跨分支源码审计版）
 
 状态：**Host contract frozen / STM implementation pending / Hardware Go = NO**
 
@@ -12,7 +14,12 @@
 2. `Host-frozen extension`：主机端已实现并有无硬件测试，但尚未由 STM 固件联签/实测；
 3. `Hardware pending`：必须取得固件 revision、原始抓包和真机证据后才能通过。
 
-`0x86 ChassisAttitudeState` 属于第 2 类。本文不能作为 STM 已实现或 Hardware Go 的证据。
+`0x88 ChassisAttitudeState` 属于第 2 类。本文不能作为 STM 已实现或 Hardware Go 的证据。
+
+**Freeze 含义**：Host 侧 V2 envelope、type/capability 分配、payload、CRC、endian、
+lifecycle/timing 和 frame/unit 语义不再随意变更。任何 wire-level 修改必须同时说明
+兼容性，更新 protocol version 或 capability，更新 golden vector，并由 Host/STM 双方
+重新联签。这不是 Hardware Freeze，也不是整个导航系统冻结。
 
 ## 1. 审计范围与权威来源
 
@@ -30,9 +37,34 @@
 | codec/runtime/ACQ tests | `src/rm_serial_driver/test/` |
 | Demo safety/bench/Phase 1 | `src/rm_demo_platform/`、`docs/operations/demo_phase1_checklist.md` |
 
-审计没有在当前运行源码中发现另一套 V2 type registry、Radar 专用 V2 消息、Mission 串口命令，
-也没有发现与 `0x86` 冲突的现有 V2 type。legacy/HPM 是独立 envelope，不共享 V2 type 空间。
-历史研究文档、旧车抓包和候选分支不能覆盖上述当前源码事实。
+本次先用 `--no-recurse-submodules` 刷新了全部 origin heads，再审计每个远程 head、
+`git log --all` 中修改过 V2 registry 的保留祖先、源码、C11 reference、测试和文档。
+首次普通 fetch 暴露了历史 FAST-LIO submodule 引用的已不存在对象；这不改变主仓库
+remote refs，也没有修改 submodule 或工作区。
+
+### 1.1 跨分支占用审计
+
+| 范围 | 审计 commit | 实际 V2 额外占用 | 状态 / 未来 main 可能性 | 冲突结论 |
+| --- | --- | --- | --- | --- |
+| `origin/main` | `d37f8d6e5ebe53533b7fc62aca8bb84392bee31b` | 基础表 `0x01..03,0x81..85` | production host baseline / 已在 main | 无 |
+| `origin/codex/three-source-target-arbitration` | `f09d91fe6c0eb506bc9ea8202310d27a874e816f` | `0x86 RadarTarget`、`0x87 OperatorTarget`，各 35 bytes；bit 6/7 | candidate；有 C++/C11 codec、transport、fixture/runtime tests 和文档，仍有合并价值 | 与旧 Host attitude `0x86`/bit 6 真实冲突 |
+| `origin/integration/demo-navigation-validation` | `de05e0858de078f5e035757f0cc8d48b63f34c52` | 基础表 | historical remote baseline | 无 |
+| 其余 11 个 origin heads（下列） | 各 head | 未超出基础表 | production/candidate/research，但无额外 type | 无 |
+| 保留祖先 `1a592949dcebddaeaaba09cfee9186c8ea94a628` | 初始 registry commit | 基础表 | historical | 无 |
+| 本地 attitude 实现原提交 | `828730903cb5a20fcc4ac9f0b864365b7d3e6f55` | 原使用 `0x86`/bit 6 | superseded by Freeze v1 | 已迁到 `0x88`/bit 8，冲突消除 |
+
+“其余 11 个”为：`codex/confirmed-software-fixes-20261024`、
+`codex/localization-acquisition-provenance`、`codex/needs-evidence-closure-20261024`、
+`codex/rm2027-software-integration-staging-20261024`、
+`codex/zlocalization-upstream-parity-20261024`、`experiment/dynamic-surface-members`、
+`experiment/omni-chassis-feasible-region`、`experiment/time-bounded-safety-lease`、
+`feature/competition-mission-layer-2027`、`feature/posture-aware-motion-constraints-2027`、
+`integration/hws-shadow-substrate`。其中 Mission/STAGE/研究分支均已显式覆盖。
+
+结论：`0x86` 候选不是仅文档或已废弃记录；它有真实实现、测试与未来合并价值。
+STM 尚未实现 chassis attitude，因此 Freeze v1 保留 `0x86/0x87` 给 tactical target 候选，
+将 attitude 迁到全部 heads 和历史 registry 都未占用的 `0x88`/bit 8。legacy/HPM 是独立
+envelope，不共享 V2 type 空间，不得用 legacy type 解读 V2 帧。
 
 ## 2. V2 frame envelope
 
@@ -57,23 +89,34 @@ stream decoder 在版本、长度或 CRC 错误时丢弃一个字节并重新扫
 正确的 type 被完整消费并计数。host buffer 上限 4096 bytes。协议选择必须显式，禁止 malformed
 V2 后自动回退 legacy。
 
-## 3. V2 type 与 capability registry
+## 3. 全项目 V2 type 与 capability registry
 
-| Type | Direction | Name | Payload | Capability |
-| ---: | --- | --- | ---: | ---: |
-| `0x01` | host → STM | ChassisCommand | 13 | bit 0 (`0x00000001`) |
-| `0x02` | host → STM | PostureRequest | 11 | bit 1 (`0x00000002`) |
-| `0x03` | both | Heartbeat | 13 | n/a |
-| `0x81` | STM → host | PostureState | 13 | bit 1 |
-| `0x82` | STM → host | GimbalState | 17 | bit 2 (`0x00000004`) |
-| `0x83` | STM → host | RefereeState | 17 | bit 3 (`0x00000008`) |
-| `0x84` | STM → host | OperatorNavigationTarget | 25 | bit 4 (`0x00000010`) |
-| `0x85` | STM → host | ChassisHeadingState | 19 | bit 5 (`0x00000020`) |
-| `0x86` | STM → host | ChassisAttitudeState | 55 | bit 6 (`0x00000040`) |
+| Type | Direction | Name | Payload / frame | Capability | 状态 | 来源 / 冲突 |
+| ---: | --- | --- | ---: | ---: | --- | --- |
+| `0x00` | 禁止 | invalid/reserved | n/a | n/a | unused/reserved | 不得作为有效消息 type |
+| `0x01` | host → STM | ChassisCommand | 13 / 23 | bit 0 (`0x00000001`) | production host baseline | main/current；无 |
+| `0x02` | host → STM | PostureRequest | 11 / 21 | bit 1 (`0x00000002`) | production host baseline | main/current；无 |
+| `0x03` | both | Heartbeat | 13 / 23 | n/a | production host baseline | main/current；无 |
+| `0x81` | STM → host | PostureState | 13 / 23 | bit 1 | production host baseline | main/current；无 |
+| `0x82` | STM → host | GimbalState | 17 / 27 | bit 2 (`0x00000004`) | production host baseline | main/current；无 |
+| `0x83` | STM → host | RefereeState | 17 / 27 | bit 3 (`0x00000008`) | production host baseline | main/current；无 |
+| `0x84` | STM → host | OperatorNavigationTarget | 25 / 35 | bit 4 (`0x00000010`) | production raw diagnostic | main/current；不等于 target arbiter |
+| `0x85` | STM → host | ChassisHeadingState | 19 / 29 | bit 5 (`0x00000020`) | production host baseline | main/current；无 |
+| `0x86` | STM → host | RadarTarget | 35 / 45 | bit 6 (`0x00000040`) | candidate, reserved | `f09d91f`；保留，不与 attitude 复用 |
+| `0x87` | STM → host | OperatorTarget | 35 / 45 | bit 7 (`0x00000080`) | candidate, reserved | `f09d91f`；保留 |
+| `0x88` | STM → host | ChassisAttitudeState | 55 / 65 | bit 8 (`0x00000100`) | **Host Freeze v1** | current Host；STM pending；无占用冲突 |
+| `0x04..0x80` | 未分配 | reserved | n/a | n/a | unused/reserved | 新分配必须重做跨分支审计 |
+| `0x89..0xff` | 未分配 | reserved | n/a | n/a | unused/reserved | 新分配必须重做跨分支审计 |
 
-`0x86` 与 capability bit 6 是本分支的 **host-frozen recommendation**。STM 团队确认 type、
-bit、字段语义和 golden vector 后才成为双方合同。不得用“最新空闲 type”自行替换；若固件发现
-真实冲突，停止集成并共同修订 registry、codec、测试和本文。
+`0x86/0x87` 候选的 35-byte 共享 payload 为：uint64 source sequence、uint32 target ID、
+uint32 boot ID、uint32 MCU sample time、uint16 TTL、uint8 valid/clear flags、float32 map x/y/yaw。
+它们尚未合入本分支运行码，但已保留，不得用作新消息。`0x84` 的 25-byte
+historical raw target 与这两个 35-byte tactical target 语义不同，不能互解。
+
+`0x88` 与 capability bit 8 是本文冻结的 Host 合同。STM 团队确认 type、bit、字段语义
+和 golden vector 后才成为双方合同。不得用“最新空闲 type”自行替换。
+Capability bits 9..31 未分配，发送方必须保持为 0；未来分配须同步更新
+registry、codec、golden vector/测试和 Host/STM 联签记录。
 
 ## 4. 现有消息逐项定义
 
@@ -135,7 +178,9 @@ gold coin、diagnostic flags、valid。host 根据 robot ID 归一化 self/enemy
 
 25 bytes：command ID、coordinate frame、alliance、valid/has-yaw、x/y/yaw、sample time、TTL。
 `(0,0)` 是合法坐标，不表示无命令。transport 只发布 raw topic；未经过 frame/alliance/TTL、地图
-边界和 mission authority gate 时，不能生成 Nav2 goal。当前没有独立 Radar V2 target 消息。
+边界和 mission authority gate 时，不能生成 Nav2 goal。本分支当前运行码没有独立
+Radar V2 target 消息；跨分支候选已使用 `0x86 RadarTarget`，
+其 ID/bit 已在 Freeze v1 保留，不表示它已合入本分支。
 
 ### 4.8 ChassisHeadingState `0x85`
 
@@ -144,7 +189,7 @@ gold coin、diagnostic flags、valid。host 根据 robot ID 归一化 self/enemy
 boot 是 host 关联的最新 heartbeat。当前 host 未对 heading sample sequence/reset 做完整 replay
 window；只有 stale/heartbeat reboot 失效。
 
-## 5. ChassisAttitudeState `0x86`（host-frozen）
+## 5. ChassisAttitudeState `0x88`（host-frozen）
 
 ### 5.1 Wire layout
 
@@ -191,7 +236,7 @@ payload 55 bytes，完整 frame 65 bytes。所有十个 float 必须 finite。or
 
 只有同时满足下列条件才发布一条 Imu：
 
-1. 已有 nonzero、ready、未超时 heartbeat 和 capability bit 6；
+1. 已有 nonzero、ready、未超时 heartbeat 和 capability bit 8；
 2. `source_boot_id` 等于当前 heartbeat boot；
 3. online、orientation/gyro/acc 三个 valid 位全部为真；
 4. quaternion 和全部标量通过 codec 检查；
@@ -204,7 +249,7 @@ payload 55 bytes，完整 frame 65 bytes。所有十个 float 必须 finite。or
 status。默认 attitude stale timeout 为 0.2 s，现场 manifest 必须显式填写确认值。
 
 frame sequence 与 sample sequence 是两个不同计数器：frame sequence 属于 envelope/发送行为；
-sample sequence 属于传感器采样生命周期。`0x86` host replay gate 使用 sample sequence，不要求两者
+sample sequence 属于传感器采样生命周期。`0x88` host replay gate 使用 sample sequence，不要求两者
 相等，也不靠 packet sequence 替代 source sample identity。
 
 ## 6. 时间与 ACQ provenance
@@ -247,30 +292,41 @@ target distance、life、chassis error、redundancy。target 坐标缺少已确�
 
 | 项目 | 审计发现 | 当前处理 |
 | --- | --- | --- |
-| frame sequence | 旧 V2 文档写“per-type sequence”，发送 fixture 确实分 type；但旧 host handlers 普遍不做 replay 检查 | 本次对 heartbeat 严格检查；`0x86` 用独立 sample seq；gimbal/heading 仍是 limitation |
+| frame sequence | 旧 V2 文档写“per-type sequence”，发送 fixture 确实分 type；但旧 host handlers 普遍不做 replay 检查 | 本次对 heartbeat 严格检查；`0x88` 用独立 sample seq；gimbal/heading 仍是 limitation |
 | heartbeat boot nonzero | 文档要求 nonzero，基线 host 过去接受 zero | 本次 host 拒绝 zero，并测试 retired boot replay |
 | output publish timestamp | 基线 ACQ 有 handler/header/basis，但没有 output publish 观察时刻 | 本次增加 ROS/steady publish-return timestamp |
 | heading boot | ROS 消息带 boot，wire `0x85` 不带 boot | 明确标为 heartbeat 关联值，不宣称 per-sample binding |
-| chassis attitude | 共同合同只有字段提案，wire/host/codec 均无实现 | 本次冻结 `0x86`、C++/C11 codec、Imu/status adapter 和生命周期测试；STM 仍 pending |
-| Radar/mission | 历史说明易把 raw target 与导航目标混用 | 当前源码只有 `0x84` raw target 和 legacy raw target；无 Radar 专用 V2、无 serial mission owner |
+| chassis attitude | 共同合同原只有字段提案，wire/host/codec 均无实现 | 本次冻结 `0x88`、C++/C11 codec、Imu/status adapter 和生命周期测试；STM 仍 pending |
+| Radar/mission | 当前分支运行码只有 `0x84` raw target，但 target 候选分支已真实实现 `0x86/0x87` | 保留候选 ID/bit；不将其偷换为当前分支已上线，也不让 serial 成为 mission owner |
 | watchdog/stop | host 默认 0.2 s 容易被误写成 MCU watchdog | 继续明确为 host software default；实测停车与 re-arm 仍 blocked |
 
-## 10. Golden vector：`0x86`
+## 10. Golden vector：`0x88`
 
 输入：frame seq `0x3344`；q=`[0,0,0,1]`；gyro=`[0.125,-0.25,0.5]`；
 acc=`[0,0,9.80665]`；sample seq=`0x01020304`；tick=`1000`；
 boot=`0x20270001`；reset=`2`；flags=`0x0f`。
 
+预期 55-byte payload（与 message type、frame sequence 和 CRC 无关）：
+
 ```text
-52 4d 02 86 37 00 44 33
 00 00 00 00 00 00 00 00 00 00 00 00 00 00 80 3f
 00 00 00 3e 00 00 80 be 00 00 00 3f
 00 00 00 00 00 00 00 00 0a e8 1c 41
 04 03 02 01 e8 03 00 00 01 00 27 20 02 00 0f
-9d 96
 ```
 
-最后两字节 `9d 96` 是 low-byte-first CRC `0x969d`。canonical C++ 与独立 C11 reference
+预期 65-byte 完整 packet：
+
+```text
+52 4d 02 88 37 00 44 33
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 80 3f
+00 00 00 3e 00 00 80 be 00 00 00 3f
+00 00 00 00 00 00 00 00 0a e8 1c 41
+04 03 02 01 e8 03 00 00 01 00 27 20 02 00 0f
+90 be
+```
+
+最后两字节 `90 be` 是 low-byte-first CRC `0xbe90`。canonical C++ 与独立 C11 reference
 测试都必须逐字节匹配该向量。STM 侧不要复制 host struct；使用参考 codec 或按 offset 写入。
 
 ## 11. STM 联签和 Phase 1A 前置
@@ -278,7 +334,7 @@ boot=`0x20270001`；reset=`2`；flags=`0x0f`。
 STM firmware 状态仍为 **Pending**。进入真机 Phase 1A 前必须提供：
 
 1. firmware repository、commit/version、编译配置和实际 transport profile；
-2. `0x86` type/capability/字段语义联签，C11 golden vector 在 MCU toolchain 通过；
+2. `0x88` type/capability/字段语义联签，C11 golden vector 在 MCU toolchain 通过；
 3. 冷启动、reset/re-zero、uint16/uint32 wrap、duplicate/out-of-order/延迟旧包测试；
 4. q 方向、reference/yaw zero、重力符号、gyro/acc frame、bias/滤波/饱和说明；
 5. 实测 sample rate、允许 jitter/latency/stale threshold、串口带宽；

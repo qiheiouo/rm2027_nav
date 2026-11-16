@@ -7,7 +7,7 @@
 
 本文件是共同确认清单；统一 type/offset/lifecycle 定义以
 [STM V2 统一参考](stm_v2_protocol_reference.md) 和
-`rm_serial_driver/{src,reference/competition_v2}` 为准。`0x86` 已在 host 冻结并实现，但在 STM
+`rm_serial_driver/{src,reference/competition_v2}` 为准。`0x88` 已在 host 冻结并实现，但在 STM
 联签前仍是 host-frozen recommendation，不表示固件已接受。每项确认须附固件 revision、上位机
 revision、配置、抓包/session、STM/导航负责人和日期；更换固件或校准后重新核对受影响项。
 
@@ -21,7 +21,7 @@ revision、配置、抓包/session、STM/导航负责人和日期；更换固件
 | Chassis heading | `0x85` 19 bytes，world yaw/rate/seq/tick/reset_counter/flags | world参考、重置规则；**仅 yaw，不能代替完整姿态** |
 | Chassis command | `0x01` 13 bytes，vx/vy/wz/enabled | 执行符号、限幅、独立 watchdog、实测制动、re-arm |
 | Heartbeat | `0x03` 13 bytes，uptime_ms/boot_id/capabilities/ready | boot 唯一性、tick来源/回绕、ready及掉线定义 |
-| Chassis attitude/IMU | host 已实现 `0x86` 55-byte codec、C11 reference、`/chassis/imu`、status/ACQ、boot/reset/seq/tick fail-closed lifecycle | STM type/bit/语义联签、固件实现、抓包、方向/重力/频率/时延/TF 实测；完成前 Phase 1A 不能整体PASS |
+| Chassis attitude/IMU | host 已实现 `0x88` 55-byte codec、C11 reference、`/chassis/imu`、status/ACQ、boot/reset/seq/tick fail-closed lifecycle | STM type/bit/语义联签、固件实现、抓包、方向/重力/频率/时延/TF 实测；完成前 Phase 1A 不能整体PASS |
 | Motion authority | production 模式始终 disabled；只存在隔离 dry-run test lease | 正式 task/session owner 与实车授权入口尚未实现；不得拿 test lease 上车 |
 
 ## 云台相对底盘 Yaw
@@ -46,7 +46,7 @@ TF只有 `gimbal_state_adapter(use_input=true)` → `/joint_states` → RSP；�
 
 ## 完整底盘姿态 / IMU：Host 冻结合同
 
-host 已固定 `0x86 ChassisAttitudeState`、capability bit 6 和 55-byte payload；逐 offset 定义、
+host 已固定 `0x88 ChassisAttitudeState`、capability bit 8 和 55-byte payload；逐 offset 定义、
 golden vector 和生命周期规则见 [STM 单页实现说明](stm_v2_chassis_attitude_implementation_guide.md)。
 坡道场景必须保留 roll/pitch；禁止用 world yaw 或 `setRPY(0,0,yaw)` 代替。
 
@@ -95,7 +95,7 @@ Posture request是独立执行器路径，不受底盘motion guard同等约束�
 当前MCU映射为 `offset = heartbeat_receive_ROS - uptime_ms`；样本header为
 `offset + mcu_time_ms`。ACQ保存映射版本、heartbeat basis、handler ROS/system/steady时间，
 真实串口另记一批read完成时间。它们不等于逐字节到达时间，不能证明USB时延或MCU时钟已同步。
-`0x86` host 已实现boot/reset/seq/tick replay gate；gimbal/heading旧消息仍没有同等每样本boot绑定。
+`0x88` host 已实现boot/reset/seq/tick replay gate；gimbal/heading旧消息仍没有同等每样本boot绑定。
 当前没有完整host clock step补偿，必须记录并分段分析，不能跨异常拟合。
 
 Livox ACQ保留原始8字节timestamp、time_type、selected timestamp、host fallback、callback

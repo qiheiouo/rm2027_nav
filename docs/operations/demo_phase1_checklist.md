@@ -9,7 +9,7 @@ software bench / ACQ instrumentation通过。此入口不启动Nav2、不发布�
 1. 中心圆盘图纸直径250 mm，四个全向轮外突未知；不得填`robot_radius=0.125`。
    实测整车外包络、轮位置/半径、制动距离、速度/加速度限制、base→yaw轴→MID360→内部IMU完整SE(3)。
 2. 取得STM仓库/commit/version、实际profile、capabilities、CRC golden vectors、baud/rate、watchdog与ESTOP证据。
-   `0x86` host codec/adapter 已准备，但必须按
+   `0x88` host codec/adapter 已准备，但必须按
    [STM 单页说明](../contracts/stm_v2_chassis_attitude_implementation_guide.md)完成固件联签、实现和抓包。
    若不是competition_v2，**停止该串口入口**，先按实际协议联合确认，不自动探测/回退。
 3. MiniPC宿主Ubuntu24.04/26.04待核实；容器复用Humble依赖，宿主仍决定kernel、USB权限、网卡地址、
@@ -97,7 +97,7 @@ ros2 run rm_demo_platform demo_observe.py \
 | 固件 / profile / CRC | 固件identity + 原始抓包 + 正常/损坏帧统计；上位机codec过测不能替代MCU抓包 |
 | boot / reset | 冷启动、STM reset、host/transport重启；记录前后boot、seq、tick、reset与缓存清空，无旧样本冒入新epoch |
 | relative yaw | 手动转动/静止/跨wrap，比较已知机械方向与角度；valid/online/断流如合同；记录source stamp/ROS stamp |
-| chassis attitude | host 已固定`0x86`并记录`/chassis/imu`与`/chassis/attitude_status`；验证倾斜roll/pitch、q方向、specific-force gravity、boot/reset/seq/tick、valid/offline/stale；**STM固件与实测仍PENDING，A当前不可整体PASS** |
+| chassis attitude | host 已固定`0x88`并记录`/chassis/imu`与`/chassis/attitude_status`；验证倾斜roll/pitch、q方向、specific-force gravity、boot/reset/seq/tick、valid/offline/stale；**STM firmware implementation + hardware joint verification pending**，A当前不可整体PASS |
 | MID360点云 / IMU | 单颗真实ID/固件/SDK JSON、time_type、raw timestamp、host fallback、IMU物理frame lineage；禁止用改frame_id代替旋转 |
 | 时间 / 丢包 | `observations.json`给接收频率、最大间隔、stamp非递增、序号缺口、trace incomplete与事件；按source/epoch分析ACQ，不能把计数缺口直接等同网络丢包率 |
 | TF | RSP独占base→gimbal→MID→IMU；检查所有边及发布者；A无map→odom/odom→base owner，不用stub补齐 |
@@ -176,6 +176,6 @@ A–E全部通过才填写并启用Demo专用参数；复用现有Nav2/MPPI和�
 
 保留bag、原始抓包、同目录metadata/配置/观察结果和最小关键证据；不提交生成文件至Git。
 人工填写case result、notes、故障原因、安全证据和后续动作。采集软件通过 ≠ Hardware Go。
-实物到位且确认固件/profile/电机物理禁能、MID360网络和`0x86`联签实现后，可从1A的只读接线、
+实物到位且确认固件/profile/电机物理禁能、MID360网络和`0x88`联签实现后，可从1A的只读接线、
 preflight和采集开始。host 侧已不再缺完整姿态载荷，但 STM 固件、安装标定、抓包与真机数据仍是
 完整1A通过条件；缺任一项只能标 `Ready with Limitations`，不得授予 Hardware Go。

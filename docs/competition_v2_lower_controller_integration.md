@@ -16,10 +16,10 @@ advertise capability bit 5 and populate yaw, yaw rate, sample sequence, MCU
 time and `reset_counter`. Increment `reset_counter` on every INS re-zero that
 does not reboot the MCU; heartbeat `boot_id` covers MCU restarts.
 
-The host-frozen full-attitude extension is `0x86`, capability bit 6. Its exact
+The host-frozen full-attitude extension is `0x88`, capability bit 8. Its exact
 55-byte layout, per-sample boot/reset lifecycle and fixed golden vector are in
 [`contracts/stm_v2_chassis_attitude_implementation_guide.md`](contracts/stm_v2_chassis_attitude_implementation_guide.md).
-Do not advertise bit 6 until the STM implementation and validity behavior are ready.
+Do not advertise bit 8 until the STM implementation and validity behavior are ready.
 
 It is C11-compatible, uses explicit byte encoding, and has no packed-struct
 wire dependency. The canonical C++ and reference C codecs share golden-vector

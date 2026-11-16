@@ -26,7 +26,7 @@ protocol.
   `/chassis/imu` stream. It carries boot/reset/sample/tick/epoch and stale reason,
   never substitute quaternion or acceleration values.
 - `V2TimestampProvenance` records the diagnostic handler/heartbeat/output timing
-  chain and raw `0x86` values; it is not a clock correction or localization input.
+  chain and raw `0x88` values; it is not a clock correction or localization input.
 - `SerialConnectionState` reports protocol version, peer capabilities/restart,
   freshness and parser counters without granting mission authority.
 - `SetMissionMode` is the explicit enable/mode gate for competition mission

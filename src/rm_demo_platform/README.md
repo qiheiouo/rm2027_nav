@@ -2,7 +2,7 @@
 
 本包属于 `integration/demo-navigation-validation`。提供 **无硬件软件 bench、ACQ与默认禁用的Phase 1采集入口**，
 用于组合现有 V2 codec/transport、直接相对 Yaw、host端完整底盘姿态adapter、RSP、LIO adapter；
-真实 STM `0x86` 固件、机械外参和运动授权仍待确认。
+真实 STM `0x88` 固件、机械外参和运动授权仍待确认。
 [完整审计与分阶段准入](../../docs/validation/demo_navigation_integration_20261111.md)。
 
 ## 运行

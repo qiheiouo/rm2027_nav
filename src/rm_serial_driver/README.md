@@ -45,7 +45,7 @@ coordinate conversion and mission authority remain outside the serial driver.
 
 See `docs/contracts/serial_protocol_2027.md` for the known legacy layout and the unresolved four-wheel feedback requirements.
 See `docs/contracts/stm_v2_protocol_reference.md` for the source-audited registry,
-host-frozen `0x86` contract and known limitations; see
+host-frozen `0x88` contract and known limitations; see
 `docs/competition_v2_protocol.md` for the older detailed V2 overview and
 `docs/competition_v2_lower_controller_integration.md` for firmware integration.
 

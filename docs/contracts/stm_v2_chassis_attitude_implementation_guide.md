@@ -1,13 +1,13 @@
-# 给 STM 组：V2 底盘姿态 `0x86` 实现单页说明
+# 给 STM 组：V2 底盘姿态 `0x88` 实现单页说明
 
 状态：**等待 STM 联签与固件实现；Hardware Go = NO**。完整定义见
 [STM V2 统一参考](stm_v2_protocol_reference.md)。本页只用于固件实现对齐，不能替代抓包/实测。
 
 ## 需要实现什么
 
-- V2 type：`0x86`，STM → host；capability bit 6 (`1u << 6`)；payload 55 bytes。
-- heartbeat 必须使用非零、每次真实重启改变的 `boot_id`，并宣告 bit 6。
-- 每一条 `0x86` 自带相同 `source_boot_id`，不能让旧 boot 缓冲包在新 boot 后发出。
+- V2 type：`0x88`，STM → host；capability bit 8 (`1u << 8`)；payload 55 bytes。
+- heartbeat 必须使用非零、每次真实重启改变的 `boot_id`，并宣告 bit 8。
+- 每一条 `0x88` 自带相同 `source_boot_id`，不能让旧 boot 缓冲包在新 boot 后发出。
 - 使用仓库 C11 reference：
   `src/rm_serial_driver/reference/competition_v2/competition_v2_codec.{h,c}`，入口
   `rmcv2_encode_chassis_attitude_state()`。不要直接发送编译器 struct。
@@ -31,7 +31,7 @@ reference frame、yaw 零点、安装轴、是否做 bias 补偿必须在联签�
 
 ## 计数与故障规则
 
-- `frame sequence`：uint16，`0x86` 自己独立递增；它不是 sample sequence。
+- `frame sequence`：uint16，`0x88` 自己独立递增；它不是 sample sequence。
 - `sample_sequence`：每个新传感器样本 uint32 递增；重复发送同一样本不能伪装成新 sample。
 - `mcu_time_ms`：采样点时间，不是 UART 发送时间。
 - `reset_counter`：姿态估计器 reinit/re-zero 时 uint16 递增；该新 epoch 允许 sample/time 重新开始。
@@ -46,19 +46,28 @@ reference frame、yaw 零点、安装轴、是否做 bias 补偿必须在联签�
 acc=`[0,0,9.80665]`；sample seq=`0x01020304`；time=`1000`；
 boot=`0x20270001`；reset=`2`；flags=`0x0f`。
 
-完整 65-byte frame 必须是：
+预期 55-byte payload 必须是：
 
 ```text
-52 4d 02 86 37 00 44 33
 00 00 00 00 00 00 00 00 00 00 00 00 00 00 80 3f
 00 00 00 3e 00 00 80 be 00 00 00 3f
 00 00 00 00 00 00 00 00 0a e8 1c 41
 04 03 02 01 e8 03 00 00 01 00 27 20 02 00 0f
-9d 96
+```
+
+完整 65-byte frame 必须是：
+
+```text
+52 4d 02 88 37 00 44 33
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 80 3f
+00 00 00 3e 00 00 80 be 00 00 00 3f
+00 00 00 00 00 00 00 00 0a e8 1c 41
+04 03 02 01 e8 03 00 00 01 00 27 20 02 00 0f
+90 be
 ```
 
 CRC 是 CRC16/Modbus，poly `0xA001`、init `0xffff`，覆盖 version 到 payload，排除 `52 4d`，
-低字节先发；因此本向量 CRC 数值为 `0x969d`，wire 为 `9d 96`。
+低字节先发；因此本向量 CRC 数值为 `0xbe90`，wire 为 `90 be`。
 
 ## STM 提交验收材料
 
@@ -69,4 +78,4 @@ CRC 是 CRC16/Modbus，poly `0xA001`、init `0xffff`，覆盖 version 到 payloa
 5. 静止、已知 roll/pitch、绕三轴转动时 q/gyro/acc 对照；
 6. 实测频率、最大间隔、端到端时延、带宽和 fault/valid 恢复规则。
 
-Phase 1A 前仍保持电机物理禁能，只允许状态接收。`0x86` 通过不代表运动协议通过。
+Phase 1A 前仍保持电机物理禁能，只允许状态接收。`0x88` 通过不代表运动协议通过。
