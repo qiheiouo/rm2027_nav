@@ -94,11 +94,15 @@ the two profiles may not run in one ROS domain.
 
 The user-supplied external values are CAD nominal, not final calibrated
 extrinsics. The MID360 internal LiDAR/IMU transform is a separate edge and
-cannot be inferred from the external STEP assembly. Until a vendor/device
-definition or calibration confirms it, the profile must remain blocked with
-`PENDING_INTERNAL_IMU_EXTRINSIC_CONFIRMATION`. Livox SDK mechanical extrinsics
-remain identity; FAST-LIO receives the confirmed inverse internal transform in
-its own required parameter convention.
+cannot be inferred from the external STEP assembly. Livox Mid-360 User Manual
+v1.2 states that the IMU axes have the same directions as the point-cloud axes
+and that the IMU chip position in point-cloud coordinates is
+`[0.011, 0.02329, -0.04412] m`. Therefore the public static edge
+`mid360_left_frame -> lio_imu_link` uses that translation and identity rotation.
+Livox SDK mechanical extrinsics remain identity; FAST-LIO receives the inverse
+internal transform `[-0.011, -0.02329, 0.04412] m` with identity rotation in
+its LiDAR-pose-in-IMU convention. A session override still requires a vendor or
+measured source and must fail closed if it returns to an unconfirmed state.
 
 ## Phase 1 map_odom_stub
 

@@ -339,7 +339,13 @@ def test_repository_cad_nominal_values_match_user_geometry():
     assert cal['gimbal_to_mid360_left_cad_nominal']['rpy_rad'] == [0.0, 0.523599, 1.570796]
     assert cal['gimbal_to_mid360_right_cad_nominal']['xyz_m'] == [0.0, -0.132028, 0.1]
     assert cal['gimbal_to_mid360_right_cad_nominal']['rpy_rad'] == [0.0, -0.523599, 1.570796]
-    assert cal['mid360_to_imu']['confidence'] == 'PENDING_INTERNAL_IMU_EXTRINSIC_CONFIRMATION'
+    assert cal['mid360_to_imu']['xyz_m'] == [0.011, 0.02329, -0.04412]
+    assert cal['mid360_to_imu']['rpy_rad'] == [0.0, 0.0, 0.0]
+    assert cal['mid360_to_imu']['confidence'] == 'VENDOR_CONFIRMED'
+    assert cal['mid360_to_imu']['confirmed_for_phase1'] is True
+    mapping = read(REPO / 'src/rm_lio_bringup/config/fast_lio_multi_single_mid360.yaml')['/**']['ros__parameters']['mapping']
+    assert mapping['extrinsic_T'] == [-0.011, -0.02329, 0.04412]
+    assert mapping['extrinsic_R'] == [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
 
 
 def test_radar_only_session_has_no_serial_or_stm_requirements(config, tmp_path):

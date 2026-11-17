@@ -21,9 +21,9 @@
   `gimbal_yaw_link -> mid360_right_frame`。必须包含平移和完整 roll/pitch/yaw。
 - [ ] 根据 MID360 正方向和出线方向确认左右雷达 frame；不能只按“朝左/朝右、上倾约
   45 度”填写旋转。
-- [ ] 确认 `lio_imu_link` 与被选中 MID360 内置 IMU 的实际轴方向。当前
-  `imu_frame_adapter` 只改 `frame_id`，不旋转测量值；只有原始数据轴已与该 frame
-  一致时才成立。
+- [x] 按 Livox Mid-360 User Manual v1.2 确认内置 IMU 三轴方向与点云坐标相同，
+  IMU 原点在点云坐标中为`[0.011,0.02329,-0.04412] m`。`imu_frame_adapter`仍只改
+  `frame_id`、不旋转测量值；每颗实机仍需用重力方向/人工转动复核轴向和正号。
 - [ ] 若安装底盘 IMU，实测 `base_link -> base_imu_link`；未安装则从实车 description
   中禁用该 frame 和相关输入。
 - [ ] 检查全系统每段 TF 只有一个发布者，FAST-LIO quarantine topic 不得进入 `/tf`。
@@ -49,8 +49,9 @@
 
 ## C. LIO 与云台运动
 
-- [ ] 确认 MID360 内置 IMU 到雷达测量坐标系的外参来源；零外参仅为 Phase 2A
-  编译占位。
+- [x] MID360 内置 IMU到点云坐标的vendor nominal来源已固定为Livox Mid-360 User
+  Manual v1.2：LiDAR→IMU平移`[0.011,0.02329,-0.04412] m`、单位旋转；FAST-LIO
+  使用逆变换。实机运行结果与毫米级个体差异仍需单独验收。
 - [ ] 双雷达模式下标定第二雷达相对第一雷达或共同 IMU 的 6DoF 外参；不得使用
   2026 旧车数值。
 - [ ] 依次验证 FAST-LIO Multi 的 single/dual、bundle/async/adaptive 组合，并记录

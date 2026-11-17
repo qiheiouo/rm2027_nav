@@ -33,11 +33,15 @@ gimbal_to_mid360_right_cad_nominal:
   confidence: CAD_NOMINAL
   confirmed_for_phase1: true
 mid360_to_imu:
-  xyz_m: null
-  rpy_rad: null
-  source: pending_vendor_definition_or_device_specific_calibration
-  confidence: PENDING_INTERNAL_IMU_EXTRINSIC_CONFIRMATION
-  confirmed_for_phase1: false
+  # Livox Mid-360 User Manual v1.2 (2024-04), "IMU Data": the IMU axes
+  # have the same directions as the point-cloud coordinates, and the IMU
+  # chip position in point-cloud coordinates is (11.0, 23.29, -44.12) mm.
+  # This edge is parent point-cloud/LiDAR frame -> child internal IMU frame.
+  xyz_m: [0.011, 0.02329, -0.04412]
+  rpy_rad: [0.0, 0.0, 0.0]
+  source: Livox_Mid360_User_Manual_v1.2_2024-04_IMU_Data
+  confidence: VENDOR_CONFIRMED
+  confirmed_for_phase1: true
 chassis_imu_to_base:
   xyz_m: null
   rpy_rad: null

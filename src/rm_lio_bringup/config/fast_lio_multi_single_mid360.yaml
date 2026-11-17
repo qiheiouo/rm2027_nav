@@ -44,9 +44,11 @@
       extrinsic_est_en: false
       extrinsic_imu_to_lidars: false
 
-      # Phase 2A placeholders only. Replace with the selected MID360's
-      # verified internal IMU-to-lidar calibration before hardware use.
-      extrinsic_T: [0.0, 0.0, 0.0]
+      # FAST-LIO defines this as the LiDAR pose in the IMU body frame.
+      # Livox Mid-360 User Manual v1.2 gives the IMU position in the point-cloud
+      # frame as [0.011, 0.02329, -0.04412] m with identical axis directions;
+      # this is its inverse T_imu_lidar. SDK mechanical extrinsic stays identity.
+      extrinsic_T: [-0.011, -0.02329, 0.04412]
       extrinsic_R: [1.0, 0.0, 0.0,
                     0.0, 1.0, 0.0,
                     0.0, 0.0, 1.0]

@@ -3,7 +3,8 @@
 本包属于 `integration/demo-navigation-validation`。提供 **无硬件软件 bench、ACQ与默认禁用的Phase 1采集入口**，
 用于组合现有 V2 codec/transport、直接相对 Yaw、host端完整底盘姿态adapter、RSP、LIO adapter；
 另有独立 `radar_fixed_lio` 单 MID360 固定云台入口，它不读取STM、不启动串口且不具备运动授权。
-真实 STM `0x88` 固件、MID360内部LiDAR/IMU外参和运动授权仍待确认。
+真实 STM `0x88` 固件和运动授权仍待确认；MID360内部LiDAR/IMU nominal外参已按Livox官方手册确认，
+实机运行结果仍需独立验收。
 [完整审计与分阶段准入](../../docs/validation/demo_navigation_integration_20261111.md)。
 
 ## 运行
@@ -86,14 +87,15 @@ serial、Competition V2、`GimbalState`、chassis attitude、Nav2、Mission或co
 | `base_link -> yaw axis` | `[0, 0, 0.103]` | `[0, 0, 0]` | 用户STEP几何 + 圆盘底面离地0.043 m；CAD nominal |
 | `yaw axis -> MID360` 左装 | `[0, +0.132028, 0.100000]` | `[0, +0.523599, +1.570796]` | 用户STEP；CAD nominal |
 | `yaw axis -> MID360` 右装 | `[0, -0.132028, 0.100000]` | `[0, -0.523599, +1.570796]` | 用户STEP；CAD nominal |
-| `MID360 -> internal IMU` | 未填写 | 未填写 | `PENDING_INTERNAL_IMU_EXTRINSIC_CONFIRMATION` |
+| `MID360 -> internal IMU` | `[0.011, 0.02329, -0.04412]` | `[0, 0, 0]` | Livox Mid-360 User Manual v1.2；vendor-confirmed nominal |
 
 `demo_radar_only.yaml`必须选择实际 `LEFT`/`RIGHT` 安装侧、确认机械锁止、填写锁止角和方法。
 固定模式用三个唯一static TF owner发布
 `base_link -> gimbal_yaw_link -> mid360_left_frame -> lio_imu_link`；第一条边按
 `T_base_axis * Rz(locked_angle)`做完整SE(3)组合，不使用简单的RPY yaw相加。
 SDK JSON机械外参必须保持identity；FAST-LIO的`extrinsic_T/R`必须等于
-`MID360 -> IMU`的逆变换，避免猜测或方向误用。内部外参未确认时入口按设计拒绝启动。
+`MID360 -> IMU`的逆变换，即平移`[-0.011, -0.02329, 0.04412]`、单位旋转，避免方向误用。
+若session覆盖该值，仍必须提供vendor或实测来源；未确认时入口按设计拒绝启动。
 
 准备方式：
 

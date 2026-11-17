@@ -160,8 +160,9 @@ RM_DEMO_ENABLE_HARDWARE_IO=1 ROS_DOMAIN_ID="$DEMO_DOMAIN" \
 此profile的manifest必须记录`mechanically_locked_gimbal_confirmed`、`locked_gimbal_angle_rad`、
 `lock_method`和`calibration_revision`。实际装在右侧时仍可保留历史逻辑frame名，但必须选择`RIGHT`
 CAD边并在session中记录物理安装；不得同时启动或伪造第二颗雷达。其TF owner是三个static publisher，
-不存在RSP/gimbal adapter的重复边；无`/joint_states`和stale dynamic TF。内部外参仍处于
-`PENDING_INTERNAL_IMU_EXTRINSIC_CONFIRMATION`时preflight必定失败，这是准入阻塞而不是identity默认值。
+不存在RSP/gimbal adapter的重复边；无`/joint_states`和stale dynamic TF。仓库默认内部边采用Livox
+Mid-360 User Manual v1.2给出的LiDAR→IMU平移`[0.011,0.02329,-0.04412] m`和单位旋转；FAST-LIO
+使用其逆变换。若session把该边恢复为未确认状态，preflight仍必须失败，不能退回identity猜测。
 
 ## 1D. 重定位（无运动授权）
 
