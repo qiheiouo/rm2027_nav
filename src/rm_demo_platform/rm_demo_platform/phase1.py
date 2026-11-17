@@ -148,7 +148,8 @@ def _validate_calibration(root, radar_only=False):
             finite_vector(cal, edge, 'xyz_m')
             finite_vector(cal, edge, 'rpy_rad')
             confirmed(cal[edge], 'confirmed_for_phase1')
-            if cal[edge].get('confidence') not in ('CAD_NOMINAL', 'MEASURED', 'CALIBRATED'):
+            if cal[edge].get('confidence') not in (
+                    'CAD_NOMINAL', 'CAD_NOMINAL_RVIZ_VALIDATED', 'MEASURED', 'CALIBRATED'):
                 raise NotReady(f'{edge}.confidence: explicit CAD/measured status required')
         # The external CAD nominal does not define the MID360 internal IMU transform.
         # Do not silently turn the driver's frame-id rewrite into an identity calibration.

@@ -1,5 +1,6 @@
 """No devices: reject unknown physical inputs, preserve measurements and capture evidence."""
 import importlib.util
+import math
 from pathlib import Path
 import shutil
 import subprocess
@@ -331,14 +332,20 @@ def test_locked_gimbal_uses_se3_rotation_composition():
     assert locked_gimbal_transforms(calibration, 0.0, 'RIGHT')[1]['xyz'][1] == -0.1
 
 
-def test_repository_cad_nominal_values_match_user_geometry():
+def test_repository_phase1_extrinsics_match_sources_and_live_axis_validation():
     cal = read(ROOT / 'config/demo_calibration.yaml')
+    assert cal['revision'] == 'demo-mid360-right-rviz-validated-nominal-v2'
     assert cal['ground_to_lowest_circular_plate_bottom_m'] == 0.043
     assert cal['base_to_yaw_axis']['xyz_m'] == [0.0, 0.0, 0.103]
     assert cal['gimbal_to_mid360_left_cad_nominal']['xyz_m'] == [0.0, 0.132028, 0.1]
     assert cal['gimbal_to_mid360_left_cad_nominal']['rpy_rad'] == [0.0, 0.523599, 1.570796]
     assert cal['gimbal_to_mid360_right_cad_nominal']['xyz_m'] == [0.0, -0.132028, 0.1]
-    assert cal['gimbal_to_mid360_right_cad_nominal']['rpy_rad'] == [0.0, -0.523599, 1.570796]
+    assert cal['gimbal_to_mid360_right_cad_nominal']['rpy_rad'] == [0.523599, 0.0, 0.0]
+    assert cal['gimbal_to_mid360_right_cad_nominal']['confidence'] == 'CAD_NOMINAL_RVIZ_VALIDATED'
+    right = locked_gimbal_transforms(cal, 0.0, 'RIGHT')[1]
+    assert right['xyz'] == [0.0, -0.132028, 0.1]
+    assert right['quaternion'] == pytest.approx(
+        (math.sin(0.523599 / 2.0), 0.0, 0.0, math.cos(0.523599 / 2.0)), abs=1e-12)
     assert cal['mid360_to_imu']['xyz_m'] == [0.011, 0.02329, -0.04412]
     assert cal['mid360_to_imu']['rpy_rad'] == [0.0, 0.0, 0.0]
     assert cal['mid360_to_imu']['confidence'] == 'VENDOR_CONFIRMED'

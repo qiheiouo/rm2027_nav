@@ -93,7 +93,14 @@ must replace this owner set when timestamped STM relative yaw is available;
 the two profiles may not run in one ROS domain.
 
 The user-supplied external values are CAD nominal, not final calibrated
-extrinsics. The MID360 internal LiDAR/IMU transform is a separate edge and
+extrinsics. For the current physical RIGHT installation, the CAD translation
+`[0, -0.132028, 0.100000] m` is retained while the point-cloud-frame rotation
+is `[+0.523599, 0, 0] rad`. On 2026-11-17 raw IMU gravity and the fitted floor
+plane established roll/pitch; an RViz clicked point on the physical right at
+`base_link` coordinates approximately `[-0.060, -1.169, +0.472] m` confirmed
+`+X` forward and `-Y` right. This is a Phase 1 validated nominal, not final
+millimetre calibration, and it does not validate or infer the LEFT installation.
+The MID360 internal LiDAR/IMU transform is a separate edge and
 cannot be inferred from the external STEP assembly. Livox Mid-360 User Manual
 v1.2 states that the IMU axes have the same directions as the point-cloud axes
 and that the IMU chip position in point-cloud coordinates is

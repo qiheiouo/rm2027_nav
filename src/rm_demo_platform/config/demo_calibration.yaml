@@ -1,8 +1,8 @@
 # Phase 1 input manifest, NOT a ROS parameter file.
 # External values are the user-approved CAD nominal extrinsic, not final calibration.
-revision: demo-mid360-cad-nominal-v1
+revision: demo-mid360-right-rviz-validated-nominal-v2
 measured: false
-status: CAD_NOMINAL
+status: CAD_NOMINAL_WITH_RIGHT_INSTALLATION_RVIZ_VALIDATION
 coordinate_convention: REP-103_x_forward_y_left_z_up_m_rad
 base_link_origin: ground_projected_vehicle_yaw_center
 ground_to_lowest_circular_plate_bottom_m: 0.043
@@ -28,9 +28,13 @@ gimbal_to_mid360_left_cad_nominal:
   confirmed_for_phase1: true
 gimbal_to_mid360_right_cad_nominal:
   xyz_m: [0.0, -0.132028, 0.100000]
-  rpy_rad: [0.0, -0.523599, 1.570796]
-  source: user_STEP_geometry_right_installation
-  confidence: CAD_NOMINAL
+  # The translation remains the user-supplied STEP nominal. The rotation is
+  # the same physical mounting expressed in the live Livox point-cloud frame:
+  # gravity/floor consistency fixed roll/pitch, then a clicked object on the
+  # physical right side confirmed REP-103 x-forward/y-left in RViz.
+  rpy_rad: [0.523599, 0.0, 0.0]
+  source: user_STEP_translation_plus_20261117_raw_gravity_floor_and_RViz_axis_validation
+  confidence: CAD_NOMINAL_RVIZ_VALIDATED
   confirmed_for_phase1: true
 mid360_to_imu:
   # Livox Mid-360 User Manual v1.2 (2024-04), "IMU Data": the IMU axes

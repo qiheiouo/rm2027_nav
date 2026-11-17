@@ -86,7 +86,7 @@ serial、Competition V2、`GimbalState`、chassis attitude、Nav2、Mission或co
 | --- | --- | --- | --- |
 | `base_link -> yaw axis` | `[0, 0, 0.103]` | `[0, 0, 0]` | 用户STEP几何 + 圆盘底面离地0.043 m；CAD nominal |
 | `yaw axis -> MID360` 左装 | `[0, +0.132028, 0.100000]` | `[0, +0.523599, +1.570796]` | 用户STEP；CAD nominal |
-| `yaw axis -> MID360` 右装 | `[0, -0.132028, 0.100000]` | `[0, -0.523599, +1.570796]` | 用户STEP；CAD nominal |
+| `yaw axis -> MID360` 右装 | `[0, -0.132028, 0.100000]` | `[+0.523599, 0, 0]` | STEP平移 + 2026-11-17重力/地面/RViz方向验证；validated nominal |
 | `MID360 -> internal IMU` | `[0.011, 0.02329, -0.04412]` | `[0, 0, 0]` | Livox Mid-360 User Manual v1.2；vendor-confirmed nominal |
 
 `demo_radar_only.yaml`必须选择实际 `LEFT`/`RIGHT` 安装侧、确认机械锁止、填写锁止角和方法。
@@ -96,6 +96,10 @@ serial、Competition V2、`GimbalState`、chassis attitude、Nav2、Mission或co
 SDK JSON机械外参必须保持identity；FAST-LIO的`extrinsic_T/R`必须等于
 `MID360 -> IMU`的逆变换，即平移`[-0.011, -0.02329, 0.04412]`、单位旋转，避免方向误用。
 若session覆盖该值，仍必须提供vendor或实测来源；未确认时入口按设计拒绝启动。
+
+右装旋转不是最终毫米级标定。原STEP RPY直接解释为Livox点云frame后，实测会造成水平
+`90 deg`方向错误；当前值用原始IMU重力和地面平面确定roll/pitch，再用`base_link`下的
+点击点验证车头为`+X`、右侧为`-Y`。左装仍仅为未上车验证的CAD nominal，不从右装镜像推断。
 
 准备方式：
 

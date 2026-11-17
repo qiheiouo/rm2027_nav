@@ -17,7 +17,7 @@ motion_authorization: false
 mechanically_locked_gimbal_confirmed: false
 locked_gimbal_angle_rad: null
 lock_method: null
-calibration_revision: demo-mid360-cad-nominal-v1
+calibration_revision: demo-mid360-right-rviz-validated-nominal-v2
 
 dynamic_tf_status: PREPARED / BLOCKED_BY_STM
 notes: null
